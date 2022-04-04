@@ -1,0 +1,64 @@
+:host {
+    display: block;
+    height: 100%;
+}
+.container {
+    margin: 0 auto;
+    height: 100%;
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    
+    .chat {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        
+        & > * {
+            width: 100%;
+        }
+    }
+    
+    .form-group {
+        margin: 30px;
+        width: 100%;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        
+        input, button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 0;
+            outline: 0;
+            background: var(--primary-700);
+            color: var(--primary-100);
+            transition: all 160ms;
+        }
+        input {
+            width: 100%;
+            border: 1px solid transparent;
+
+            &::placeholder {
+                color: hsl(var(--primary-hue), 100%, 30%);
+            }
+        }
+        input:focus {
+            border: 1px solid var(--primary-100);
+        }
+        button {
+            padding-inline: 20px;
+            margin-left: 10px;
+        }
+        button:hover {
+            background: var(--primary-100);
+            color: var(--primary-900);
+        }
+    }
+}

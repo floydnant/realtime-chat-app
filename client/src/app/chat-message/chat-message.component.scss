@@ -1,0 +1,57 @@
+:host {
+    display: block;
+}
+.container {
+    width: fit-content;
+    margin-top: 10px;
+    
+    &.user {
+        margin: 10px auto 0;
+        padding: 5px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--primary-400);
+        background: var(--primary-800);
+    }
+    &.chat-message {
+        max-width: 70%;
+        border-radius: 18px;
+        padding: 10px;
+        
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        background: var(--primary-700);
+        // animation: appear 200ms cubic-bezier(0.6, -0.28, 0.735, 0.045);
+        animation: appear 300ms cubic-bezier(0.680, -0.550, 0.265, 1.550);
+        transform-origin: top left;
+        
+        &.is-me {
+            transform-origin: top right;
+            background: var(--primary-100);
+            color: var(--primary-900);
+            float: right;
+        }
+    }
+
+
+    .user {
+        opacity: 0.6;
+        margin-left: 10px;
+        font-size: 11px;
+
+        span {
+            float: right;
+        }
+    }
+}
+
+@keyframes appear {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}

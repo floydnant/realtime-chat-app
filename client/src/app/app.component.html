@@ -1,0 +1,22 @@
+<div class="container">
+    <div class="chat">
+        <chat-message
+            *ngFor="let message of messages"
+            [variant]="message.type"
+            [message]="message.text"
+            [username]="message.username"
+            [isMe]="message.isMe || false"
+        ></chat-message>
+    </div>
+    <div class="form-group">
+        <input
+            type="text"
+            placeholder="message"
+            [(ngModel)]="newMessage"
+            (keydown.Enter)="sendMessage()"
+        />
+        <button (click)="sendMessage()">Send</button>
+    </div>
+</div>
+               
+            

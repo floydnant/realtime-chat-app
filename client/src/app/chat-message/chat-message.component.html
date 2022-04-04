@@ -1,0 +1,6 @@
+<div class="container {{variant.replace(' ', '-')}}" [class.is-me]="isMe">
+    <span class="message">{{ message }}</span>
+    <div *ngIf="variant != 'user'" class="user">
+        <span>{{ username || "anonymus" }}</span>
+    </div>
+</div>
