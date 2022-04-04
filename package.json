@@ -4,12 +4,15 @@
     "description": "a test project for trying out web sockets with Angular and NestJS",
     "main": "index.js",
     "scripts": {
-        "build": "concurrently \"cd client && npm run build\" \"cd server && npm run build\"",
+        "build": "concurrently \"cd client && npm i && npm run build\" \"cd server && npm i && npm run build\"",
         "start": "cd server && npm run start"
     },
     "author": "Floyd Haremsa",
     "license": "ISC",
     "dependencies": {
         "concurrently": "^7.1.0"
+    },
+    "engines": {
+        "node": "14.x"
     }
 }
