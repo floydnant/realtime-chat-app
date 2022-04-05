@@ -4,7 +4,8 @@
     "description": "a test project for trying out web sockets with Angular and NestJS",
     "main": "index.js",
     "scripts": {
-        "build": "concurrently \"cd client && npm run build\" \"cd server && npm run build\"",
+        "postinstall": "npm install --prefix server && npm install --prefix client",
+        "build": "concurrently \"cd client; npm run build\" \"cd server; npm run build\"",
         "start": "cd server && npm run start"
     },
     "author": "Floyd Haremsa",
