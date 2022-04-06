@@ -9,7 +9,7 @@
         "node": "14.x"
     },
     "scripts": {
-        "postinstall": "npm install --prefix frontend",
+        "postinstall": "cd frontend; npm install",
         "prebuild": "rimraf dist",
         "build": "nest build",
         "postbuild": "cd frontend; ng build",
