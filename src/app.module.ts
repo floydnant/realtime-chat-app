@@ -11,7 +11,7 @@ import { ExampleGateway } from './example.gateway';
         ServeStaticModule.forRoot({
             rootPath: join(
                 __dirname,
-                '../../client/dist/realtime-chat-app-client',
+                '../../frontend/dist/realtime-chat-app-client',
             ),
             // rootPath: join(__dirname, '../static'),
         }),
