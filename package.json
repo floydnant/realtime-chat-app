@@ -11,7 +11,7 @@
     "scripts": {
         "postinstall": "cd frontend; npm install",
         "prebuild": "rimraf dist",
-        "build": "npm install; nest build",
+        "build": "nest build",
         "postbuild": "cd frontend; ng build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
