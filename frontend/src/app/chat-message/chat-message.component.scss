@@ -4,7 +4,7 @@
 .container {
     width: fit-content;
     margin-top: 10px;
-    
+
     &.user {
         margin: 10px auto 0;
         padding: 5px;
@@ -12,29 +12,66 @@
         font-size: 12px;
         color: var(--primary-400);
         background: var(--primary-800);
+
+        transform-origin: top center;
+        animation: appear 150ms ease-in-out;
     }
-    &.chat-message {
+    &:is(.chat-message, .typing) {
         max-width: 70%;
         border-radius: 18px;
         padding: 10px;
-        
+
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         flex-wrap: wrap;
         background: var(--primary-700);
         // animation: appear 200ms cubic-bezier(0.6, -0.28, 0.735, 0.045);
-        animation: appear 300ms cubic-bezier(0.680, -0.550, 0.265, 1.550);
+        animation: appear 200ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
         transform-origin: top left;
-        
+
         &.is-me {
             transform-origin: top right;
             background: var(--primary-100);
             color: var(--primary-900);
             float: right;
         }
+
+        .message {
+            word-wrap: break-word;
+            word-break: break-all;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            -ms-hyphens: auto;
+            hyphens: auto;
+        }
     }
 
+    &.typing {
+        .dots {
+            margin: 0 0 2px 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            // outline: 1px solid red;
+
+            .dot {
+                display: block;
+                height: 6px;
+                width: 6px;
+                background: var(--primary-100);
+                border-radius: 500%;
+
+                --delay: calc(var(--index) * 140ms);
+                animation: jump 700ms var(--delay) ease infinite;
+
+                & + .dot {
+                    margin-left: 5px;
+                }
+            }
+        }
+    }
 
     .user {
         opacity: 0.6;
@@ -53,5 +90,11 @@
     }
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes jump {
+    50% {
+        transform: translateY(-10px);
     }
 }

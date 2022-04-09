@@ -5,12 +5,12 @@ import { Component, Input, OnInit } from '@angular/core';
     templateUrl: './chat-message.component.html',
     styleUrls: ['./chat-message.component.scss'],
 })
-export class ChatMessageComponent implements OnInit {
-    constructor() {}
-    ngOnInit(): void {}
+export class ChatMessageComponent /* implements OnInit */ {
+    // constructor() {}
+    // ngOnInit(): void {}
 
-    @Input() variant: 'chat message' | 'user';
-    @Input() message: string = 'test message here';
+    @Input() variant: 'chat message' | 'user' | 'typing';
+    @Input() message: string;
     @Input() username?: string;
-    @Input() isMe: boolean;
+    @Input() isMe = false;
 }

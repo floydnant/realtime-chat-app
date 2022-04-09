@@ -1,5 +1,8 @@
 <div class="container">
-    <div class="chat">
+    <div class="snackbar" [class.show]="usersOnline$ | async">
+        {{ usersOnline$ | async }}
+    </div>
+    <div class="chat" #chatRef>
         <chat-message
             *ngFor="let message of messages"
             [variant]="message.type"
@@ -7,16 +10,19 @@
             [username]="message.username"
             [isMe]="message.isMe || false"
         ></chat-message>
+        <chat-message *ngIf="usersTyping.length" variant="typing" [message]="usersTypingText"></chat-message>
     </div>
-    <div class="form-group">
-        <input
-            type="text"
-            placeholder="message"
-            [(ngModel)]="newMessage"
-            (keydown.Enter)="sendMessage()"
-        />
-        <button (click)="sendMessage()">Send</button>
+    <div class="form-group-wrapper">
+        <div class="form-group">
+            <input
+                class="message-input"
+                type="text"
+                placeholder="message"
+                [(ngModel)]="newMessage"
+                (keydown.Enter)="sendMessage()"
+                (input)="this.inputFired()"
+            />
+            <button class="send-btn" (click)="sendMessage()">Send</button>
+        </div>
     </div>
 </div>
-               
-            
