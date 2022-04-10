@@ -6,17 +6,9 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
+import { SocketEvents } from 'shared/socket-events.model';
 import { Socket, Server } from 'socket.io';
 import { ChatService } from './chat.service';
-
-export enum SocketEvents {
-    CHAT_MESSAGE = 'chat message',
-    USER = 'user',
-    USERNAME_TAKEN = 'username taken',
-    CHOOSE_USERNAME = 'choose username',
-    TYPING = 'typing',
-    USERS_ONLINE = 'users online',
-}
 
 const GROUP_CHAT = 'group chat';
 
@@ -39,12 +31,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
     }
 
-    @SubscribeMessage(SocketEvents.TYPING)
+    @SubscribeMessage(SocketEvents.TYPING_EVENT)
     handleTypingEvents(client: Socket, isTyping: boolean) {
         const username = this.chatService.getUserNameFromClientId(client.id);
         this.logger.verbose(`${username} ${isTyping ? 'started' : 'stopped'} typing`);
 
-        client.broadcast.to(GROUP_CHAT).emit(SocketEvents.TYPING, { username, isTyping });
+        client.broadcast.to(GROUP_CHAT).emit(SocketEvents.TYPING_EVENT, { username, isTyping });
+    }
+
+    async handleConnection(client: Socket) {
+        this.logger.verbose(`Client connected: ${client.id}`);
+        console.log('connected Sockets:', await this.server.allSockets());
+        this.chatService.onClientConnected();
+
+        client.emit(SocketEvents.CHOOSE_USERNAME, SocketEvents.CHOOSE_USERNAME);
     }
 
     handleDisconnect(client: Socket) {
@@ -52,42 +52,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.verbose(`${disconnectedUser} disconnected, id: ${client.id}`);
 
         if (disconnectedUser) {
-            client.broadcast.to(GROUP_CHAT).emit(SocketEvents.USER, `${disconnectedUser} left the chat.`);
-            client.broadcast.to(GROUP_CHAT).emit(
-                SocketEvents.USERS_ONLINE,
-                this.chatService.connectedUsers.map(u => u.username),
-            );
+            client.broadcast
+                .to(GROUP_CHAT)
+                .emit(SocketEvents.TYPING_EVENT, { username: disconnectedUser, isTyping: false });
+            client.broadcast.to(GROUP_CHAT).emit(SocketEvents.USER_EVENT, `${disconnectedUser} went offline.`);
+            this.emitAllOnlineUsers();
         }
-    }
-
-    async handleConnection(client: Socket) {
-        this.logger.verbose(`Client connected: ${client.id}`);
-        console.log('all sockets:', await this.server.allSockets());
-        this.chatService.onClientConnected();
-
-        client.emit(SocketEvents.CHOOSE_USERNAME, SocketEvents.CHOOSE_USERNAME);
     }
 
     @SubscribeMessage(SocketEvents.CHOOSE_USERNAME)
     handleUserSignup(client: Socket, username: string) {
-        this.logger.verbose(`Client signed up: ${username}`);
+        this.logger.verbose(`Client '${client.id}' chose username: ${username}`);
         const { isTaken, oldUsername } = this.chatService.onClientChooseUsername(client.id, username);
 
-        if (isTaken) client.emit(SocketEvents.CHOOSE_USERNAME, 'already taken');
-        else {
+        if (isTaken) {
+            client.emit(SocketEvents.CHOOSE_USERNAME, 'already taken');
+            this.logger.verbose(`But username '${username}' was already taken.`);
+        } else {
             client.join(GROUP_CHAT);
             client.emit(SocketEvents.CHOOSE_USERNAME, 'success');
-            this.server.to(GROUP_CHAT).emit(
-                SocketEvents.USERS_ONLINE,
-                this.chatService.connectedUsers.map(u => u.username),
-            );
+            this.emitAllOnlineUsers();
             client.broadcast
                 .to(GROUP_CHAT)
                 .emit(
-                    SocketEvents.USER,
-                    oldUsername ? `${oldUsername} changed username to '${username}'` : `${username} joined the chat.`,
+                    SocketEvents.USER_EVENT,
+                    oldUsername ? `${oldUsername} changed username to '${username}'` : `${username} went online.`,
                 );
         }
+    }
+
+    private emitAllOnlineUsers() {
+        this.logger.debug('emitting all online users');
+        this.server.to(GROUP_CHAT).emit(
+            SocketEvents.USERS_ONLINE,
+            this.chatService.connectedUsers.map(u => u.username),
+        );
     }
 
     // TODO:

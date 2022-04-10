@@ -41,12 +41,13 @@ export class ChatService {
     }
 
     private logConnectedUsers() {
-        this.logger.verbose(
-            'signed up users: ' +
-                (this.connectedUsers.length
-                    ? '\n' + this.connectedUsers.map(c => `${c.username} => ${c.clientId}`).join('\n')
-                    : 'NONE'),
-        );
+        // this.logger.verbose(
+        //     'signed up users: ' +
+        //         (this.connectedUsers.length
+        //             ? '\n' + this.connectedUsers.map(c => `${c.username} => ${c.clientId}`).join('\n')
+        //             : 'NONE'),
+        // );
+        console.log('\nconnected users in group chat:', this.connectedUsers, '\n');
     }
 
     private isUsernameTaken(username: string) {

@@ -5,18 +5,42 @@
     --primary-700: hsl(165, 15%, 15%);
     --primary-800: hsl(165, 15%, 10%);
     --primary-900: hsl(165, 20%, 3%);
-    
+
     --secondary-hue: calc(var(--primary-hue) + 105);
-    --secondary-100: hsl(var(--secondary-hue), 100%, 50%);
+    --secondary-100: hsl(var(--secondary-hue), 100%, 70%);
+    --secondary-300: hsl(var(--secondary-hue), 100%, 50%);
     --secondary-400: hsl(var(--secondary-hue), 100%, 30%);
     --secondary-700: hsl(var(--secondary-hue), 15%, 15%);
     --secondary-800: hsl(var(--secondary-hue), 15%, 10%);
     --secondary-900: hsl(var(--secondary-hue), 20%, 3%);
 }
+.primary-100 {
+    --hue: var(var(--primary-hue));
+    --clr: var(--primary-100);
+    color: var(--clr);
+}
+.secondary-100 {
+    --hue: var(var(--secondary-hue));
+    --clr: var(--secondary-100);
+    color: var(--clr);
+}
+.secondary-300 {
+    --hue: var(var(--secondary-hue));
+    --clr: var(--secondary-300);
+    color: var(--clr);
+}
+
 
 * {
     margin: 0;
     box-sizing: border-box;
+}
+
+a {
+    color: var(--secondary-100);
+}
+a:not(:hover) {
+    text-decoration: none;
 }
 
 body {

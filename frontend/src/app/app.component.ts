@@ -1,20 +1,11 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { debounce } from './utils';
-
-enum SocketEvents {
-    CHAT_MESSAGE = 'chat message',
-    USER = 'user',
-    CHOOSE_USERNAME = 'choose username',
-    CHANGE_USERNAME = 'change username',
-    TYPING = 'typing',
-    USERS_ONLINE = 'users online',
-}
+import { debounce, escapeHTML, moveToMacroQueue } from './utils';
+import { SocketEvents } from '../../../shared/socket-events.model';
 
 interface Message {
-    type: SocketEvents.CHAT_MESSAGE | SocketEvents.USER;
+    type: SocketEvents.CHAT_MESSAGE | SocketEvents.USER_EVENT;
     text: string;
     username?: string;
     isMe?: boolean;
@@ -25,41 +16,87 @@ interface Message {
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit, OnDestroy {
-    constructor(private socket: Socket) {}
-
-    @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
-
-    async ngOnInit() {
+export class AppComponent implements OnDestroy, OnChanges {
+    constructor(private socket: Socket) {
         this.socket.on(SocketEvents.CHOOSE_USERNAME, (payload: string) => {
-            if (payload == SocketEvents.CHOOSE_USERNAME) this.chooseUsername();
+            if (payload == SocketEvents.CHOOSE_USERNAME) {
+                this.chooseUsername();
+            }
         });
-        this.chatMessagesSubscription = this.subscribeToChatMessages();
-        this.userMessagesSubscription = this.subscribeToUserMessages();
-        this.usersTypingSubscription = this.subscribeToUsersTyping();
     }
+
     ngOnDestroy() {
         this.chatMessagesSubscription.unsubscribe();
         this.userMessagesSubscription.unsubscribe();
         this.usersTypingSubscription.unsubscribe();
     }
+    ngOnChanges(changes: SimpleChanges): void {
+        console.log('changes:', changes);
+        if ('username' in changes) console.log('this.username:', this.username);
+    }
 
+    @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
+
+    username: string;
     newMessage: string;
     messages: Message[] = [
         {
             text: 'Welcome to Floyds Messenger!',
-            type: SocketEvents.CHAT_MESSAGE,
-            username: 'Floyd',
+            type: SocketEvents.USER_EVENT,
         },
     ];
-    username: string;
 
+    isTyping = false;
+    emitStopTypingDebounced = debounce(() => this.emitTyping(false), 1500);
+    inputHandler() {
+        if (!this.username) return;
+        if (!this.isTyping) this.emitTyping(true);
+        this.emitStopTypingDebounced();
+    }
+    emitTyping(isTyping: boolean) {
+        this.socket.emit(SocketEvents.TYPING_EVENT, isTyping);
+        this.isTyping = isTyping;
+    }
+
+    usersTypingText: string;
+    usersTyping: string[] = [];
+    usersTypingSubscription: Subscription = this.socket
+        .fromEvent<{ username: string; isTyping: boolean }>(SocketEvents.TYPING_EVENT)
+        // .pipe(map((data) => data))
+        .subscribe(({ username, isTyping }) => {
+            if (isTyping) this.usersTyping.push(username);
+            else this.usersTyping = this.usersTyping.filter(u => u != username);
+
+            this.usersTypingText = `${this.usersTyping
+                .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
+                .join(', ')} ${this.usersTyping.length > 1 ? 'are' : 'is'} typing`;
+            this.scrollToBottom();
+        });
+
+    usersOnline$ = this.socket.fromEvent<string[]>(SocketEvents.USERS_ONLINE);
+    getOnlineUsersText(users: string[] | null) {
+        return (users || [])
+            .filter(u => u != this.username)
+            .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
+            .join(', ');
+    }
+
+    chatMessagesSubscription: Subscription = this.socket
+        .fromEvent<Message>(SocketEvents.CHAT_MESSAGE)
+        // .pipe(map((data) => data))
+        .subscribe(({ text, username }) =>
+            this.addMessageToChat({
+                text,
+                username,
+                type: SocketEvents.CHAT_MESSAGE,
+            }),
+        );
     async sendMessage() {
         if (!this.newMessage) return;
 
         if (!this.username) if (!(await this.chooseUsername())) return;
 
-        this.emitStopTyping();
+        this.emitTyping(false);
         this.socket.emit(SocketEvents.CHAT_MESSAGE, this.newMessage);
         this.addMessageToChat({
             text: this.newMessage,
@@ -70,100 +107,53 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.newMessage = '';
     }
-    addMessageToChat(message: Message) {
-        this.messages.push(message);
-        // const allChatElems = this.chatRef.nativeElement.childNodes;
-        // const lastChatElem = allChatElems[allChatElems.length - 2];
-        // console.log(lastChatElem);
-        // window.scrollTo(0, document.body.scrollHeight);
+    addMessageToChat({ text, ...message }: Message) {
+        text = escapeHTML(text);
+
+        if (message.type == SocketEvents.USER_EVENT) {
+            const matchBeforeQuotes = text.match(/[\w\d\s]+(?=&apos;|')/g);
+            const secondUsername = (matchBeforeQuotes || ['', ''])[1];
+
+            text = text
+                .replace(/.+(?=\s+went|changed)/, m => `<span class="secondary-100">${m}</span>`)
+                .replace(/online/, `<span class="primary-100">online</span>`);
+            if (secondUsername)
+                text = text.replace(new RegExp(secondUsername, 'g'), m => `<span class="secondary-100">${m}</span>`);
+        } else
+            text = text.replace(
+                /https?:\/\/([^\s"/,;:]+\.)+[^\s",;:]+/g,
+                match => `<a href="${match}" target="_blank">${match}</a>`,
+            );
+
+        this.messages.push({ ...message, text });
         this.scrollToBottom();
     }
-
-    private isTyping = false;
-    private emitStopTypingDebounced = debounce(() => this.emitStopTyping(), 1500);
-    private scrollToBottom() {
-        setTimeout(() => (this.chatRef.nativeElement.scrollTop = this.chatRef.nativeElement.scrollHeight), 0);
+    scrollToBottom() {
+        moveToMacroQueue(() => (this.chatRef.nativeElement.scrollTop = this.chatRef.nativeElement.scrollHeight));
     }
 
-    private emitStopTyping() {
-        this.socket.emit(SocketEvents.TYPING, false);
-        this.isTyping = false;
-    }
-
-    inputFired() {
-        if (!this.username) return;
-        if (!this.isTyping) {
-            this.socket.emit(SocketEvents.TYPING, true);
-            this.isTyping = true;
-        }
-        this.emitStopTypingDebounced();
-    }
-
-    usersTypingText: string;
-    usersTyping: string[] = [];
-    usersTypingSubscription: Subscription;
-    subscribeToUsersTyping() {
-        return (
-            this.socket
-                .fromEvent<{ username: string; isTyping: boolean }>(SocketEvents.TYPING)
-                // .pipe(map((data) => data))
-                .subscribe(({ username, isTyping }) => {
-                    if (isTyping) this.usersTyping.push(username);
-                    else this.usersTyping = this.usersTyping.filter(u => u != username);
-
-                    this.usersTypingText = `${this.usersTyping.join(', ')} ${
-                        this.usersTyping.length > 1 ? 'are' : 'is'
-                    } typing`;
-                    this.scrollToBottom();
-                })
+    userMessagesSubscription: Subscription = this.socket
+        .fromEvent<string>(SocketEvents.USER_EVENT)
+        // .pipe(map((data) => data))
+        .subscribe(text =>
+            this.addMessageToChat({
+                text,
+                type: SocketEvents.USER_EVENT,
+            }),
         );
-    }
 
-    usersOnline$ = this.socket.fromEvent<string[]>(SocketEvents.USERS_ONLINE).pipe(
-        map((users: string[]) => {
-            console.log(users);
-            users = users.filter(u => u != this.username);
-            return !users.length ? '' : 'online: ' + users.join(', ');
-        }),
-    );
-
-    chatMessagesSubscription: Subscription;
-    subscribeToChatMessages() {
-        return (
-            this.socket
-                .fromEvent<Message>(SocketEvents.CHAT_MESSAGE)
-                // .pipe(map((data) => data))
-                .subscribe(({ text, username }) =>
-                    this.addMessageToChat({
-                        text,
-                        username,
-                        type: SocketEvents.CHAT_MESSAGE,
-                    }),
-                )
-        );
-    }
-    userMessagesSubscription: Subscription;
-    subscribeToUserMessages() {
-        return (
-            this.socket
-                .fromEvent<string>(SocketEvents.USER)
-                // .pipe(map((data) => data))
-                .subscribe(text =>
-                    this.addMessageToChat({
-                        text,
-                        type: SocketEvents.USER,
-                    }),
-                )
-        );
-    }
-
-    async chooseUsername(promptMsg = 'Choose a username', promptUser = false): Promise<boolean> {
+    async chooseUsername(
+        promptMsg = 'Choose a username',
+        promptUser = false,
+        changeUsername = false,
+    ): Promise<boolean> {
         const username = (
             promptUser ? prompt(promptMsg, this.username || '') : localStorage.username || prompt(promptMsg)
         )?.trim();
 
         if (!username)
-            if (confirm('You need to choose a username in order to chat.')) return await this.chooseUsername();
+            if (changeUsername) return false;
+            else if (confirm('You need to choose a username in order to chat.')) return await this.chooseUsername();
             else {
                 this.username = '';
                 localStorage.username = '';
@@ -171,8 +161,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
 
         const res = await this.requestResponse(SocketEvents.CHOOSE_USERNAME, username);
-        console.log(res);
-
         if (res == 'already taken') return await this.chooseUsername('Username already taken. Try Again.', true);
 
         this.username = username;
@@ -180,7 +168,7 @@ export class AppComponent implements OnInit, OnDestroy {
         return true;
     }
     changeUsername() {
-        this.chooseUsername('Change username', true);
+        this.chooseUsername('Change username', true, true);
     }
 
     private requestResponse<T = string>(eventName: string, payload: any) {
@@ -189,4 +177,5 @@ export class AppComponent implements OnInit, OnDestroy {
             this.socket.once(eventName, (answer: T) => res(answer));
         });
     }
+    SocketEvents = SocketEvents;
 }

@@ -25,7 +25,7 @@
 
         width: 100%;
         height: 100%;
-        padding: 0 10px 10px;
+        padding: 27px 10px 10px;
         overflow-x: hidden;
         display: flex;
         flex-direction: column;
@@ -41,6 +41,7 @@
     }
 
     .snackbar {
+        z-index: 10;
         position: absolute;
         top: 0;
         left: 50%;
@@ -52,12 +53,16 @@
 
         border-radius: 0 0 10px 10px;
         background: var(--secondary-800);
-        color: var(--secondary-100);
+        color: var(--primary-100);
         pointer-events: none;
         transition: opacity 200ms;
 
         &:not(.show) {
             opacity: 0;
+        }
+
+        span {
+            color: var(--primary-100)
         }
     }
 
@@ -92,7 +97,8 @@
         box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
 
         .message-input,
-        .send-btn {
+        .send-btn,
+        .change-username-btn {
             padding: 10px;
             border-radius: 8px;
             border: 0;
@@ -114,13 +120,17 @@
                 border: 1px solid var(--primary-100);
             }
         }
-        .send-btn {
+        .send-btn, .change-username-btn {
             padding-inline: 20px;
             margin-left: 10px;
 
-            &:hover {
-                background: var(--secondary-100);
-                color: var(--secondary-900);
+            &:hover:not([disabled]) {
+                background: var(--primary-100);
+                color: var(--primary-900);
+            }
+
+            &[disabled] {
+                cursor: not-allowed;
             }
         }
     }
