@@ -1,6 +1,7 @@
 :root {
     --primary-hue: 165;
     --primary-100: hsl(165, 100%, 50%);
+    --primary-200: hsl(165, 100%, 40%);
     --primary-400: hsl(165, 100%, 30%);
     --primary-700: hsl(165, 15%, 15%);
     --primary-800: hsl(165, 15%, 10%);
@@ -19,6 +20,11 @@
     --clr: var(--primary-100);
     color: var(--clr);
 }
+.primary-200 {
+    --hue: var(var(--primary-hue));
+    --clr: var(--primary-200);
+    color: var(--clr);
+}
 .secondary-100 {
     --hue: var(var(--secondary-hue));
     --clr: var(--secondary-100);
@@ -34,13 +40,6 @@
 * {
     margin: 0;
     box-sizing: border-box;
-}
-
-a {
-    color: var(--secondary-100);
-}
-a:not(:hover) {
-    text-decoration: none;
 }
 
 body {
@@ -76,3 +75,19 @@ app-root {
 // ::-webkit-scrollbar-thumb:hover {
 //     background: var(--primary-clr);
 // }
+
+
+a {
+    color: var(--secondary-100);
+}
+a:not(:hover) {
+    text-decoration: none;
+}
+
+.cut-text {
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

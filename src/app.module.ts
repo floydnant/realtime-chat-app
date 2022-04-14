@@ -8,10 +8,10 @@ import { ExampleGateway } from './example.gateway';
 
 @Module({
     imports: [
-        ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '../../frontend/dist/realtime-chat-app-client'),
-            // rootPath: join(__dirname, '../static'),
-        }),
+        // ServeStaticModule.forRoot({
+        //     rootPath: join(__dirname, '../../frontend/dist/realtime-chat-app-client'),
+        //     // rootPath: join(__dirname, '../static'),
+        // }),
         ChatModule,
     ],
     controllers: [AppController],

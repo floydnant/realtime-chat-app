@@ -47,7 +47,7 @@ export class ChatService {
         //             ? '\n' + this.connectedUsers.map(c => `${c.username} => ${c.clientId}`).join('\n')
         //             : 'NONE'),
         // );
-        console.log('\nconnected users in group chat:', this.connectedUsers, '\n');
+        console.log('connected users in group chat:', this.connectedUsers, '\n');
     }
 
     private isUsernameTaken(username: string) {

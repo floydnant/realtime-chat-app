@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+    AfterViewInit,
+    Component,
+    ElementRef,
+    HostListener,
+    OnChanges,
+    OnDestroy,
+    SimpleChanges,
+    ViewChild,
+} from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { Subscription } from 'rxjs';
 import { debounce, escapeHTML, moveToMacroQueue } from './utils';
@@ -16,12 +25,10 @@ interface Message {
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnDestroy, OnChanges {
+export class AppComponent implements OnDestroy, OnChanges, AfterViewInit {
     constructor(private socket: Socket) {
         this.socket.on(SocketEvents.CHOOSE_USERNAME, (payload: string) => {
-            if (payload == SocketEvents.CHOOSE_USERNAME) {
-                this.chooseUsername();
-            }
+            if (payload == SocketEvents.CHOOSE_USERNAME) this.chooseUsername();
         });
     }
 
@@ -36,9 +43,48 @@ export class AppComponent implements OnDestroy, OnChanges {
     }
 
     @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
+    @ViewChild('messageInput') messageInput: ElementRef<HTMLDivElement>;
+    ngAfterViewInit() {
+        this.messageInput.nativeElement.addEventListener('DOMCharacterDataModified', () =>
+            this.pullMessageInputChanges('DOMCharacterDataModified'),
+        );
+        // this.messageInput.nativeElement.addEventListener('DOMNodeRemoved', () =>
+        //     this.pullMessageInputChanges('DOMNodeRemoved'),
+        // );
+
+        const observer = new MutationObserver(() => {
+            // console.log('mutation list:', list);
+            this.pullMessageInputChanges('MutationObserver');
+        });
+
+        observer.observe(this.messageInput.nativeElement, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+        });
+    }
+    @HostListener('document:keydown', ['$event'])
+    focusMessageInput(e: KeyboardEvent) {
+        if (e.key == 'm') moveToMacroQueue(() => this.messageInput.nativeElement.focus());
+    }
 
     username: string;
-    newMessage: string;
+    _newMessage: string;
+    pullMessageInputChanges(ctx: string): void {
+        // console.log(`[ ${ctx} ] updated`);
+        if (this.messageInput.nativeElement.innerText.trim()) {
+            this.inputHandler();
+            this._newMessage = this.messageInput.nativeElement.innerHTML.trim();
+        } else this._newMessage = '';
+    }
+    get newMessage() {
+        return this._newMessage;
+    }
+    set newMessage(value) {
+        this._newMessage = value;
+        // this.messageInput.nativeElement.innerHTML = value;
+        moveToMacroQueue(() => (this.messageInput.nativeElement.innerHTML = value));
+    }
     messages: Message[] = [
         {
             text: 'Welcome to Floyds Messenger!',
@@ -49,6 +95,7 @@ export class AppComponent implements OnDestroy, OnChanges {
     isTyping = false;
     emitStopTypingDebounced = debounce(() => this.emitTyping(false), 1500);
     inputHandler() {
+        // console.log('input fired');
         if (!this.username) return;
         if (!this.isTyping) this.emitTyping(true);
         this.emitStopTypingDebounced();
@@ -91,12 +138,20 @@ export class AppComponent implements OnDestroy, OnChanges {
                 type: SocketEvents.CHAT_MESSAGE,
             }),
         );
+    messageSubmitHandler(e: Event) {
+        if (!(e as KeyboardEvent).shiftKey) {
+            e.stopPropagation();
+            this.sendMessage();
+        }
+    }
     async sendMessage() {
+        // this.pullMessageInputChanges('message submit');
+        // moveToMacroQueue(() => this.emitTyping(false));
+
         if (!this.newMessage) return;
 
         if (!this.username) if (!(await this.chooseUsername())) return;
 
-        this.emitTyping(false);
         this.socket.emit(SocketEvents.CHAT_MESSAGE, this.newMessage);
         this.addMessageToChat({
             text: this.newMessage,
@@ -108,7 +163,7 @@ export class AppComponent implements OnDestroy, OnChanges {
         this.newMessage = '';
     }
     addMessageToChat({ text, ...message }: Message) {
-        text = escapeHTML(text);
+        // text = escapeHTML(text);
 
         if (message.type == SocketEvents.USER_EVENT) {
             const matchBeforeQuotes = text.match(/[\w\d\s]+(?=&apos;|')/g);
@@ -127,6 +182,9 @@ export class AppComponent implements OnDestroy, OnChanges {
 
         this.messages.push({ ...message, text });
         this.scrollToBottom();
+    }
+    onNewMessageChange() {
+        console.log();
     }
     scrollToBottom() {
         moveToMacroQueue(() => (this.chatRef.nativeElement.scrollTop = this.chatRef.nativeElement.scrollHeight));
