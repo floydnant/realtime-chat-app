@@ -36,6 +36,7 @@
         "rxjs": "^7.2.0"
     },
     "devDependencies": {
+        "webpack": "^5.72.0",
         "@nestjs/cli": "^8.0.0",
         "@nestjs/schematics": "^8.0.0",
         "@nestjs/testing": "^8.0.0",
