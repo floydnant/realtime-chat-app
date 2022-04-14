@@ -11,7 +11,7 @@ import {
 import { Socket } from 'ngx-socket-io';
 import { Subscription } from 'rxjs';
 import { debounce, escapeHTML, moveToMacroQueue } from './utils';
-import { SocketEvents } from '../../../shared/socket-events.model';
+import { SocketEvents } from '../shared/socket-events.model';
 
 interface Message {
     type: SocketEvents.CHAT_MESSAGE | SocketEvents.USER_EVENT;

@@ -6,7 +6,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
-import { SocketEvents } from 'shared/socket-events.model';
+import { SocketEvents } from '../shared/socket-events.model';
 import { Socket, Server } from 'socket.io';
 import { ChatService } from './chat.service';
 
@@ -88,12 +88,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.chatService.connectedUsers.map(u => u.username),
         );
     }
-
-    // TODO:
-    // [X] clients ask if username is taken
-    // [X] clients can sign up with a username
-    // [X] username is sent with every message
-    // [X] implement rooms
-    // [X] implement 'XXX is typing functionality'
-    // [X] implement whos online functionality'
 }

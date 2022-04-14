@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { SocketEvents } from '../../../../shared/socket-events.model';
+import { SocketEvents } from '../../shared/socket-events.model';
 
 @Component({
     selector: 'chat-message',
