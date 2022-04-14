@@ -2,7 +2,6 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExtendedIoAdapter } from './adapters/extended-io-adapter';
 import { AppModule } from './app.module';
-// import { corsConfig } from './cors-config';
 
 async function bootstrap() {
     const logger = new Logger('Main');
@@ -15,9 +14,6 @@ async function bootstrap() {
     };
     app.useWebSocketAdapter(new ExtendedIoAdapter(app, corsConfig));
     app.enableCors(corsConfig);
-    // const httpAdapter = app.getHttpAdapter();
-    // const expressInstance = httpAdapter.getInstance();
-    // console.log(expressInstance);
 
     const port = process.env.PORT || 3000;
     await app.listen(port, () => logger.log(`listening on port ${port}: http://localhost:${port}`));

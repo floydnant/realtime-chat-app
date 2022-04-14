@@ -8,34 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { SocketEvents } from 'shared/socket-events.model';
 import { Socket, Server } from 'socket.io';
-import { corsConfig } from 'src/cors-config';
 import { ChatService } from './chat.service';
-// import { GatewayMetadata } from '@nestjs/websockets';
 
 const GROUP_CHAT = 'group chat';
 
-// interface GatewayMetadataExtended extends GatewayMetadata {
-//     handlePreflightRequest: (req, res) => void;
-// }
-
-// look at adapers
-
-@WebSocketGateway /* as GatewayMetadataExtended */()
-/* {
-        cors: corsConfig,
-        handlePreflightRequest: (req, res) => {
-            const headers = {
-                // 'Access-Control-Allow-Headers': 'Content-Type, authorization, x-token',
-                'Access-Control-Allow-Origin': req.headers.origin,
-                // 'Access-Control-Allow-Origin': 'http://localhost:4200',
-                // 'Access-Control-Allow-Credentials': true,
-                // 'Access-Control-Max-Age': '1728000',
-                // 'Content-Length': '0',
-            };
-            res.writeHead(200, headers);
-            res.end();
-        },
-    } */
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(private chatService: ChatService) {}
 
