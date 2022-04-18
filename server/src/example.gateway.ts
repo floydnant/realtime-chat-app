@@ -10,9 +10,7 @@ import {
 import { Socket, Server } from 'socket.io';
 
 @WebSocketGateway()
-export class ExampleGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class ExampleGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     // @SubscribeMessage('message')
     // handleMessage(client: any, payload: any): string {
     //     return 'Hello world!';

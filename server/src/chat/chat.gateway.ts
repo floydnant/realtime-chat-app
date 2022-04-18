@@ -12,9 +12,6 @@ import { ChatService } from './chat.service';
 
 const GROUP_CHAT = 'group chat';
 
-const someRandopmChange = 'random';
-someRandopmChange;
-
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(private chatService: ChatService) {}
