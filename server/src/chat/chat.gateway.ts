@@ -10,7 +10,7 @@ import { SocketEvents } from '../shared/socket-events.model';
 import { Socket, Server } from 'socket.io';
 import { ChatService } from './chat.service';
 
-const GROUP_CHAT = 'group chat';
+export const GROUP_CHAT = 'group chat';
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {

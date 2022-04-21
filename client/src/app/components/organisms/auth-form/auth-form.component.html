@@ -1,0 +1,18 @@
+<div class="container">
+    <feedback-banner [message]="errorMessage" variant="error"></feedback-banner>
+    <feedback-banner [message]="successMessage" variant="success"></feedback-banner>
+
+    <input-field
+        [label]="variant == 'signup' ? 'Username' : 'Username or Email'"
+        (newValue)="signupCreds.username = $event; loginCreds.usernameOrEmail = $event"
+    ></input-field>
+    <input-field *ngIf="variant == 'signup'" label="Email" (newValue)="signupCreds.email = $event"></input-field>
+    <input-field label="Password" (newValue)="signupCreds.password = $event; loginCreds.password = $event"></input-field>
+    <input-field
+        *ngIf="variant == 'signup'"
+        type="password"
+        label="Repeat password"
+        (newValue)="signupCreds.password = $event"
+    ></input-field>
+    <button (click)="onSubmit()">{{ variant }}</button>
+</div>

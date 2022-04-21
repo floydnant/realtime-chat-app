@@ -1,0 +1,13 @@
+<label>
+	<p class="label">{{ label }}</p>
+	<!-- [class.invalid]="input.value.length > 10" -->
+	<!-- [class.valid]="input.value.length > 4" -->
+	<input
+		#input
+		[class.valid]="isValid"
+		[class.invalid]="isValid === false"
+		[type]="type"
+		[placeholder]="placeholder"
+		(input)="this.onNewValue(input.value)"
+	/>
+</label>

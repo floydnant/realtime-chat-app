@@ -41,12 +41,6 @@ export class ChatService {
     }
 
     private logConnectedUsers() {
-        // this.logger.verbose(
-        //     'signed up users: ' +
-        //         (this.connectedUsers.length
-        //             ? '\n' + this.connectedUsers.map(c => `${c.username} => ${c.clientId}`).join('\n')
-        //             : 'NONE'),
-        // );
         console.log('connected users in group chat:', this.connectedUsers, '\n');
     }
 
@@ -55,6 +49,6 @@ export class ChatService {
     }
 
     getUserNameFromClientId(clientId: string) {
-        return this.connectedUsers.find(user => user.clientId == clientId)?.username || `ID:${clientId}`;
+        return this.connectedUsers.find(user => user.clientId == clientId)?.username || `${clientId}`;
     }
 }

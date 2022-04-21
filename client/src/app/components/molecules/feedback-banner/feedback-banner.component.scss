@@ -1,0 +1,32 @@
+.container {
+    &.error {
+        --hue: 0;
+    }
+    &.success {
+        --hue: 130;
+    }
+    &.warning {
+        --hue: 50;
+    }
+    
+    color: hsl(var(--hue) 100% 70% / 1);
+    border-radius: .8rem;
+    border: 2px solid hsl(var(--hue) 100% 50% / 1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    
+    background: hsl(var(--hue) 100% 50% / 0.1);
+    
+    p {
+        margin: 0;
+
+        .close-btn {
+            cursor: pointer;
+            transition: filter 180ms;
+
+            &:hover {
+                filter: brightness(2)
+            }
+        }
+    }
+}
