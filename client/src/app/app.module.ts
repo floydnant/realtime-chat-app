@@ -22,6 +22,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { metaReducers, reducers } from './store/reducers';
 import { effects } from './store/effects';
 import { HttpClientModule } from '@angular/common/http';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
 @NgModule({
     declarations: [
@@ -48,6 +49,7 @@ import { HttpClientModule } from '@angular/common/http';
         AppRoutingModule,
         StoreModule.forRoot(reducers, { metaReducers }),
         EffectsModule.forRoot(effects),
+        StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
     ],
     providers: [],
     bootstrap: [AppComponent],

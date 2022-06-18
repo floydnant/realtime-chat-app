@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start:dev": "ng serve",
+    "start:dev:lan": "ng serve --host 0.0.0.0",
     "build": "ng build",
     "build:dev": "ng build --watch --configuration development",
     "test": "ng test"
@@ -20,6 +21,7 @@
     "@angular/router": "~12.1.0",
     "@ngrx/effects": "^12.5.1",
     "@ngrx/store": "^12.5.1",
+    "@ngrx/store-devtools": "^12.5.1",
     "ngx-socket-io": "^4.2.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.2.0",
