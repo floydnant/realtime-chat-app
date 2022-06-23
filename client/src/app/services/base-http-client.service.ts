@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, of, throwError } from 'rxjs';
@@ -13,6 +13,18 @@ interface HttpClientOptions {
     bearerToken?: string;
     [header: string]: any;
 }
+
+// type HttpMethods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options';
+// type HttpMethodsWithoutBodyParam = 'get' | 'delete' | 'options';
+
+// type OriginalHttpClientOptions<K extends keyof HttpClient & HttpMethods> = Parameters<HttpClient[K]>[K extends HttpMethodsWithoutBodyParam ? 1 : 2];
+
+// type GetHttpClientOptions = OriginalHttpClientOptions<'get'>;
+// type PutHttpClientOptions = OriginalHttpClientOptions<'put'>;
+// type PostHttpClientOptions = OriginalHttpClientOptions<'post'>;
+// type DeleteHttpClientOptions = OriginalHttpClientOptions<'delete'>;
+// type PatchHttpClientOptions = OriginalHttpClientOptions<'patch'>;
+// type OptionsHttpClientOptions = OriginalHttpClientOptions<'options'>;
 
 @Injectable({
     providedIn: 'root',
@@ -34,8 +46,8 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request.
      * @see {@link HttpClient.get}: Look at **'this'.http.get** for more info
      */
-    getAsync<T>(endpoint: string, options?: HttpClientOptions) {
-        const res = this.get<T>(endpoint, options);
+    getAsync<T>(...args: Parameters<BaseHttpClient['get']>) {
+        const res = this.get<T>(...args);
         return promisifyObservable(res, 'if error property exists');
     }
     /**
@@ -43,7 +55,7 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request.
      * @see {@link HttpClient.get}: Look at **'this'.http.get** for more info
      */
-    get<T = any>(endpoint: string, options?: HttpClientOptions): Observable<T> {
+    get<T = any>(endpoint: string, options?: HttpClientOptions): Observable<T | HttpServerErrorResponse> {
         const url = this._baseUrl + endpoint;
         options = this.sanitizeOptions(options);
 
@@ -56,8 +68,8 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request.
      * @see {@link HttpClient.post}: Look at **'this'.http.post** for more info
      */
-    postAsync<T>(endpoint: string, body: any, options?: HttpClientOptions) {
-        const res = this.post<T>(endpoint, body, options);
+    postAsync<T>(...args: Parameters<BaseHttpClient['post']>) {
+        const res = this.post<T>(...args);
         return promisifyObservable(res, 'if error property exists');
     }
     /**
@@ -66,7 +78,11 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request.
      * @see {@link HttpClient.post}: Look at **'this'.http.post** for more info
      */
-    post<T>(endpoint: string, body: any, options?: HttpClientOptions): Observable<T> {
+    post<T>(
+        endpoint: string,
+        body?: Record<string, any>,
+        options?: HttpClientOptions,
+    ): Observable<T | HttpServerErrorResponse> {
         const url = this._baseUrl + endpoint;
         options = this.sanitizeOptions(options);
 
@@ -79,20 +95,25 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request.
      * @see {@link HttpClient.patch}: Look at **'this'.http.post** for more info
      */
-    patch<T>(endpoint: string, body: any, options?: HttpClientOptions) {
+    patch<T>(
+        endpoint: string,
+        body: Record<string, any>,
+        options?: HttpClientOptions,
+    ): Observable<T | HttpServerErrorResponse> {
         const url = this._baseUrl + endpoint;
         options = this.sanitizeOptions(options);
 
         return this.http.patch<T>(url, body, options as object).pipe(catchError(this.handleErrorWrapper));
     }
 
-    delete<T>(endpoint: string, options?: HttpClientOptions): Observable<T> {
+    delete<T>(endpoint: string, options?: HttpClientOptions): Observable<T | HttpServerErrorResponse> {
         const url = this._baseUrl + endpoint;
         options = this.sanitizeOptions(options);
 
         return this.http.delete<T>(url, options as object).pipe(catchError(this.handleErrorWrapper));
     }
 
+    // FIXME: get rid of this messed up garbage
     /** Moves the 'bearerToken' inside of 'headers' and returns an empty object if 'options' is undefined. */
     private sanitizeOptions(options: HttpClientOptions | undefined) {
         const getHeaders = (headers?: any) => ({
@@ -128,7 +149,8 @@ export class BaseHttpClient {
             return of({
                 error: {
                     statusCode: 0,
-                    message: 'A client-side or network error occurred.',
+                    message:
+                        'A client-side or network error occurred. Please check your internet connection and try again.',
                     error: 'client-side or network error',
                 },
             });
@@ -142,14 +164,12 @@ export class BaseHttpClient {
 
             if (err.status == 401) {
                 console.warn(401, 'unauthorized');
-                this.store.dispatch(userActions.logout());
+                // this.store.dispatch(userActions.logout());
             }
 
             return of({
                 error: err.error,
             } as HttpServerErrorResponse);
         }
-        // Return an observable with a user-facing error message.
-        return throwError('Something bad happened. Please try again later.');
     }
 }

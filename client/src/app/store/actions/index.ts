@@ -1,7 +1,7 @@
-import { createAction } from '@ngrx/store';
-
-const nothing = createAction('[ GLOBAL ] nothing');
+import { createAction, props } from '@ngrx/store';
+import { HttpServerErrorResponse } from '../models';
 
 export const globalActions = {
-    nothing,
+    nothing: createAction('[ GLOBAL ] nothing'),
+    error: createAction('[ GLOBAL ] error', props<HttpServerErrorResponse | { errorMessage: string }>()),
 };

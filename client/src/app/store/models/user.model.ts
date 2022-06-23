@@ -1,11 +1,11 @@
-import { HttpServerErrorResponse } from '.';
+import { UserPreview } from 'src/shared/index.model';
 
-export class User {
+export class LoggedInUser implements UserPreview {
     id: string;
     username: string;
     accessToken: string;
 }
-export type UserState = User | null;
+export type UserState = LoggedInUser | null;
 
 export class LoginCredentialsDTO {
     usernameOrEmail: string;
@@ -18,8 +18,6 @@ export class SignupCredentialsDTO {
 }
 
 export interface AuthSuccessResponse {
-    user: User;
+    user: LoggedInUser;
     successMessage: string;
 }
-
-export type AuthResponse = AuthSuccessResponse | HttpServerErrorResponse;

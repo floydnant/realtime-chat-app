@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 // import { LocalSettings } from '../store/models/local-settings.model';
-import { User } from '../store/models/user.model';
+import { LoggedInUser } from '../store/models/user.model';
 
 @Injectable({
     providedIn: 'root',
@@ -11,9 +11,9 @@ export class LocalStorageService {
 
     private userKey = this.localStoragePrefix + 'user';
     getUser() {
-        return this.getItem<User>(this.userKey);
+        return this.getItem<LoggedInUser>(this.userKey);
     }
-    setUser(user: User) {
+    setUser(user: LoggedInUser) {
         this.setItem(this.userKey, user);
     }
     deleteUser() {

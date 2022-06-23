@@ -4,7 +4,7 @@
 
 export const environment = {
     production: false,
-    SERVER_BASE_URL: 'http://localhost:3000',
+    SERVER_BASE_URL: 'http://localhost:3000', // TODO: implement an env that controlls the base URL (for running on LAN)
 };
 
 /*

@@ -1,6 +1,9 @@
 :host {
-    display: block;
     height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 .container {
     box-sizing: border-box;
@@ -38,6 +41,10 @@
         .users-online {
             color: var(--primary-200);
             font-size: 0.8rem;
+
+            &:not(.show) {
+                display: none;
+            }
         }
     }
 

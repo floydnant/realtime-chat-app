@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Logger, Patch, UseGuards } from '@nestjs/comm
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
-import { GetUser } from './get-user.decorator';
+import { GetUser } from '../decorators/get-user.decorator';
 import { UsersService } from './users.service';
 
 @UseGuards(AuthGuard())

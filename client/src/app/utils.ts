@@ -11,6 +11,8 @@ export function debounce(callback: (...args: any[]) => unknown, delay = 250) {
     };
 }
 
+export const getCopyOf = <T extends Record<string, any> | any[]>(obj: T): T => JSON.parse(JSON.stringify(obj));
+
 export const escapeHTML = (unsafe: string) =>
     unsafe == '' || unsafe == null
         ? ''

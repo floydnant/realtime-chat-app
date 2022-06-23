@@ -16,5 +16,6 @@ import { UsersModule } from './users/users.module';
     ],
     controllers: [],
     providers: [PrismaService],
+    exports: [ConfigModule],
 })
 export class AppModule {}

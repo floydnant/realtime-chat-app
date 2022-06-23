@@ -20,6 +20,10 @@
     p {
         margin: 0;
 
+        & + p {
+            margin-top: 4px;
+        }
+
         .close-btn {
             cursor: pointer;
             transition: filter 180ms;

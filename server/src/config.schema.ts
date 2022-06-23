@@ -5,4 +5,6 @@ export const configValidationSchema = Joi.object({
     STAGE: Joi.string().default('dev'),
     DATABASE_URL: Joi.string().required(),
     JWT_SECRET: Joi.string().required(),
+
+    ADMIN_PWD: Joi.string().required(),
 });

@@ -23,6 +23,7 @@ import { metaReducers, reducers } from './store/reducers';
 import { effects } from './store/effects';
 import { HttpClientModule } from '@angular/common/http';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { SidebarComponent } from './components/organisms/sidebar/sidebar.component';
 
 @NgModule({
     declarations: [
@@ -38,6 +39,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
         FeedbackBannerComponent,
         InputFieldComponent,
         AuthFormComponent,
+        SidebarComponent,
     ],
     imports: [
         BrowserModule,

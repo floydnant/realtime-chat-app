@@ -7,7 +7,7 @@ export const userReducer = createReducer(
     initialState,
 
     // login or signup success
-    on(userActions.loginOrSignupSuccess, (state, { username, id, accessToken }) => ({ username, id, accessToken })),
+    on(userActions.loginOrSignupSuccess, (state, { type, ...user }) => user),
 
     // logout
     on(userActions.logout, _state => initialState),

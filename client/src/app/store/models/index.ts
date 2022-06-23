@@ -1,7 +1,8 @@
 export interface HttpServerErrorResponse {
     error: {
-        message: string;
-        error: string;
+        message: string | string[];
+        error?: string;
         statusCode: number;
     };
 }
+

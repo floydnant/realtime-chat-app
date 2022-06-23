@@ -9,8 +9,9 @@
         "node": "14.x"
     },
     "scripts": {
-        "prisma:gen:mig": "prisma generate && prisma migrate dev",
-        "prisma:st:gen:watch": "concurrently \"prisma studio\" \"nodemon --watch ./prisma/schema.prisma --exec prisma generate\"",
+        "prisma:mig:gen": "prisma generate && prisma migrate dev",
+        "prisma:mig": "prisma migrate dev",
+        "prisma:watch": "concurrently \"prisma studio\" \"nodemon --watch ./prisma/schema.prisma --exec prisma generate\"",
         "prebuild": "rimraf dist",
         "build": "nest build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -56,6 +57,7 @@
         "@types/hapi__joi": "^17.1.8",
         "@types/jest": "27.0.2",
         "@types/node": "^16.0.0",
+        "@types/passport-jwt": "^3.0.6",
         "@types/supertest": "^2.0.11",
         "@typescript-eslint/eslint-plugin": "^5.0.0",
         "@typescript-eslint/parser": "^5.0.0",

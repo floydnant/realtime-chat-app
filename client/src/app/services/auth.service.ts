@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { userActions } from '../store/actions/user.actions';
-import {
-    AuthResponse,
-    AuthSuccessResponse,
-    LoginCredentialsDTO,
-    SignupCredentialsDTO,
-} from '../store/models/user.model';
+import { HttpServerErrorResponse } from '../store/models';
+import { ChatRoomApiResponse } from '../store/models/chats.model';
+import { AuthSuccessResponse, LoginCredentialsDTO, SignupCredentialsDTO } from '../store/models/user.model';
+import { moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
 import { LocalStorageService } from './local-storage.service';
 
@@ -22,10 +20,10 @@ export class AuthService {
             .then(data => {
                 data = data as AuthSuccessResponse;
                 this.localStorageService.setUser(data.user!);
-                this.store.dispatch(userActions.loginOrSignupSuccess(data.user!));
+                this.store.dispatch(userActions.loginOrSignupSuccess(data.user));
                 return data;
             })
-            .catch(err => err) as Promise<AuthResponse>;
+            .catch(err => err) as Promise<AuthSuccessResponse | HttpServerErrorResponse>;
     }
     signup(credentials: SignupCredentialsDTO) {
         return this.http
@@ -33,12 +31,18 @@ export class AuthService {
             .then(data => {
                 data = data as AuthSuccessResponse;
                 this.localStorageService.setUser(data.user!);
-                this.store.dispatch(userActions.loginOrSignupSuccess(data.user!));
+                this.store.dispatch(userActions.loginOrSignupSuccess(data.user));
+     
                 return data;
             })
-            .catch(err => err) as Promise<AuthResponse>;
+            .catch(err => err) as Promise<AuthSuccessResponse | HttpServerErrorResponse>;
     }
     meQuery() {}
-    logout() {}
-    loadUser() {}
+    logout() {
+        console.log('logging out...');
+        this.localStorageService.deleteUser();
+    }
+    loadUser() {
+        return this.localStorageService.getUser();
+    }
 }

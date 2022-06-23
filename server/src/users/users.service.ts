@@ -5,13 +5,14 @@ import {
     Logger,
     UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { ADMIN_PWD } from 'src/constants';
 import { PrismaService } from 'src/services/prisma.service';
 import { LoginCredentialsDTO, SignupCredentialsDTO } from './dto/auth-credetials.dto';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
-import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './jwt-payload.interface';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -47,6 +48,30 @@ export class UsersService {
             user: this.getValidatedUser(user),
             successMessage: `Still logged in as '${user.username}'.`,
         };
+    }
+
+    async authenticateFromToken(accessToken: string) {
+        try {
+            const { id } = this.jwtService.verify<JwtPayload>(accessToken);
+            const user = await this.prisma.user.findFirst({
+                where: { id },
+                include: { chats: { select: { id: true } } },
+            });
+
+            return {
+                id,
+                username: user?.username,
+                authenticated: !!user,
+                chatIds: user?.chats.map(({ id }) => id),
+            };
+        } catch (err) {
+            return {
+                id: null,
+                username: null,
+                authenticated: false,
+                chatIds: [],
+            };
+        }
     }
 
     async updateUser(user: User, updateUserDTO: UpdateUserDTO) {
@@ -109,7 +134,7 @@ export class UsersService {
         return {
             id,
             username,
-            accessToken: this.createAccessToken({ username }),
+            accessToken: this.createAccessToken({ id, username }),
         };
     }
     private createAccessToken(payload: JwtPayload) {
@@ -124,6 +149,17 @@ export class UsersService {
         }
     }
 
+    async getOrCreateAdminUser() {
+        const adminUser =
+            (await this.prisma.user.findFirst({ where: { username: 'admin' } })) ||
+            (await this.createUser({
+                username: 'admin',
+                email: 'admin@dummy.com',
+                password: ADMIN_PWD,
+            }));
+
+        return adminUser.id;
+    }
     private async createUser({ password, username, email }: SignupCredentialsDTO) {
         const hashedPassword = await this.hashPassword(password);
 

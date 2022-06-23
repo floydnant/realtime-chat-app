@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { SocketEvents } from '../../../../shared/socket-events.model';
+import { UserOnlineStatusEventMessage } from 'src/app/pages/chat/chat.component';
+import { StoredChatMessage } from 'src/app/store/models/chats.model';
+import { MessageTypes } from 'src/shared/message-types.model';
 
 @Component({
     selector: 'chat-message',
@@ -7,10 +9,12 @@ import { SocketEvents } from '../../../../shared/socket-events.model';
     styleUrls: ['./chat-message.component.scss'],
 })
 export class ChatMessageComponent {
-    @Input() variant: SocketEvents.CHAT_MESSAGE | SocketEvents.USER_EVENT | SocketEvents.TYPING_EVENT;
-    @Input() message: string;
-    @Input() username?: string;
+    @Input() variant: MessageTypes.CHAT_MESSAGE | MessageTypes.USER_EVENT | 'typing event';
+    @Input() message?: StoredChatMessage | UserOnlineStatusEventMessage;
     @Input() isMe = false;
+    @Input() sameUserAsPrevMsg = false;
 
-    SocketEvents = SocketEvents;
+    @Input() messageText?: string;
+
+    MessageTypes = MessageTypes;
 }

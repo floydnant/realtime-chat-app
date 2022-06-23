@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExtendedIoAdapter } from './adapters/extended-io-adapter';
 import { AppModule } from './app.module';
@@ -15,6 +15,8 @@ async function bootstrap() {
     };
     app.useWebSocketAdapter(new ExtendedIoAdapter(app, corsConfig));
     app.enableCors(corsConfig);
+
+    app.useGlobalPipes(new ValidationPipe());
 
     await app.listen(PORT, () => logger.log(`listening on ${BASE_URL}`));
 }

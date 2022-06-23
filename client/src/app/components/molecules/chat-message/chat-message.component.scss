@@ -5,6 +5,15 @@
     width: fit-content;
     margin-top: 10px;
 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    &.same-user {      
+        margin-top: 5px;
+    }
+
     &.user-event {
         margin: 10px auto 0;
         padding: 5px;
@@ -76,20 +85,31 @@
         }
     }
 
-    .user {
-        opacity: 0.6;
-        margin-left: 10px;
-        font-size: 11px;
+}
+.username {
+    position: relative;
+    top: 7px;
+    left: 12px;
+    font-size: .7em;
+    opacity: .7;
+}
+.time {
+    opacity: 0.4;
+    margin-top: 5px;
+    margin-left: 10px;
+    font-size: 11px;
+    float: right;
+    flex-grow: 1;
+    text-align: right;
 
-        span {
-            float: right;
-        }
+    span {
+        float: right;
     }
 }
 
 @keyframes appear {
     0% {
-        transform: scale(0);
+        transform: scale(.3);
     }
     100% {
         transform: scale(1);

@@ -10,7 +10,7 @@ import { LoginCredentialsDTO } from 'src/app/store/models/user.model';
 export class LoginComponent implements OnInit {
     constructor(private authService: AuthService) {}
 
-    errorMessage: string;
+    errorMessages: string | string[];
     successMessage: string;
 
     submitWrapper(creds: any) {
@@ -19,8 +19,8 @@ export class LoginComponent implements OnInit {
     async handleSubmit(credentials: LoginCredentialsDTO) {
         const res = await this.authService.login(credentials);
 
-        if ('error' in res) this.errorMessage = res.error.message;
-        else this.errorMessage = '';
+        if ('error' in res) this.errorMessages = res.error.message;
+        else this.errorMessages = '';
 
         if ('successMessage' in res) this.successMessage = res.successMessage;
         else this.successMessage = '';

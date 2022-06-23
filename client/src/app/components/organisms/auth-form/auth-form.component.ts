@@ -19,7 +19,7 @@ export class AuthFormComponent implements OnInit {
         password: '',
     };
 
-    @Input() errorMessage: string; // = 'Error occured: test error for testing so i can test the error message banner';
+    @Input() errorMessages: string | string[]; // = 'Error occured: test error for testing so i can test the error message banner';
     @Input() successMessage: string; // = 'Success occured: test success for testing so i can test the success message banner';
 
     @Output() submit = new EventEmitter<this['signupCreds'] | this['loginCreds']>();
