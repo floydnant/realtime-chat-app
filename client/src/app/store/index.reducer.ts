@@ -15,4 +15,9 @@ export const reducers: ActionReducerMap<AppState> = {
     chats: chatsReducer,
 };
 
-export const metaReducers: MetaReducer<AppState>[] = !environment.production ? [] : [];
+const actionLogger: MetaReducer<AppState> = reducer => (state, action) => {
+    console.log('%caction fired: %c' + action.type, 'color: hsl(130, 0%, 50%);', 'color: hsl(130, 100%, 50%);');
+    return reducer(state, action);
+};
+
+export const metaReducers: MetaReducer<AppState>[] = !environment.production ? [actionLogger] : [];

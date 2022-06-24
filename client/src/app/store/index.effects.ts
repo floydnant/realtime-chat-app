@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Actions, createEffect } from '@ngrx/effects';
-import { of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { tap } from 'rxjs/operators';
 import { globalActions } from './index.actions';
 import { HttpServerErrorResponse } from './index.model';
 import { ChatsEffects } from './chats/chats.effects';
@@ -11,18 +10,14 @@ import { UserEffects } from './user/user.effects';
 class GlobalEffects {
     constructor(private actions$: Actions) {}
 
-    actionLogger = createEffect(() =>
-    	this.actions$.pipe(
-    		mergeMap(({ type }) => of(
-    			console.log(
-    				'%caction fired: %c' + type,
-    				'color: hsl(130, 0%, 50%);',
-    				'color: hsl(130, 100%, 50%);',
-    			),
-    		)),
-    	),
-    	{ dispatch: false },
-    ); //prettier-ignore
+    logErrors = createEffect(
+        () =>
+            this.actions$.pipe(
+                ofType(globalActions.error),
+                tap(({ type, ...action }) => console.log('%csome error occurred:', 'color: red;', action)),
+            ),
+        { dispatch: false },
+    );
 }
 
 export const effects = [GlobalEffects, UserEffects, ChatsEffects];
