@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 // import { LocalSettings } from '../store/models/local-settings.model';
-import { LoggedInUser } from '../store/models/user.model';
+import { LoggedInUser } from '../store/user/user.model';
 
 @Injectable({
     providedIn: 'root',

@@ -1,13 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 import { getCopyOf } from 'src/app/utils';
-import { chatsActions } from '../actions/chats.actions';
-import {
-    ChatRoomDetails,
-    ChatRoomApiResponse,
-    ChatRoomPreview,
-    ChatsState,
-    StoredChatMessage,
-} from '../models/chats.model';
+import { chatsActions } from './chats.actions';
+import { ChatRoomDetails, ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from './chats.model';
 
 export const initialState = new ChatsState();
 
