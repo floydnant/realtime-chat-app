@@ -21,6 +21,7 @@ import { UserState } from '../store/user/user.model';
 import { AppState } from '../store/index.reducer';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
+import { HotToastService } from '@ngneat/hot-toast';
 
 class TypedSocket {
     constructor(private socket: Socket) {}
@@ -50,6 +51,7 @@ export class ChatService {
         private router: Router,
         private httpClient: BaseHttpClient,
         private actions$: Actions,
+        private toastService: HotToastService,
     ) {
         store.subscribe(state => {
             this.user = state.user;
@@ -188,14 +190,16 @@ export class ChatService {
         return this.httpClient.get<ChatRoomPreview>('/chats/globalChat');
     }
 
+    // TODO: this should be more generic and also inside the effects
     joinGlobalChat() {
         return this.httpClient
             .post<{ successMessage: string; chatRoom: ChatRoomPreview }>('/chats/globalChat/join')
-            .subscribe(chatRoomOrError => {
-                console.log(chatRoomOrError);
-                const action = handleError(chatRoomOrError, chatRoom =>
-                    chatsActions.joinChatSuccess({ chat: chatRoom.chatRoom }),
-                );
+            .subscribe(chatRoomResOrError => {
+                console.log(chatRoomResOrError);
+                const action = handleError(chatRoomResOrError, chatRoomRes => {
+                    this.toastService.success(`Successfully joined chat '${chatRoomRes.chatRoom.title}'`);
+                    return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
+                });
                 this.store.dispatch(action);
             });
     }

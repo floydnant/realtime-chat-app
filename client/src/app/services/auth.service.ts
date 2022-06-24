@@ -14,6 +14,7 @@ import { LocalStorageService } from './local-storage.service';
 export class AuthService {
     constructor(private http: BaseHttpClient, private localStorageService: LocalStorageService, private store: Store) {}
 
+    // TODO: this should be implemented with effects
     login(credentials: LoginCredentialsDTO) {
         return this.http
             .postAsync<AuthSuccessResponse>('/auth/login', credentials)
@@ -25,6 +26,7 @@ export class AuthService {
             })
             .catch(err => err) as Promise<AuthSuccessResponse | HttpServerErrorResponse>;
     }
+    // TODO: and also this should be implemented with effects
     signup(credentials: SignupCredentialsDTO) {
         return this.http
             .postAsync<AuthSuccessResponse>('/auth/signup', credentials)
@@ -32,7 +34,7 @@ export class AuthService {
                 data = data as AuthSuccessResponse;
                 this.localStorageService.setUser(data.user!);
                 this.store.dispatch(userActions.loginOrSignupSuccess(data.user));
-     
+
                 return data;
             })
             .catch(err => err) as Promise<AuthSuccessResponse | HttpServerErrorResponse>;

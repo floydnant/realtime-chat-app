@@ -8,10 +8,16 @@ import { handleError } from '../index.effects';
 import { chatsActions } from './chats.actions';
 import { ChatRoomDetails, ChatsState } from './chats.model';
 import { AppState } from '../index.reducer';
+import { HotToastService } from '@ngneat/hot-toast';
 
 @Injectable()
 export class ChatsEffects {
-    constructor(private actions$: Actions, private chatService: ChatService, private store: Store<AppState>) {}
+    constructor(
+        private actions$: Actions,
+        private chatService: ChatService,
+        private store: Store<AppState>,
+        private toastService: HotToastService,
+    ) {}
 
     chatsSubscription = this.store
         .select(state => state.chats)
@@ -53,9 +59,10 @@ export class ChatsEffects {
             mergeMap(({ title }) => {
                 return this.chatService.createChat(title).pipe(
                     map(createdChatOrError => {
-                        return handleError(createdChatOrError, createdChat =>
-                            chatsActions.createChatSuccess({ createdChat: createdChat }),
-                        );
+                        return handleError(createdChatOrError, createdChat => {
+                            this.toastService.success(`Successfully created chat '${createdChat.title}'`);
+                            return chatsActions.createChatSuccess({ createdChat: createdChat });
+                        });
                     }),
                 );
             }),

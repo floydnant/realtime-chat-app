@@ -7,16 +7,25 @@ import { AuthService } from 'src/app/services/auth.service';
 import { userActions } from './user.actions';
 import { globalActions } from '../index.actions';
 import { Router } from '@angular/router';
+import { HotToastService } from '@ngneat/hot-toast';
 
 @Injectable()
 export class UserEffects {
-    constructor(private actions$: Actions, private authService: AuthService, private router: Router) {}
+    constructor(
+        private actions$: Actions,
+        private authService: AuthService,
+        private router: Router,
+        private toastService: HotToastService,
+    ) {}
 
     loginSuccess = createEffect(
         () =>
             this.actions$.pipe(
                 ofType(userActions.loginOrSignupSuccess),
-                mergeMap(() => of(setTimeout(() => this.router.navigate(['/chat']), 2000))),
+                mergeMap(({ username }) => {
+                    this.toastService.success(`Succesfully logged in with '${username}'`);
+                    return of(setTimeout(() => this.router.navigate(['/chat']), 2000));
+                }),
             ),
         { dispatch: false },
     );
@@ -26,6 +35,7 @@ export class UserEffects {
             this.actions$.pipe(
                 ofType(userActions.logout),
                 mergeMap(() => {
+                    this.toastService.info('You logged out.');
                     this.router.navigate(['/auth/login']);
                     return of(this.authService.logout());
                 }),
