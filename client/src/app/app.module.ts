@@ -19,8 +19,8 @@ import { InputFieldComponent } from './components/molecules/input-field/input-fi
 import { AuthFormComponent } from './components/organisms/auth-form/auth-form.component';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
-import { metaReducers, reducers } from './store/reducers';
-import { effects } from './store/effects';
+import { metaReducers, reducers } from './store/index.reducer';
+import { effects } from './store/index.effects';
 import { HttpClientModule } from '@angular/common/http';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { SidebarComponent } from './components/organisms/sidebar/sidebar.component';

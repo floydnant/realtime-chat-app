@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { StoredChatMessage, ChatRoomApiResponse, ChatRoomPreview } from '../models/chats.model';
+import { StoredChatMessage, ChatRoomApiResponse, ChatRoomPreview } from './chats.model';
 
 export const chatsActions = {
     newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredChatMessage }>()),

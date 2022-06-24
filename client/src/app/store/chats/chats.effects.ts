@@ -4,10 +4,10 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
-import { handleError } from '.';
-import { chatsActions } from '../actions/chats.actions';
-import { ChatRoomDetails, ChatsState } from '../models/chats.model';
-import { AppState } from '../reducers';
+import { handleError } from '../index.effects';
+import { chatsActions } from './chats.actions';
+import { ChatRoomDetails, ChatsState } from './chats.model';
+import { AppState } from '../index.reducer';
 
 @Injectable()
 export class ChatsEffects {

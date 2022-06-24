@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
-import { HttpServerErrorResponse } from '../models';
-import { LoginCredentialsDTO, SignupCredentialsDTO, LoggedInUser } from '../models/user.model';
+import { HttpServerErrorResponse } from '../index.model';
+import { LoginCredentialsDTO, SignupCredentialsDTO, LoggedInUser } from './user.model';
 
 export const userActions = {
     signup: createAction('[ USER ] signup', props<SignupCredentialsDTO>()),

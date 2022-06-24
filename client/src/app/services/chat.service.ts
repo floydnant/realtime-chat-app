@@ -13,12 +13,12 @@ import {
 import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
 import { MessageTypes } from 'src/shared/message-types.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { globalActions } from '../store/actions';
-import { chatsActions } from '../store/actions/chats.actions';
-import { handleError } from '../store/effects';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/models/chats.model';
-import { UserState } from '../store/models/user.model';
-import { AppState } from '../store/reducers';
+import { globalActions } from '../store/index.actions';
+import { chatsActions } from '../store/chats/chats.actions';
+import { handleError } from '../store/index.effects';
+import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
+import { UserState } from '../store/user/user.model';
+import { AppState } from '../store/index.reducer';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
 

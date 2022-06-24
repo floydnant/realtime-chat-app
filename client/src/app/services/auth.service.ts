@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { userActions } from '../store/actions/user.actions';
-import { HttpServerErrorResponse } from '../store/models';
-import { ChatRoomApiResponse } from '../store/models/chats.model';
-import { AuthSuccessResponse, LoginCredentialsDTO, SignupCredentialsDTO } from '../store/models/user.model';
+import { userActions } from '../store/user/user.actions';
+import { HttpServerErrorResponse } from '../store/index.model';
+import { ChatRoomApiResponse } from '../store/chats/chats.model';
+import { AuthSuccessResponse, LoginCredentialsDTO, SignupCredentialsDTO } from '../store/user/user.model';
 import { moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
 import { LocalStorageService } from './local-storage.service';

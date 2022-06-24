@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { SignupCredentialsDTO, LoginCredentialsDTO } from 'src/app/store/models/user.model';
+import { SignupCredentialsDTO, LoginCredentialsDTO } from 'src/app/store/user/user.model';
 
 @Component({
     selector: 'auth-form',

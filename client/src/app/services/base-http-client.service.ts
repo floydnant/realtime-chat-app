@@ -5,9 +5,9 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { promisifyObservable } from '../utils';
-import { HttpServerErrorResponse } from '../store/models';
-import { AppState } from '../store/reducers';
-import { userActions } from '../store/actions/user.actions';
+import { HttpServerErrorResponse } from '../store/index.model';
+import { AppState } from '../store/index.reducer';
+import { userActions } from '../store/user/user.actions';
 
 interface HttpClientOptions {
     bearerToken?: string;

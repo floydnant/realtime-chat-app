@@ -4,8 +4,8 @@ import { map, mergeMap, catchError, exhaustMap } from 'rxjs/operators';
 
 import { Injectable } from '@angular/core';
 import { AuthService } from 'src/app/services/auth.service';
-import { userActions } from '../actions/user.actions';
-import { globalActions } from '../actions';
+import { userActions } from './user.actions';
+import { globalActions } from '../index.actions';
 import { Router } from '@angular/router';
 
 @Injectable()

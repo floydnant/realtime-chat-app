@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { ChatService } from 'src/app/services/chat.service';
-import { chatsActions } from 'src/app/store/actions/chats.actions';
-import { ChatRoomPreview } from 'src/app/store/models/chats.model';
-import { AppState } from 'src/app/store/reducers';
-import { chatsSelectors } from 'src/app/store/selectors/chats.selector';
+import { chatsActions } from 'src/app/store/chats/chats.actions';
+import { ChatRoomPreview } from 'src/app/store/chats/chats.model';
+import { AppState } from 'src/app/store/index.reducer';
+import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 
 @Component({
     selector: 'sidebar',

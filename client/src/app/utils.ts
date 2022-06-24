@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { HttpServerErrorResponse } from './store/models';
+import { HttpServerErrorResponse } from './store/index.model';
 
 export function debounce(callback: (...args: any[]) => unknown, delay = 250) {
     let timeout: any;
