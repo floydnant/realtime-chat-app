@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { HotToastService } from '@ngneat/hot-toast';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
 import { ChatService } from 'src/app/services/chat.service';
 import { chatsActions } from 'src/app/store/chats/chats.actions';
-import { ChatRoomPreview } from 'src/app/store/chats/chats.model';
-import { AppState } from 'src/app/store/index.reducer';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { AppState } from 'src/app/store/index.reducer';
 
 @Component({
     selector: 'sidebar',

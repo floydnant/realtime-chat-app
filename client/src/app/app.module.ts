@@ -24,6 +24,7 @@ import { effects } from './store/index.effects';
 import { HttpClientModule } from '@angular/common/http';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { SidebarComponent } from './components/organisms/sidebar/sidebar.component';
+import { HotToastModule } from '@ngneat/hot-toast';
 
 @NgModule({
     declarations: [
@@ -52,6 +53,7 @@ import { SidebarComponent } from './components/organisms/sidebar/sidebar.compone
         StoreModule.forRoot(reducers, { metaReducers }),
         EffectsModule.forRoot(effects),
         StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
+        HotToastModule.forRoot({ position: 'bottom-center' }),
     ],
     providers: [],
     bootstrap: [AppComponent],

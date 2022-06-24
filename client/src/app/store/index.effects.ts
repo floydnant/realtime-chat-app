@@ -5,16 +5,23 @@ import { globalActions } from './index.actions';
 import { HttpServerErrorResponse } from './index.model';
 import { ChatsEffects } from './chats/chats.effects';
 import { UserEffects } from './user/user.effects';
+import { HotToastService } from '@ngneat/hot-toast';
 
 @Injectable()
 class GlobalEffects {
-    constructor(private actions$: Actions) {}
+    constructor(private actions$: Actions, private toastService: HotToastService) {}
 
     logErrors = createEffect(
         () =>
             this.actions$.pipe(
                 ofType(globalActions.error),
-                tap(({ type, ...action }) => console.log('%csome error occurred:', 'color: red;', action)),
+                tap(({ type, ...action }) => {
+                    console.log('%csome error occurred:', 'color: red;', action);
+
+                    if ('errorMessage' in action) this.toastService.error(action.errorMessage);
+                    else if (typeof action.error.message == 'string') this.toastService.error(action.error.message);
+                    else action.error.message.forEach(msg => this.toastService.error(msg));
+                }),
             ),
         { dispatch: false },
     );
