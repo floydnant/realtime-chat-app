@@ -53,7 +53,16 @@ import { HotToastModule } from '@ngneat/hot-toast';
         StoreModule.forRoot(reducers, { metaReducers }),
         EffectsModule.forRoot(effects),
         StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
-        HotToastModule.forRoot({ position: 'bottom-center' }),
+        HotToastModule.forRoot({
+            position: 'bottom-left',
+            success: {
+                iconTheme: { primary: 'var(--primary-100)', secondary: 'black' },
+            },
+            loading: {
+                iconTheme: { primary: 'var(--secondary-100)', secondary: 'transparent' },
+            },
+            style: { background: 'var(--primary-800)', color: 'white', 'border-radius': '14px' },
+        }),
     ],
     providers: [],
     bootstrap: [AppComponent],
