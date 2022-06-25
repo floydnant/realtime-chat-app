@@ -1,0 +1,9 @@
+i {
+    animation: spin 800ms linear infinite;
+    animation: name duration timing-function delay iteration-count direction fill-mode;
+}
+@keyframes spin {
+    100% {
+        transform: rotate(365deg);
+    }
+}

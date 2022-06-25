@@ -8,23 +8,21 @@ export const initialState = new ChatsState();
 const loadChatMessagesSuccess = (
     state: ChatsState,
     { messages, chatId }: { chatId: string; messages: StoredChatMessage[] },
-) => {
+    isActiveChat = false,
+): ChatsState => {
     return {
         ...state,
         messagesByChat: {
             ...state.messagesByChat,
             [chatId]: messages,
         },
+        loadingActiveChatMessages: isActiveChat ? false : state.loadingActiveChatMessages,
     };
 };
 
 export const chatsReducer = createReducer(
     initialState,
 
-    // set active chat
-    on(chatsActions.setActiveChat, (state, { chatId }) => {
-        return { ...state, activeChatId: chatId };
-    }),
     // new incoming message
     on(chatsActions.newMessage, (state, { chatId, message }) => {
         return {
@@ -36,15 +34,25 @@ export const chatsReducer = createReducer(
         };
     }),
 
-    // loaded messages for active chat
-    on(chatsActions.loadActiveChatMessagesSuccess, (state, action) => {
-        if (action.alreadyStored) return state;
-        return loadChatMessagesSuccess(state, action);
+    // set active chat
+    on(chatsActions.setActiveChat, (state, { chatId }) => {
+        return { ...state, activeChatId: chatId };
     }),
-    // loaded messages
+    // load messages for active chat
+    on(chatsActions.loadActiveChatMessages, state => ({
+        ...state,
+        loadingActiveChatMessages: true,
+    })),
+
+    // successfully loaded messages for active chat
+    on(chatsActions.loadActiveChatMessagesSuccess, (state, action) => {
+        if (action.alreadyStored) return { ...state, loadingActiveChatMessages: false };
+        return loadChatMessagesSuccess(state, action, true);
+    }),
+    // successfully loaded messages
     on(chatsActions.loadChatMessagesSuccess, loadChatMessagesSuccess),
 
-    // loaded chat previews
+    // successfully loaded chat previews
     on(chatsActions.loadChatPreviewsSuccess, (state, { chatPreviews }) => {
         return {
             ...state,
@@ -52,7 +60,7 @@ export const chatsReducer = createReducer(
         };
     }),
 
-    // created a chat
+    // successfully created a chat
     on(chatsActions.createChatSuccess, (state, { createdChat }) => {
         return {
             ...state,
@@ -60,8 +68,7 @@ export const chatsReducer = createReducer(
         };
     }),
 
-    // joined a chat
-    // FIXME: some things dont work around here (not a useful note, but just a reminder)
+    // successfully joined a chat
     on(chatsActions.joinChatSuccess, (state, { chat }) => {
         return {
             ...state,

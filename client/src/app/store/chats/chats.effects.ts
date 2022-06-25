@@ -28,9 +28,16 @@ export class ChatsEffects {
     chatsDetails: ChatRoomDetails[];
     chatMessages: ChatsState['messagesByChat'];
 
-    loadActiveChat = createEffect(() => {
+    forwardSetActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatsActions.setActiveChat),
+            map(({ chatId }) => chatsActions.loadActiveChatMessages({ chatId })),
+        );
+    });
+
+    loadActiveChat = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatsActions.loadActiveChatMessages),
             mergeMap(({ chatId }) => {
                 const alreadyLoadedMessages = this.chatMessages[chatId];
                 if (alreadyLoadedMessages)

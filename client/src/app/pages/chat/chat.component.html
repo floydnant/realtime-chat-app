@@ -16,16 +16,19 @@
             [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
             [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
         ></chat-message>
-        <p *ngIf="(activeChat$ | async) && messages.length == 0" style="text-align:center; margin-top:10px;">No messages yet...</p>
+        <p [style.opacity]="chatsState.loadingActiveChatMessages ? '1' : '0'" style="font-size: 2rem"><loading-spinner></loading-spinner></p>
+        <p
+            *ngIf="!chatsState.loadingActiveChatMessages && (activeChat$ | async) && messages.length == 0"
+            style="text-align: center; margin-top: 10px"
+        >
+            No messages yet...
+        </p>
 
-        <chat-message
-            [variant]="'typing event'"
-            [messageText]="(usersTypingText$ | async)!"
-        ></chat-message>
+        <chat-message [variant]="'typing event'" [messageText]="(usersTypingText$ | async)!"></chat-message>
     </div>
 
     <h2 *ngIf="!(activeChat$ | async)" style="text-align: center; height: 100%; opacity: 0.6">No chat selected...</h2>
-    
+
     <div class="form-group-wrapper" [style.display]="(activeChat$ | async) ? 'block' : 'none'">
         <div class="form-group">
             <div class="message-input-container">

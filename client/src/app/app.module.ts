@@ -25,6 +25,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { SidebarComponent } from './components/organisms/sidebar/sidebar.component';
 import { HotToastModule } from '@ngneat/hot-toast';
+import { LoadingSpinnerComponent } from './components/atoms/loading-spinner/loading-spinner.component';
 
 @NgModule({
     declarations: [
@@ -41,6 +42,7 @@ import { HotToastModule } from '@ngneat/hot-toast';
         InputFieldComponent,
         AuthFormComponent,
         SidebarComponent,
+        LoadingSpinnerComponent,
     ],
     imports: [
         BrowserModule,

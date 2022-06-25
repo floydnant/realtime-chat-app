@@ -7,6 +7,7 @@ export class ChatsState {
     chatPreviews: ChatRoomPreview[] = [];
     chatsDetails: ChatRoomDetails[] = [];
     messagesByChat: { [chatId: string]: StoredChatMessage[] } = {};
+    loadingActiveChatMessages = false;
 }
 
 export interface StoredChatMessage {
