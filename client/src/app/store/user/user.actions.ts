@@ -11,4 +11,5 @@ export const userActions = {
     logout: createAction('[ USER ] logout'),
 
     loadUser: createAction('[ USER ] load user'),
+    loadUserSuccess: createAction('[ USER ] load user success', props<LoggedInUser>()),
 };

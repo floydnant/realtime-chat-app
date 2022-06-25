@@ -17,7 +17,7 @@ import { globalActions } from '../store/index.actions';
 import { chatsActions } from '../store/chats/chats.actions';
 import { handleError } from '../store/index.effects';
 import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
-import { UserState } from '../store/user/user.model';
+import { LoggedInUser } from '../store/user/user.model';
 import { AppState } from '../store/index.reducer';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -54,7 +54,7 @@ export class ChatService {
         private toastService: HotToastService,
     ) {
         store.subscribe(state => {
-            this.user = state.user;
+            this.user = state.user.loggedInUser;
             this.chatState = state.chats;
         });
 
@@ -62,7 +62,7 @@ export class ChatService {
     }
 
     private chatState: ChatsState;
-    private user: UserState;
+    private user: LoggedInUser | null;
 
     // own typing events
     private isTyping = false;

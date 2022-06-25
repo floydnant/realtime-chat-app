@@ -1,6 +1,6 @@
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { EMPTY, of, throwError } from 'rxjs';
-import { map, mergeMap, catchError, exhaustMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
 
 import { Injectable } from '@angular/core';
 import { AuthService } from 'src/app/services/auth.service';
@@ -43,20 +43,16 @@ export class UserEffects {
         { dispatch: false },
     );
 
-    loadUser = createEffect(() =>
-        this.actions$.pipe(
+    loadUser = createEffect(() => {
+        return this.actions$.pipe(
             ofType('@ngrx/effects/init'),
-            mergeMap(() => {
+            map(() => {
                 console.log('loading user...');
+                const user = this.authService.loadUser();
 
-                return of(this.authService.loadUser()).pipe(
-                    map(user => {
-                        if (user) return userActions.loginOrSignupSuccess(user);
-                        else return globalActions.nothing();
-                    }),
-                    catchError(() => EMPTY),
-                );
+                if (user) return userActions.loadUserSuccess(user);
+                return globalActions.nothing();
             }),
-        ),
-    );
+        );
+    });
 }

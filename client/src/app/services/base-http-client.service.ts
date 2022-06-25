@@ -31,7 +31,7 @@ interface HttpClientOptions {
 })
 export class BaseHttpClient {
     constructor(public http: HttpClient, private store: Store<AppState>) {
-        this.store.subscribe(state => (this.bearerToken = state.user?.accessToken));
+        this.store.subscribe(state => (this.bearerToken = state.user.loggedInUser?.accessToken));
     }
 
     bearerToken?: string = undefined;

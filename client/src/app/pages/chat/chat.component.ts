@@ -5,7 +5,7 @@ import { interval, Subscription } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
-import { UserState } from 'src/app/store/user/user.model';
+import { LoggedInUser, UserState } from 'src/app/store/user/user.model';
 import { AppState } from 'src/app/store/index.reducer';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
@@ -39,7 +39,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         store.subscribe(({ user, chats }) => {
             if (!user) this.router.navigate(['/auth/login']);
 
-            this.user = user;
+            this.user = user.loggedInUser;
             this.chatsState = chats;
         });
     }
@@ -49,7 +49,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     }
 
     chatsState: ChatsState;
-    user: UserState;
+    user: LoggedInUser | null;
     activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
 
     MessageTypes = MessageTypes;
