@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
-import { handleError } from '../index.effects';
+import { catchAndHandleError, handleError, throwIfErrorExists } from '../index.effects';
 import { chatsActions } from './chats.actions';
 import { ChatRoomDetails, ChatsState } from './chats.model';
 import { AppState } from '../index.reducer';
@@ -65,12 +65,15 @@ export class ChatsEffects {
             ofType(chatsActions.createChat),
             mergeMap(({ title }) => {
                 return this.chatService.createChat(title).pipe(
-                    map(createdChatOrError => {
-                        return handleError(createdChatOrError, createdChat => {
-                            this.toastService.success(`Successfully created chat '${createdChat.title}'`);
-                            return chatsActions.createChatSuccess({ createdChat: createdChat });
-                        });
+                    // error is needed for toastService to register it and show the respective toast
+                    throwIfErrorExists(),
+                    this.toastService.observe({
+                        loading: `Creating chat '${title}'...`,
+                        success: `Created chat '${title}'.`,
+                        error: `Could not create chat.`,
                     }),
+                    map(createdChat => chatsActions.createChatSuccess({ createdChat })),
+                    catchAndHandleError(),
                 );
             }),
         );

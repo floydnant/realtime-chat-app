@@ -1,27 +1,21 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Socket } from 'ngx-socket-io';
-import { Observable, Subject } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
-import {
-    Client_ChatMessagePayload,
-    Server_ChatMessagePayload,
-    Server_UserOnlineStatusEventPayload,
-} from 'src/shared/chat-event-payloads.model';
+import { of, Subject } from 'rxjs';
+import { catchError, filter, map, tap } from 'rxjs/operators';
+import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
 import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
-import { MessageTypes } from 'src/shared/message-types.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { globalActions } from '../store/index.actions';
 import { chatsActions } from '../store/chats/chats.actions';
-import { handleError } from '../store/index.effects';
 import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
-import { LoggedInUser } from '../store/user/user.model';
+import { handleError } from '../store/index.effects';
 import { AppState } from '../store/index.reducer';
+import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
-import { HotToastService } from '@ngneat/hot-toast';
 
 class TypedSocket {
     constructor(private socket: Socket) {}
@@ -151,7 +145,11 @@ export class ChatService {
                 payload: { accessToken: this.user.accessToken },
                 resEvent: SocketEvents.SERVER__AUTHENTICATE,
             });
-            if (!authenticated) this.router.navigate(['/auth/login']);
+            if (authenticated) this.toastService.success(`Still logged in with '${this.user.username}'.`);
+            else {
+                this.router.navigate(['/auth/login']);
+                this.toastService.info('Please login again.');
+            }
         } else this.router.navigate(['/auth/login']);
     }
 

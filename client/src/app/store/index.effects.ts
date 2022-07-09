@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { tap } from 'rxjs/operators';
+import { catchError, mergeMap, tap } from 'rxjs/operators';
 import { globalActions } from './index.actions';
 import { HttpServerErrorResponse } from './index.model';
 import { ChatsEffects } from './chats/chats.effects';
 import { UserEffects } from './user/user.effects';
 import { HotToastService } from '@ngneat/hot-toast';
+import { Action } from '@ngrx/store';
+import { throwError, of, Observable } from 'rxjs';
 
 @Injectable()
 class GlobalEffects {
@@ -15,12 +17,15 @@ class GlobalEffects {
         () =>
             this.actions$.pipe(
                 ofType(globalActions.error),
-                tap(({ type, ...action }) => {
+                tap(({ type, showToast, ...action }) => {
                     console.log('%csome error occurred:', 'color: red;', action);
 
+                    if (showToast === undefined) showToast = true;
+                    if (showToast === false) return;
+
                     if ('errorMessage' in action) this.toastService.error(action.errorMessage);
-                    else if (typeof action.error.message == 'string') this.toastService.error(action.error.message);
-                    else action.error.message.forEach(msg => this.toastService.error(msg));
+                    else if (typeof action.error?.message == 'string') this.toastService.error(action.error.message);
+                    else action.error?.message.forEach(msg => this.toastService.error(msg));
                 }),
             ),
         { dispatch: false },
@@ -34,3 +39,14 @@ export const handleError = <T, R>(dataOrError: T | HttpServerErrorResponse, acti
 
     return actionCallback(dataOrError);
 };
+
+export const throwIfErrorExists = () => {
+    return mergeMap(<T>(dataOrError: T | HttpServerErrorResponse) =>
+        'error' in dataOrError ? throwError(() => dataOrError) : of(dataOrError),
+    );
+}
+
+type ErrorAction = ReturnType<typeof globalActions.error>;
+export const catchAndHandleError = (showToast = false) => {
+    return catchError<Action, Observable<ErrorAction>>((err: HttpServerErrorResponse) => of(globalActions.error({...err, showToast })));
+}
