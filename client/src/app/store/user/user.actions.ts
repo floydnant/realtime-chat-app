@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { HttpServerErrorResponse } from '../index.model';
+import { HttpServerErrorResponse } from '../app.model';
 import { LoginCredentialsDTO, SignupCredentialsDTO, LoggedInUser } from './user.model';
 
 export const userActions = {
@@ -11,4 +11,5 @@ export const userActions = {
     logout: createAction('[ USER ] logout'),
 
     loadUser: createAction('[ USER ] load user'),
+    loadUserSuccess: createAction('[ USER ] load user success', props<LoggedInUser>()),
 };
