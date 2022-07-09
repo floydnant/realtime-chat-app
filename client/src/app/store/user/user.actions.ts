@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { HttpServerErrorResponse } from '../index.model';
+import { HttpServerErrorResponse } from '../app.model';
 import { LoginCredentialsDTO, SignupCredentialsDTO, LoggedInUser } from './user.model';
 
 export const userActions = {

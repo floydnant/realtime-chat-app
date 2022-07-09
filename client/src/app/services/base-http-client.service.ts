@@ -5,8 +5,8 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { promisifyObservable } from '../utils';
-import { HttpServerErrorResponse } from '../store/index.model';
-import { AppState } from '../store/index.reducer';
+import { HttpServerErrorResponse } from '../store/app.model';
+import { AppState } from '../store/app.reducer';
 
 type HttpMethods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options';
 type HttpMethodsWithoutBodyParam = 'get' | 'delete' | 'options';

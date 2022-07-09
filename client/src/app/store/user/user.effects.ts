@@ -5,7 +5,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { AuthService } from 'src/app/services/auth.service';
 import { userActions } from './user.actions';
-import { globalActions } from '../index.actions';
+import { appActions } from '../app.actions';
 import { Router } from '@angular/router';
 import { HotToastService } from '@ngneat/hot-toast';
 
@@ -51,7 +51,7 @@ export class UserEffects {
                 const user = this.authService.loadUser();
 
                 if (user) return userActions.loadUserSuccess(user);
-                return globalActions.nothing();
+                return appActions.nothing();
             }),
         );
     });

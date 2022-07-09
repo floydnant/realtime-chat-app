@@ -4,10 +4,10 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
-import { catchAndHandleError, handleError, throwIfErrorExists } from '../index.effects';
+import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
 import { chatsActions } from './chats.actions';
 import { ChatRoomDetails, ChatsState } from './chats.model';
-import { AppState } from '../index.reducer';
+import { AppState } from '../app.reducer';
 import { HotToastService } from '@ngneat/hot-toast';
 
 @Injectable()

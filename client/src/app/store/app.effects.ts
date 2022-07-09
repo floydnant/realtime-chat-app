@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, mergeMap, tap } from 'rxjs/operators';
-import { globalActions } from './index.actions';
-import { HttpServerErrorResponse } from './index.model';
+import { appActions } from './app.actions';
+import { HttpServerErrorResponse } from './app.model';
 import { ChatsEffects } from './chats/chats.effects';
 import { UserEffects } from './user/user.effects';
 import { HotToastService } from '@ngneat/hot-toast';
@@ -10,13 +10,13 @@ import { Action } from '@ngrx/store';
 import { throwError, of, Observable } from 'rxjs';
 
 @Injectable()
-class GlobalEffects {
+class AppEffects {
     constructor(private actions$: Actions, private toastService: HotToastService) {}
 
     logErrors = createEffect(
         () =>
             this.actions$.pipe(
-                ofType(globalActions.error),
+                ofType(appActions.error),
                 tap(({ type, showToast, ...action }) => {
                     console.log('%csome error occurred:', 'color: red;', action);
 
@@ -32,10 +32,10 @@ class GlobalEffects {
     );
 }
 
-export const effects = [GlobalEffects, UserEffects, ChatsEffects];
+export const effects = [AppEffects, UserEffects, ChatsEffects];
 
 export const handleError = <T, R>(dataOrError: T | HttpServerErrorResponse, actionCallback: (data: T) => R) => {
-    if ('error' in dataOrError) return globalActions.error(dataOrError);
+    if ('error' in dataOrError) return appActions.error(dataOrError);
 
     return actionCallback(dataOrError);
 };
@@ -46,7 +46,7 @@ export const throwIfErrorExists = () => {
     );
 }
 
-type ErrorAction = ReturnType<typeof globalActions.error>;
+type ErrorAction = ReturnType<typeof appActions.error>;
 export const catchAndHandleError = (showToast = false) => {
-    return catchError<Action, Observable<ErrorAction>>((err: HttpServerErrorResponse) => of(globalActions.error({...err, showToast })));
+    return catchError<Action, Observable<ErrorAction>>((err: HttpServerErrorResponse) => of(appActions.error({...err, showToast })));
 }

@@ -11,8 +11,8 @@ import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/e
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { chatsActions } from '../store/chats/chats.actions';
 import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
-import { handleError } from '../store/index.effects';
-import { AppState } from '../store/index.reducer';
+import { handleError } from '../store/app.effects';
+import { AppState } from '../store/app.reducer';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
