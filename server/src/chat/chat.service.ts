@@ -98,23 +98,28 @@ export class ChatService {
         this.filterOutDisconnectedClients(connectedClientIds);
     }
 
-    onClientDisconnected(clientId: string): { disconnectedUser: UserPreview | null; chatIds: string[] } {
-        const { userId: id, username } = this.getUserFromClientId(clientId);
+    onClientLogout(clientId: string): { loggedOutUser: UserPreview | null; chatIds: string[] } | undefined {
+        const loggedOutUser = this.getUserFromClientId(clientId);
+        if (!loggedOutUser) return;
+
         const chatIds = this.getChatsWithUser(clientId);
         this.filterOutSingleClient(clientId);
 
+        const { userId: id, username } = loggedOutUser;
         return {
-            disconnectedUser: { username, id },
+            loggedOutUser: { username, id },
             chatIds,
         };
     }
 
     getUserFromClientId(clientId: string): AuthenticatedUser | null {
-        return this.authenticatedUsersPerChat.reduce((prev: AuthenticatedUser | null, curr) => {
+        const user = this.authenticatedUsersPerChat.reduce((prev: AuthenticatedUser | null, curr) => {
             if (prev) return prev;
             return curr.usersOnline.find(user => user.clientId == clientId);
         }, null);
-        // return this.authenticatedUsersPerChat.find(user => user.clientId == clientId);
+        if (!user) this.logger.warn(`Could not find user with clientId ${clientId}`);
+
+        return user;
     }
     getChatsWithUser(clientId: string) {
         return this.authenticatedUsersPerChat

@@ -14,6 +14,7 @@ export interface SocketEventPayloadMap {
     [SocketEvents.CLIENT__AUTHENTICATE]: Client_AuthenticateEventPayload;
     [SocketEvents.SERVER__AUTHENTICATE]: Server_AuthenticateEventPayload;
     [SocketEvents.SERVER__AUTHENTICATE_PROMPT]: undefined | null;
+    [SocketEvents.CLIENT__LOGOUT]: undefined | null;
 
     [SocketEvents.CLIENT__TYPING_EVENT]: Client_TypingEventPayload;
     [SocketEvents.SERVER__TYPING_EVENT]: Server_TypingEventPayload;

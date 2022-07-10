@@ -28,6 +28,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private logger: Logger = new Logger('ChatGateway');
     @WebSocketServer() server: Server<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
+    async handleConnection(client: TypedSocket) {
+        this.logger.verbose(`Client connected: ${client.id}`);
+
+        const allSockets = await this.server.allSockets();
+        this.chatService.onClientConnected(allSockets);
+
+        client.emit(SocketEvents.SERVER__AUTHENTICATE_PROMPT, null);
+    }
+    async handleDisconnect(client: TypedSocket) {
+        const user = this.onCLientLogout(client);
+        this.logger.verbose(`${user} disconnected`);
+    }
+
     @SubscribeMessage(SocketEvents.CLIENT__AUTHENTICATE)
     async handleAuth(client: TypedSocket, { accessToken }: Client_AuthenticateEventPayload) {
         if (!accessToken) {
@@ -56,6 +69,42 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 });
             });
         }
+    }
+    @SubscribeMessage(SocketEvents.CLIENT__LOGOUT)
+    handleLogout(client: TypedSocket) {
+        const user = this.onCLientLogout(client);
+        this.logger.verbose(`${user} logged out`);
+    }
+
+    onCLientLogout(client: TypedSocket) {
+        const data = this.chatService.onClientLogout(client.id);
+        if (!data) return '[a not authenticated user]';
+        const { loggedOutUser, chatIds } = data;
+
+        chatIds.forEach(chatId => {
+            client.broadcast.to(chatId).emit(SocketEvents.SERVER__TYPING_EVENT, {
+                username: loggedOutUser.username,
+                isTyping: false,
+                chatId,
+            });
+            client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
+                user: loggedOutUser,
+                online: false,
+                chatIds,
+            });
+            client.leave(chatId);
+
+            this.emitAllOnlineUsers(chatId);
+        });
+
+        return loggedOutUser.username;
+    }
+
+    private emitAllOnlineUsers(chatId: string) {
+        this.server.to(chatId).emit(SocketEvents.SERVER__USERS_ONLINE, {
+            chatId,
+            usersOnline: this.chatService.getOnlineUsersByChatId(chatId).usersOnline.map(u => u.username),
+        });
     }
 
     @SubscribeMessage(SocketEvents.CLIENT__CHAT_MESSAGE)
@@ -86,45 +135,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.broadcast
             .to(chatId)
             .emit(SocketEvents.SERVER__TYPING_EVENT, { username: user.username, isTyping, chatId });
-    }
-
-    async handleConnection(client: TypedSocket) {
-        this.logger.verbose(`Client connected: ${client.id}`);
-
-        const allSockets = await this.server.allSockets();
-        this.chatService.onClientConnected(allSockets);
-
-        client.emit(SocketEvents.SERVER__AUTHENTICATE_PROMPT, null);
-    }
-
-    async handleDisconnect(client: TypedSocket) {
-        const { disconnectedUser, chatIds } = this.chatService.onClientDisconnected(client.id);
-        this.logger.verbose(`${disconnectedUser.username || 'a not authenticated user'} disconnected`);
-
-        if (!disconnectedUser) return;
-
-        chatIds.forEach(chatId => {
-            client.broadcast.to(chatId).emit(SocketEvents.SERVER__TYPING_EVENT, {
-                username: disconnectedUser.username,
-                isTyping: false,
-                chatId,
-            });
-            client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
-                user: disconnectedUser,
-                online: false,
-                // text: `${disconnectedUser} went offline.`,
-                chatIds,
-            });
-            client.leave(chatId);
-
-            this.emitAllOnlineUsers(chatId);
-        });
-    }
-
-    private emitAllOnlineUsers(chatId: string) {
-        this.server.to(chatId).emit(SocketEvents.SERVER__USERS_ONLINE, {
-            chatId,
-            usersOnline: this.chatService.getOnlineUsersByChatId(chatId).usersOnline.map(u => u.username),
-        });
     }
 }

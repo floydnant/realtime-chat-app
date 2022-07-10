@@ -1,3 +1,8 @@
+<div style="display:flex; gap:10px; margin-bottom:20px;">
+    <span class="secondary-100">{{ username$ | async }}</span>
+    <button (click)="logout()">logout</button>
+</div>
+
 <h2>Chats</h2>
 <ul>
     <li
