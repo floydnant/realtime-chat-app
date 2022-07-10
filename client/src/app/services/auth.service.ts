@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { userActions } from '../store/user/user.actions';
-import { HttpServerErrorResponse } from '../store/index.model';
+import { HttpServerErrorResponse } from '../store/app.model';
 import { ChatRoomApiResponse } from '../store/chats/chats.model';
 import { AuthSuccessResponse, LoginCredentialsDTO, SignupCredentialsDTO } from '../store/user/user.model';
 import { moveToMacroQueue } from '../utils';

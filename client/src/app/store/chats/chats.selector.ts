@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { AppState } from '../index.reducer';
+import { AppState } from '../app.reducer';
 
 export const chatsSelectors = {
     selectActiveChat: createSelector(

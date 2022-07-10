@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { ChatService } from 'src/app/services/chat.service';
 import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
-import { AppState } from 'src/app/store/index.reducer';
+import { AppState } from 'src/app/store/app.reducer';
 
 @Component({
     selector: 'sidebar',

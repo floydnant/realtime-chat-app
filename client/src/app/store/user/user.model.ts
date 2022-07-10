@@ -1,11 +1,12 @@
 import { UserPreview } from 'src/shared/index.model';
 
-export class LoggedInUser implements UserPreview {
-    id: string;
-    username: string;
+export class UserState {
+    loggedInUser: LoggedInUser | null = null;
+    loading = false;
+}
+export interface LoggedInUser extends UserPreview {
     accessToken: string;
 }
-export type UserState = LoggedInUser | null;
 
 export class LoginCredentialsDTO {
     usernameOrEmail: string;
