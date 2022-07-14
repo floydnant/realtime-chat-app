@@ -40,6 +40,7 @@ export class AuthService {
             .then(data => {
                 this.localStorageService.setUser(data.user);
                 this.store.dispatch(userActions.loginOrSignupSuccess(data.user));
+                this.socket.loginSocket(false);
 
                 return data;
             })

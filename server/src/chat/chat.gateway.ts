@@ -7,6 +7,7 @@ import {
     WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { IS_PROD } from 'src/constants';
 import {
     Client_AuthenticateEventPayload,
     Client_ChatMessagePayload,
@@ -19,7 +20,7 @@ import { ChatService } from './chat.service';
 
 export const GROUP_CHAT = 'global group chat';
 
-type TypedSocket = Socket<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
+export type TypedSocket = Socket<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -52,23 +53,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         client.emit(SocketEvents.SERVER__AUTHENTICATE, { authenticated });
 
-        if (!authenticated) this.logger.verbose(`'${user.username || '[some user]'}' could not authenticate`);
-        else {
-            this.logger.verbose(`'${user.username}' authenticated successfully`);
-
-            console.log(user.username + "'s chat ids:", chatIds);
-
-            chatIds.forEach(chatId => {
-                client.join(chatId);
-                this.emitAllOnlineUsers(chatId);
-                client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
-                    user,
-                    online: true,
-                    // text: `${user.username} went online.`,
-                    chatIds,
-                });
-            });
+        if (!authenticated) {
+            this.logger.verbose(`'${user.username || '[some user]'}' could not authenticate`);
+            return;
         }
+
+        this.logger.verbose(`'${user.username}' authenticated successfully`);
+        this.chatService.setUserOnline({ userId: user.id, username: user.username, client }, chatIds);
+        this.chatService.logUsersOnline();
+
+        chatIds.forEach(chatId => {
+            this.emitAllOnlineUsers(chatId);
+            client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
+                user,
+                online: true,
+                chatIds,
+            });
+        });
     }
     @SubscribeMessage(SocketEvents.CLIENT__LOGOUT)
     handleLogout(client: TypedSocket) {
@@ -103,13 +104,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private emitAllOnlineUsers(chatId: string) {
         this.server.to(chatId).emit(SocketEvents.SERVER__USERS_ONLINE, {
             chatId,
-            usersOnline: this.chatService.getOnlineUsersByChatId(chatId).usersOnline.map(u => u.username),
+            usersOnline: this.chatService.getUsersOnlineForChat(chatId).map(u => u.username),
         });
     }
 
     @SubscribeMessage(SocketEvents.CLIENT__CHAT_MESSAGE)
     async handleChatMessage(client: TypedSocket, { chatId, messageText }: Client_ChatMessagePayload) {
-        const user = this.chatService.getUserFromClientId(client.id);
+        const user = this.chatService.getUserOnline(client.id);
         if (!user) return;
         const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.userId);
         if (!isUserChatMember) return;
@@ -117,7 +118,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const persistedMessage = await this.chatService.persistMessageInChat(messageText, chatId, user.userId);
         this.logger.verbose(`${user.username} wrote '${messageText}' in chat '${chatId}'`);
 
-        // if (client.rooms.has(chatId))
         this.server.to(chatId).emit(SocketEvents.SERVER__CHAT_MESSAGE, {
             chatId,
             message: persistedMessage as unknown as Server_ChatMessagePayload['message'],
@@ -126,7 +126,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage(SocketEvents.CLIENT__TYPING_EVENT)
     async handleTypingEvents(client: TypedSocket, { chatId, isTyping }: Client_TypingEventPayload) {
-        const user = this.chatService.getUserFromClientId(client.id);
+        const user = this.chatService.getUserOnline(client.id);
         if (!user) return;
         const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.userId);
         if (!isUserChatMember) return;

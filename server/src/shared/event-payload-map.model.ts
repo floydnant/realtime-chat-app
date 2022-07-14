@@ -1,6 +1,7 @@
 import {
     Client_AuthenticateEventPayload,
     Client_ChatMessagePayload,
+    Server_UserJoinedChatPayload,
     Client_TypingEventPayload,
     Server_AuthenticateEventPayload,
     Server_ChatMessagePayload,
@@ -15,6 +16,8 @@ export interface SocketEventPayloadMap {
     [SocketEvents.SERVER__AUTHENTICATE]: Server_AuthenticateEventPayload;
     [SocketEvents.SERVER__AUTHENTICATE_PROMPT]: undefined | null;
     [SocketEvents.CLIENT__LOGOUT]: undefined | null;
+
+    [SocketEvents.SERVER__USER_JOINED_CHAT]: Server_UserJoinedChatPayload;
 
     [SocketEvents.CLIENT__TYPING_EVENT]: Client_TypingEventPayload;
     [SocketEvents.SERVER__TYPING_EVENT]: Server_TypingEventPayload;

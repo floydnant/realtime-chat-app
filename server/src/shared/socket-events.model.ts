@@ -4,6 +4,8 @@ export enum SocketEvents {
     SERVER__AUTHENTICATE_PROMPT = 'server authenticate prompt',
     CLIENT__LOGOUT = 'client logout',
 
+    SERVER__USER_JOINED_CHAT = 'server user joined chat',
+
     CLIENT__TYPING_EVENT = 'client typing event',
     SERVER__TYPING_EVENT = 'server typing event',
 
