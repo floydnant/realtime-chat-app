@@ -4,7 +4,7 @@ import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Socket } from 'ngx-socket-io';
-import { of, Subject } from 'rxjs';
+import { MonoTypeOperatorFunction, of, OperatorFunction, Subject } from 'rxjs';
 import { catchError, filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
 import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
@@ -17,6 +17,8 @@ import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
 import { SocketService } from './socket.service';
+import { HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpServerErrorResponse } from '../store/app.model';
 
 @Injectable({
     providedIn: 'root',
@@ -123,7 +125,30 @@ export class ChatService {
         return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
     }
     getChatMessages(chatId: string) {
-        return this.httpClient.get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`);
+        return this.httpClient
+            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`, {
+                reportProgress: true,
+                observe: 'events',
+            } as any)
+            .pipe(...this.reportProgress<StoredChatMessage[]>(progress => console.log('download messages:', progress)));
+    }
+    private reportProgress<T>(
+        cb: (progress: number) => void,
+    ): [
+        MonoTypeOperatorFunction<T | HttpServerErrorResponse>,
+        MonoTypeOperatorFunction<T | HttpServerErrorResponse>,
+        OperatorFunction<T | HttpServerErrorResponse, NonNullable<T>>,
+    ] {
+        return [
+            tap(event => {
+                if ((event as unknown as HttpEvent<T>).type === HttpEventType.DownloadProgress) {
+                    const progress = ((event as any).loaded / (event as any).total) * 100;
+                    cb(progress);
+                }
+            }),
+            filter(event => (event as unknown as HttpEvent<T>).type === HttpEventType.Response),
+            map(res => (res as unknown as HttpResponse<T>).body!),
+        ];
     }
 
     createChat(title: string) {

@@ -83,6 +83,13 @@ export class ChatService {
     private removeUserOnlineFromChat(userId: string, chatId: string) {
         this.usersOnlineByChat[chatId] = this.usersOnlineByChat[chatId].filter(u => u.userId != userId);
     }
+    removeChatsWithoutUsersOnline() {
+        const newUsersOnlineByChat = {};
+        Object.entries(this.usersOnlineByChat).forEach(([chatId, users]) => {
+            if (users.length) newUsersOnlineByChat[chatId] = users;
+        });
+        this.usersOnlineByChat = newUsersOnlineByChat;
+    }
     getUsersOnlineForChat(chatId: string) {
         return this.usersOnlineByChat[chatId] || [];
     }
@@ -130,6 +137,9 @@ export class ChatService {
 
         const chatIds = this.getChatsWithUser(clientId);
         this.setUserOffline(clientId);
+
+        this.removeChatsWithoutUsersOnline();
+        this.logUsersOnline();
 
         const { userId: id, username } = loggedOutUser;
         return {
