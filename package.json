@@ -2,7 +2,8 @@
     "name": "realtime-chat-app",
     "version": "1.0.0",
     "scripts": {
-        "sync-shared": "rsync -a ./server/src/shared/ ./client/src/shared/"
+        "sync-shared": "rsync -a ./server/src/shared/ ./client/src/shared/",
+        "local-ip": "echo $(echo \"your local IP adress is:\" && ipconfig getifaddr en0)"
     },
     "author": "Floyd Haremsa",
     "license": "ISC"
