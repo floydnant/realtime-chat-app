@@ -105,8 +105,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
-        }),
-        tap(() => this.scrollToBottom()),
+        })
     );
 
     usersOnlineText$ = this.chatService.getUsersOnline().pipe(

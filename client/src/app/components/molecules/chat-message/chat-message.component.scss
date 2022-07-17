@@ -58,33 +58,6 @@
             hyphens: auto;
         }
     }
-
-    &.typing-event {
-        .dots {
-            margin: 0 0 2px 10px;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            // outline: 1px solid red;
-
-            .dot {
-                display: block;
-                height: 6px;
-                width: 6px;
-                background: var(--primary-400);
-                border-radius: 500%;
-
-                --delay: calc(var(--index) * 140ms);
-                animation: jump 700ms var(--delay) ease infinite;
-
-                & + .dot {
-                    margin-left: 5px;
-                }
-            }
-        }
-    }
-
 }
 .username {
     position: relative;
@@ -113,11 +86,5 @@
     }
     100% {
         transform: scale(1);
-    }
-}
-
-@keyframes jump {
-    50% {
-        transform: translateY(-10px);
     }
 }

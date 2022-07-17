@@ -16,184 +16,227 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
+}
+.chat-title-bar {
+    z-index: 10;
+    width: 100%;
+    border-radius: 0 0 14px 14px;
+    padding: 10px;
 
-    .chat-title-bar {
-        z-index: 10;
-        // position: absolute;
-        // top: 0;
-        // left: 0;
-        width: 100%;
-        border-radius: 0 0 14px 14px;
-        padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
 
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
+    background: var(--primary-800);
+    box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
 
-        background: var(--primary-800);
-        box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
-
-        .chat-title {
-            font-size: 1.3rem;
-            margin-bottom: 5px;
-        }
-        .users-online {
-            color: var(--primary-200);
-            font-size: 0.8rem;
-
-            &:not(.show) {
-                display: none;
-            }
-        }
+    .chat-title {
+        font-size: 1.3rem;
+        margin-bottom: 5px;
     }
-
-    .snackbar {
-        z-index: 10;
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 5px;
+    .users-online {
+        color: var(--primary-200);
         font-size: 0.8rem;
-        max-width: 100%;
-        box-shadow: 0 0 10px var(--secondary-800);
-
-        border-radius: 0 0 10px 10px;
-        background: var(--secondary-800);
-        color: var(--primary-100);
-        pointer-events: none;
-        transition: opacity 200ms;
 
         &:not(.show) {
-            opacity: 0;
-        }
-
-        span {
-            color: var(--primary-100);
+            display: none;
         }
     }
+}
 
-    .chat {
+.snackbar {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px;
+    font-size: 0.8rem;
+    max-width: 100%;
+    box-shadow: 0 0 10px var(--secondary-800);
+
+    border-radius: 0 0 10px 10px;
+    background: var(--secondary-800);
+    color: var(--primary-100);
+    pointer-events: none;
+    transition: opacity 200ms;
+
+    &:not(.show) {
+        opacity: 0;
+    }
+
+    span {
+        color: var(--primary-100);
+    }
+}
+
+.chat {
+    width: 100%;
+    height: 100%;
+    padding: 0 10px 10px;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+
+    scroll-behavior: smooth;
+    scroll-margin-bottom: 100px;
+
+    .messages {
         width: 100%;
-        height: 100%;
-        // padding: 27px 10px 10px;
-        padding: 0 10px 10px;
-        overflow-x: hidden;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: center;
 
-        scroll-behavior: smooth;
-        scroll-margin-bottom: 100px;
-
-        .messages {
+        & > * {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
+        }
+    }
+}
 
-            & > * {
-                width: 100%;
-            }
+::-webkit-scrollbar {
+    width: 0.1rem;
+    height: 0.1rem;
+}
+
+.bottom-bar {
+    z-index: 5;
+
+    padding: 10px;
+    width: 100%;
+
+    border-radius: 14px 14px 0 0;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    background: var(--primary-800);
+    box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
+}
+
+.info-bar {
+    height: 0;
+    margin: 0;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    font-size: 0.8em;
+
+    transition: 150ms;
+
+    &.visible {
+        padding-top: 15px;
+        margin-bottom: 10px;
+
+
+        .dots {
+            opacity: 1;
         }
     }
 
-    ::-webkit-scrollbar {
-        width: 0.1rem;
-        height: 0.1rem;
-    }
-
-    .form-group-wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    .form-group {
-        z-index: 5;
-        // box-sizing: border-box;
-        // position: fixed;
-        // bottom: 0;
-
-        padding: 10px;
-        width: 100%;
-        // width: 60%;
-
-        border-radius: 14px 14px 0 0;
-
+    .dots {
+        opacity: 0;
+        margin-left: 10px;
         display: flex;
-        flex-direction: row;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
 
-        background: var(--primary-800);
-        box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
+        .dot {
+            display: block;
+            height: 4px;
+            width: 4px;
+            background: var(--primary-400);
+            border-radius: 500%;
 
-        .message-input,
-        .send-btn,
-        .change-username-btn,
-        .message-input-placeholder,
-        .message-input-bg {
-            padding: 10px;
-            border-radius: 8px;
-            border: 0;
-            outline: 0;
-            background: var(--primary-700);
-            box-shadow: 0 0 10px var(--primary-900);
-            color: var(--primary-100);
-            font-size: 1rem;
-            transition: all 160ms;
-        }
-        .message-input-container {
-            position: relative;
-            width: 100%;
-            isolation: isolate;
+            --delay: calc(var(--index) * 140ms);
+            animation: jump 700ms var(--delay) ease infinite;
 
-            .message-input-placeholder,
-            .message-input-bg {
-                height: 100%;
-                z-index: -1;
-                width: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                color: var(--primary-400);
-                box-shadow: none;
-                transition: none;
-                pointer-events: none;
-            }
-            .message-input-placeholder {
-                background: transparent;
-            }
-            .message-input {
-                max-width: 100%;
-                border: 1px solid transparent;
-                background: transparent;
-
-                &::placeholder {
-                    color: hsl(var(--primary-hue), 100%, 30%);
-                }
-                &:focus {
-                    border: 1px solid var(--primary-100);
-                }
+            & + .dot {
+                margin-left: 3px;
             }
         }
-        .send-btn,
-        .change-username-btn {
-            padding-inline: 20px;
-            margin-left: 10px;
-            cursor: pointer;
+    }
+}
 
-            &:hover:not([disabled]) {
-                background: var(--primary-100);
-                color: var(--primary-900);
-            }
+.form-group {
+    display: flex;
+    width: 100%;
+}
 
-            &[disabled] {
-                cursor: not-allowed;
-            }
+@keyframes jump {
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.message-input,
+.send-btn,
+.message-input-placeholder,
+.message-input-bg {
+    padding: 10px;
+    border-radius: 8px;
+    border: 0;
+    outline: 0;
+    background: var(--primary-700);
+    box-shadow: 0 0 10px var(--primary-900);
+    color: var(--primary-100);
+    font-size: 1rem;
+    transition: all 160ms;
+}
+.message-input-container {
+    position: relative;
+    width: 100%;
+    isolation: isolate;
+    flex-shrink: 1;
+
+    .message-input-placeholder,
+    .message-input-bg {
+        height: 100%;
+        z-index: -1;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: var(--primary-400);
+        box-shadow: none;
+        transition: none;
+        pointer-events: none;
+    }
+    .message-input-placeholder {
+        background: transparent;
+    }
+    .message-input {
+        max-width: 100%;
+        border: 1px solid transparent;
+        background: transparent;
+
+        &::placeholder {
+            color: hsl(var(--primary-hue), 100%, 30%);
         }
+        &:focus {
+            border: 1px solid var(--primary-100);
+        }
+    }
+}
+.send-btn,
+.change-username-btn {
+    padding-inline: 20px;
+    margin-left: 10px;
+    cursor: pointer;
+
+    &:hover:not([disabled]) {
+        background: var(--primary-100);
+        color: var(--primary-900);
+    }
+
+    &[disabled] {
+        cursor: not-allowed;
     }
 }

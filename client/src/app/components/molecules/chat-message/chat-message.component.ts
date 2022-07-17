@@ -9,7 +9,7 @@ import { MessageTypes } from 'src/shared/message-types.model';
     styleUrls: ['./chat-message.component.scss'],
 })
 export class ChatMessageComponent {
-    @Input() variant: MessageTypes.CHAT_MESSAGE | MessageTypes.USER_EVENT | 'typing event';
+    @Input() variant: MessageTypes.CHAT_MESSAGE | MessageTypes.USER_EVENT;
     @Input() message?: StoredChatMessage | UserOnlineStatusEventMessage;
     @Input() isMe = false;
     @Input() sameUserAsPrevMsg = false;
