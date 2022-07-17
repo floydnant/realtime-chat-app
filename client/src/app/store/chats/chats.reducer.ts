@@ -35,7 +35,7 @@ export const chatsReducer = createReducer(
     }),
 
     // set active chat
-    on(chatsActions.setActiveChat, (state, { chatId }) => {
+    on(chatsActions.setActiveChatSuccess, (state, { chatId }) => {
         return { ...state, activeChatId: chatId };
     }),
     // load messages for active chat

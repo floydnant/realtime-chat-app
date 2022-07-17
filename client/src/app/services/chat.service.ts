@@ -88,7 +88,7 @@ export class ChatService {
         )
         .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
 
-    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChat)).subscribe(({ chatId }) => {
+    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChatSuccess)).subscribe(({ chatId }) => {
         this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
         this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
     });

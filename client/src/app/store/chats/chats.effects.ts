@@ -9,6 +9,7 @@ import { chatsActions } from './chats.actions';
 import { ChatRoomDetails, ChatsState } from './chats.model';
 import { AppState } from '../app.reducer';
 import { HotToastService } from '@ngneat/hot-toast';
+import { appActions } from '../app.actions';
 
 @Injectable()
 export class ChatsEffects {
@@ -22,15 +23,27 @@ export class ChatsEffects {
     chatsSubscription = this.store
         .select(state => state.chats)
         .subscribe(chatsState => {
+            this.activeChatId = chatsState.activeChatId;
             this.chatsDetails = chatsState.chatsDetails;
             this.chatMessages = chatsState.messagesByChat;
         });
+    activeChatId: string | null;
     chatsDetails: ChatRoomDetails[];
     chatMessages: ChatsState['messagesByChat'];
 
-    forwardSetActiveChat = createEffect(() => {
+    setActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatsActions.setActiveChat),
+            map(({ chatId }) => {
+                if (chatId == this.activeChatId) return appActions.nothing();
+                return chatsActions.setActiveChatSuccess({ chatId });
+            }),
+        );
+    });
+
+    forwardSetActiveChat = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatsActions.setActiveChatSuccess),
             map(({ chatId }) => chatsActions.loadActiveChatMessages({ chatId })),
         );
     });
