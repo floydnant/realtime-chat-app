@@ -126,29 +126,7 @@ export class ChatService {
     }
     getChatMessages(chatId: string) {
         return this.httpClient
-            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`, {
-                reportProgress: true,
-                observe: 'events',
-            } as any)
-            .pipe(...this.reportProgress<StoredChatMessage[]>(progress => console.log('download messages:', progress)));
-    }
-    private reportProgress<T>(
-        cb: (progress: number) => void,
-    ): [
-        MonoTypeOperatorFunction<T | HttpServerErrorResponse>,
-        MonoTypeOperatorFunction<T | HttpServerErrorResponse>,
-        OperatorFunction<T | HttpServerErrorResponse, NonNullable<T>>,
-    ] {
-        return [
-            tap(event => {
-                if ((event as unknown as HttpEvent<T>).type === HttpEventType.DownloadProgress) {
-                    const progress = ((event as any).loaded / (event as any).total) * 100;
-                    cb(progress);
-                }
-            }),
-            filter(event => (event as unknown as HttpEvent<T>).type === HttpEventType.Response),
-            map(res => (res as unknown as HttpResponse<T>).body!),
-        ];
+            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`)
     }
 
     createChat(title: string) {
