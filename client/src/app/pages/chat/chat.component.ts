@@ -10,8 +10,7 @@ import { AppState } from 'src/app/store/app.reducer';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
 import { Server_ChatMessagePayload, Server_UserOnlineStatusEventPayload } from 'src/shared/chat-event-payloads.model';
-import { UserPreview } from 'src/shared/index.model';
-import { MessageTypes } from 'src/shared/message-types.model';
+import { UserPreview, MessageTypes} from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 
 export interface UserOnlineStatusEventMessage {

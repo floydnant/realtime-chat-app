@@ -1,5 +1,5 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { MembershipRole, Prisma, User } from '@prisma/client';
 import { IS_PROD } from 'src/constants';
 import { PrismaService } from 'src/services/prisma.service';
 import { ChatRoomPreview, UserPreview } from 'src/shared/index.model';
@@ -7,8 +7,11 @@ import { SocketEvents } from 'src/shared/socket-events.model';
 import { UsersService } from 'src/users/users.service';
 import { TypedSocket } from './chat.gateway';
 
-const SELECT_user_preview = { select: { id: true, username: true } };
-const SELECT_message = {
+type SELECT<T> = { select: T };
+
+const SELECT_user_preview /* : SELECT<Prisma.UserSelect> */ = { select: { id: true, username: true } };
+const SELECT_member_user_preview /* : SELECT<Prisma.MembershipSelect> */ = { select: { user: SELECT_user_preview } };
+const SELECT_message /* : SELECT<Prisma.MessageSelect> */ = {
     select: {
         id: true,
         text: true,
@@ -17,27 +20,33 @@ const SELECT_message = {
         user: SELECT_user_preview,
     },
 };
-const SELECT_all_chat_data = {
+
+const SELECT_all_chat_data /* : SELECT<Prisma.ChatGroupSelect> */ = {
     select: {
         id: true,
         title: true,
+        info: true,
         createdAt: true,
         createdBy: SELECT_user_preview,
+        owner: SELECT_user_preview,
 
-        users: SELECT_user_preview,
+        members: SELECT_member_user_preview,
         messages: SELECT_message,
     },
 };
-const SELECT_chat_preview = {
+const SELECT_chat_preview /* : SELECT<Prisma.ChatGroupSelect> */ = {
     select: {
         id: true,
         title: true,
     },
 };
 
-function WHERE_user_id(userId: string) {
-    return { users: { some: { id: userId } } };
-}
+const WHERE_user_id = (userId: string) => ({
+    users: { some: { id: userId } },
+});
+const WHERE_member = (userId: string) => ({
+    members: { some: { userId } },
+});
 
 const globalChatTitle = 'Global Group Chat';
 
@@ -161,22 +170,31 @@ export class ChatService {
     ///////////////////////// CRUD stuff //////////////////////////
 
     async createChat(userId: string, title: string): Promise<ChatRoomPreview> {
-        const chatRoom = await this.prisma.chatRoom.create({
+        const chatGroup = await this.prisma.chatGroup.create({
             data: {
                 title,
                 createdBy: {
                     connect: { id: userId },
                 },
-                users: {
+                owner: {
                     connect: { id: userId },
+                },
+                members: {
+                    create: {
+                        role: MembershipRole.admin,
+                        user: {
+                            connect: { id: userId },
+                        },
+                    },
                 },
             },
             ...SELECT_chat_preview,
         });
+
         const onlineUser = this.getUserOnline(userId, 'userId');
-        if (onlineUser) this.addUserOnlineToChat(onlineUser, chatRoom.id, true);
+        if (onlineUser) this.addUserOnlineToChat(onlineUser, chatGroup.id, true);
         this.logUsersOnline();
-        return chatRoom;
+        return chatGroup;
     }
 
     globalChatRoom: ChatRoomPreview;
@@ -191,7 +209,7 @@ export class ChatService {
     private async getOrCreateGlobalChat() {
         const adminUserId = await this.usersService.getOrCreateAdminUser();
 
-        const globalChatRoom = await this.prisma.chatRoom.findFirst({
+        const globalChatGroup = await this.prisma.chatGroup.findFirst({
             where: {
                 createdBy: { id: adminUserId },
                 title: globalChatTitle,
@@ -199,47 +217,52 @@ export class ChatService {
             ...SELECT_chat_preview,
         });
 
-        if (globalChatRoom) return globalChatRoom;
+        if (globalChatGroup) return globalChatGroup;
         return await this.createChat(adminUserId, globalChatTitle);
     }
 
     getChatName(chatId: string) {
-        return this.prisma.chatRoom.findFirst({ where: { id: chatId }, select: { title: true } });
+        return this.prisma.chatGroup.findFirst({
+            where: { id: chatId },
+            select: { title: true },
+        });
     }
     async getChat(user: User, chatId: string) {
-        const chatRoom = await this.prisma.chatRoom.findFirst({
-            where: { id: chatId, ...WHERE_user_id(user.id) },
+        const chatGroup = await this.prisma.chatGroup.findFirst({
+            where: { id: chatId, ...WHERE_member(user.id) },
             ...SELECT_all_chat_data,
         });
 
-        if (!chatRoom) throw new UnauthorizedException();
-        return chatRoom;
+        if (!chatGroup) throw new UnauthorizedException();
+        return chatGroup;
     }
     async getChatMessages(user: User, chatId: string) {
-        const chatRoom = await this.prisma.chatRoom.findFirst({
-            where: { id: chatId, ...WHERE_user_id(user.id) },
+        const chatGroup = await this.prisma.chatGroup.findFirst({
+            where: { id: chatId, ...WHERE_member(user.id) },
             select: { messages: SELECT_message },
         });
 
-        if (!chatRoom) throw new UnauthorizedException();
-        return chatRoom.messages;
+        if (!chatGroup) throw new UnauthorizedException();
+        return chatGroup.messages;
     }
 
     // @TODO: outsource notifying other chat members, that someone new joined -> gateway / gateway state helper
     async joinChat(user: User, chatId: string) {
         try {
-            let chatRoom = await this.prisma.chatRoom.findFirst({
-                where: { id: chatId, ...WHERE_user_id(user.id) },
+            let chatGroup = await this.prisma.chatGroup.findFirst({
+                where: { id: chatId, ...WHERE_member(user.id) },
                 ...SELECT_chat_preview,
             });
-            if (chatRoom) return { chatRoom, successMessage: 'You already joined the chat' };
+            if (chatGroup) return { chatRoom: chatGroup, successMessage: 'You already joined the chat' };
 
-            chatRoom = await this.prisma.chatRoom.update({
+            chatGroup = await this.prisma.chatGroup.update({
                 where: { id: chatId },
-                data: { users: { connect: { id: user.id } } },
+                data: {
+                    members: { create: { user: { connect: { id: user.id } } } },
+                },
                 ...SELECT_chat_preview,
             });
-            if (!chatRoom) throw new NotFoundException();
+            if (!chatGroup) throw new NotFoundException();
 
             const onlineUser = this.getUserOnline(user.id, 'userId');
             if (onlineUser) {
@@ -251,60 +274,77 @@ export class ChatService {
             }
 
             return {
-                chatRoom,
-                successMessage: `Successfully joined chat '${chatRoom.title || chatRoom.id}'`,
+                chatRoom: chatGroup,
+                successMessage: `Successfully joined chat '${chatGroup.title || chatGroup.id}'`,
             };
         } catch (err) {
             throw new NotFoundException();
         }
     }
     async leaveChat(user: User, chatId: string) {
-        try {
-            let chatRoom = await this.prisma.chatRoom.findFirst({
-                where: { id: chatId, ...WHERE_user_id(user.id) },
-            });
-            if (!chatRoom) return { successMessage: 'You already left the chat' };
+        // let membership = await this.prisma.membership.findFirst({
+        //     where: {
+        //         chatGroupId: chatId,
+        //         userId: user.id,
+        //     },
+        // });
+        // if (!membership) return { successMessage: 'You already left the chat' };
 
-            chatRoom = await this.prisma.chatRoom.update({
-                where: { id: chatId },
-                data: { users: { disconnect: { id: user.id } } },
-            });
-            if (!chatRoom) throw new NotFoundException();
-
-            this.removeUserOnlineFromChat(user.id, chatId);
-
-            return {
-                successMessage: `Successfully left chat '${chatRoom.title || chatRoom.id}'`,
-            };
-        } catch (err) {
-            throw new NotFoundException();
-        }
-    }
-
-    async isUserChatMember(chatId: string, userId: string) {
-        const chat = await this.prisma.chatRoom.findFirst({
+        const chatGroup = await this.prisma.chatGroup.findFirst({
             where: {
                 id: chatId,
-                ...WHERE_user_id(userId),
+                members: { some: { userId: user.id } },
             },
-        });
-
-        return !!chat;
-    }
-
-    async getJoinedChats(userId: string): Promise<ChatRoomPreview[]> {
-        return await this.prisma.chatRoom.findMany({
-            where: { ...WHERE_user_id(userId) },
             select: {
                 id: true,
                 title: true,
+                ownerId: true,
+                members: { where: { userId: user.id } },
             },
+        });
+        if (!chatGroup) return { successMessage: 'You are not part of this group.' };
+        // const chatGroup = await this.prisma.chatGroup.findFirst({
+        //     where: {
+        //         id: chatId,
+        //         members: { some: { id: membership.id } },
+        //     },
+        //     select: { id: true, title: true, ownerId: true },
+        // });
+        if (chatGroup.ownerId == user.id)
+            throw new ConflictException(
+                'You cannot leave a group that you are the owner of. Transfer ownership first.',
+            );
+
+        await this.prisma.membership.delete({
+            where: { id: chatGroup.members[0].id },
+        });
+
+        this.removeUserOnlineFromChat(user.id, chatId);
+
+        return {
+            successMessage: `Successfully left chat '${chatGroup.title || chatGroup.id}'`,
+        };
+    }
+
+    async isUserChatMember(chatId: string, userId: string) {
+        const membership = await this.prisma.membership.findFirst({
+            where: { chatGroupId: chatId, userId },
+            select: { id: true },
+        });
+
+        return !!membership;
+    }
+
+    async getJoinedChats(userId: string): Promise<ChatRoomPreview[]> {
+        return await this.prisma.chatGroup.findMany({
+            where: { ...WHERE_member(userId) },
+            ...SELECT_chat_preview,
         });
     }
 
     async persistMessageInChat(messageText: string, chatId: string, userId: string) {
         try {
-            const persistedMessage = await this.prisma.chatMessage.create({
+            const persistedMessage = await this.prisma.message.create({
                 data: {
                     text: messageText,
                     user: {

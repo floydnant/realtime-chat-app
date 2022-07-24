@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { UserOnlineStatusEventMessage } from 'src/app/pages/chat/chat.component';
 import { StoredChatMessage } from 'src/app/store/chats/chats.model';
-import { MessageTypes } from 'src/shared/message-types.model';
+import { MessageTypes } from 'src/shared/index.model';
 
 @Component({
     selector: 'chat-message',

@@ -1,5 +1,4 @@
-import { UserPreview } from 'src/shared/index.model';
-import { MessageTypes } from 'src/shared/message-types.model';
+import { UserPreview, MessageTypes } from 'src/shared/index.model';
 
 export class ChatsState {
     activeChatId: string | null = null;
