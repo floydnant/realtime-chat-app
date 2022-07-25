@@ -9,7 +9,7 @@
 >
     <span class="message" [innerHTML]="message?.text || messageText"></span>
     <div *ngIf="variant == MessageTypes.CHAT_MESSAGE" class="time">
-        <span>{{ message?.timestamp }}</span>
+        <span>{{ message?.timestamp | date: 'HH:mm' }}</span>
     </div>
     <div *ngIf="variant == 'typing event'" class="dots">
         <span class="dot dot-1" style="--index: 0"></span>
