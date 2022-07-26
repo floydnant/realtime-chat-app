@@ -14,6 +14,7 @@
         "prisma:watch": "concurrently \"prisma studio\" \"nodemon --watch ./prisma/schema.prisma --exec prisma generate\"",
         "prebuild": "rimraf dist",
         "build": "nest build",
+        "postbuild": "prisma migrate deploy",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start:nest": "nest start",
         "start:dev": "nest start --watch",
