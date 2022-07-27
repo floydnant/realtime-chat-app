@@ -1,17 +1,15 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { interval, Subscription } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
-import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
-import { LoggedInUser } from 'src/app/store/user/user.model';
 import { AppState } from 'src/app/store/app.reducer';
+import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
-import { Server_ChatMessagePayload, Server_UserOnlineStatusEventPayload } from 'src/shared/chat-event-payloads.model';
-import { UserPreview, MessageTypes} from 'src/shared/index.model';
-import { SocketEvents } from 'src/shared/socket-events.model';
+import { MessageTypes, UserPreview } from 'src/shared/index.model';
 
 export interface UserOnlineStatusEventMessage {
     text: string;

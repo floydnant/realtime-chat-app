@@ -1,24 +1,19 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { Socket } from 'ngx-socket-io';
-import { MonoTypeOperatorFunction, of, OperatorFunction, Subject } from 'rxjs';
-import { catchError, filter, map, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
-import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { chatsActions } from '../store/chats/chats.actions';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
 import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
+import { chatsActions } from '../store/chats/chats.actions';
+import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
 import { SocketService } from './socket.service';
-import { HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
-import { HttpServerErrorResponse } from '../store/app.model';
 
 @Injectable({
     providedIn: 'root',

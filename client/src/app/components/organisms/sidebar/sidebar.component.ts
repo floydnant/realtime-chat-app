@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HotToastService } from '@ngneat/hot-toast';
 import { Store } from '@ngrx/store';
 import { ChatService } from 'src/app/services/chat.service';
 import { chatsActions } from 'src/app/store/chats/chats.actions';

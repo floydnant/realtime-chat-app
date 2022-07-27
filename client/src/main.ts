@@ -7,6 +7,7 @@ import { environment } from './environments/environment';
 if (environment.production) {
     enableProdMode();
 }
+// @TODO: these logs should not be there in the real prod env
 console.info('Stage:', environment.STAGE);
 console.info('ServerBaseUrl:', environment.SERVER_BASE_URL);
 
