@@ -10,13 +10,19 @@
     </div>
     <div class="chat" #chatRef>
         <div *ngIf="!chatsState.loadingActiveChatMessages" class="messages">
-            <chat-message
-                *ngFor="let message of messages; let i = index"
-                [variant]="message.messageType"
-                [message]="message"
-                [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
-                [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
-            ></chat-message>
+            <div *ngFor="let message of messages; let i = index">
+                <chat-message
+                    *ngIf="!isSameDay(message.timestamp, messages[i - 1]?.timestamp || '')"
+                    [variant]="MessageTypes.USER_EVENT"
+                    [messageText]="getDay(message.timestamp) || 'Invalid date'"
+                ></chat-message>
+                <chat-message
+                    [variant]="message.messageType"
+                    [message]="message"
+                    [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
+                    [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
+                ></chat-message>
+            </div>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: center; height: 100%">
@@ -34,8 +40,8 @@
     </div>
 
     <div class="bottom-bar" [style.display]="(activeChat$ | async) ? 'block' : 'none'">
-        <div class="info-bar" [class.visible]="(usersTypingText$ | async)">
-            <div [innerHTML]="(usersTypingText$ | async)"></div>
+        <div class="info-bar" [class.visible]="usersTypingText$ | async">
+            <div [innerHTML]="usersTypingText$ | async"></div>
             <div class="dots">
                 <span class="dot dot-1" style="--index: 0"></span>
                 <span class="dot dot-2" style="--index: 1"></span>

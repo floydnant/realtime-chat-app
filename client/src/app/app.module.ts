@@ -26,6 +26,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { SidebarComponent } from './components/organisms/sidebar/sidebar.component';
 import { HotToastModule } from '@ngneat/hot-toast';
 import { LoadingSpinnerComponent } from './components/atoms/loading-spinner/loading-spinner.component';
+import { DatePipe } from '@angular/common';
 
 @NgModule({
     declarations: [
@@ -66,7 +67,7 @@ import { LoadingSpinnerComponent } from './components/atoms/loading-spinner/load
             style: { background: 'var(--primary-800)', color: 'white', 'border-radius': '14px' },
         }),
     ],
-    providers: [],
+    providers: [DatePipe],
     bootstrap: [AppComponent],
 })
 export class AppModule {}
