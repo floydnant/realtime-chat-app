@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start:dev": "ng serve",
-    "start:dev:lan": "NG_APP_SERVER_BASE_URL=http://$(ipconfig getifaddr en0):3000 ng serve --host 0.0.0.0",
+    "start:dev:lan": "NG_APP_SERVER_BASE_URL=http://$(ipconfig getifaddr en0):3000 echo \"Listening on http://$(ipconfig getifaddr en0):4200\" && ng serve --host 0.0.0.0",
     "build": "ng build",
     "build:dev": "ng build --watch --configuration development",
     "test": "ng test"
