@@ -10,6 +10,7 @@ import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
 import { MessageTypes, UserPreview } from 'src/shared/index.model';
+import { DatePipe } from '@angular/common';
 
 export interface UserOnlineStatusEventMessage {
     text: string;
@@ -32,7 +33,12 @@ export interface UserOnlineStatusEvent {
     styleUrls: ['./chat.component.scss'],
 })
 export class ChatComponent implements OnDestroy, AfterViewInit {
-    constructor(private chatService: ChatService, private store: Store<AppState>, private router: Router) {
+    constructor(
+        private chatService: ChatService,
+        private store: Store<AppState>,
+        private router: Router,
+        private datePipe: DatePipe,
+    ) {
         store.subscribe(({ user, chats }) => {
             if (!user) this.router.navigate(['/auth/login']);
 
@@ -43,6 +49,23 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
     ngOnDestroy() {
         this.subscriptions.forEach(sub => sub.unsubscribe());
+    }
+
+    isSameDay(ts1: string, ts2: string) {
+        return this.getDay(ts1, ts2) == 'Today';
+    }
+    getDay(ts: string, ts2?: string) {
+        const date = new Date(ts);
+        const today = ts2 ? new Date(ts2) : new Date();
+
+        const dateDifference = today.getDate() - date.getDate();
+        if (date.getMonth() == today.getMonth() || date.getFullYear() == today.getFullYear())
+            return dateDifference == 0
+                ? 'Today'
+                : dateDifference == 1
+                ? 'Yesterday'
+                : this.datePipe.transform(date, 'EEEE, MMMM d');
+        else return this.datePipe.transform(date, 'fullDate');
     }
 
     chatsState: ChatsState;
@@ -102,7 +125,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
-        })
+        }),
     );
 
     usersOnlineText$ = this.chatService.getUsersOnline().pipe(
