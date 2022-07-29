@@ -8,47 +8,143 @@ datasource db {
 }
 
 model User {
-    id           String        @id @default(uuid())
-    createdAt    DateTime      @default(now())
-    email        String        @unique
-    username     String        @unique
-    password     String
-    chats        ChatRoom[]
-    chatsCreated ChatRoom[]    @relation("chatsCreated")
-    messages     ChatMessage[]
-    Issue        Issue[]
+    id         String    @id @default(uuid())
+    username   String    @unique
+    bio        String?
+    signedUpAt DateTime  @default(now())
+    email      String    @unique
+    password   String
+    lastOnline DateTime?
+
+    // relations
+    friends                  Friendship[]
+    invitationsSent          FriendshipInvitvation[] @relation("invitation_from_user")
+    invitationsRecieved      FriendshipInvitvation[] @relation("invitation_to_user")
+    chatGroupsCreated        ChatGroup[]             @relation("chat_groups_created")
+    chatGroupsJoined         Membership[]
+    chatGroupsOwned          ChatGroup[]             @relation("chat_groups_owned")
+    chatGroupInvitationsSent ChatGroupInvitation[]
+    messagesWritten          Message[]
+    issuesOpened             Issue[]
 }
 
-model ChatRoom {
-    id              String        @id @default(uuid())
-    createdAt       DateTime      @default(now())
-    createdBy       User          @relation("chatsCreated", fields: [createdByUserId], references: [id])
+model Friendship {
+    id           String    @id @default(uuid())
+    users        User[]
+    friendsSince DateTime  @default(now())
+    messages     Message[]
+}
+
+model FriendshipInvitvation {
+    id        String           @id @default(uuid())
+    status    InvitationStatus @default(pending)
+    invitedAt DateTime         @default(now())
+
+    // relations
+    fromUser   User   @relation("invitation_from_user", fields: [fromUserId], references: [id])
+    fromUserId String
+    toUser     User   @relation("invitation_to_user", fields: [toUserId], references: [id])
+    toUserId   String
+}
+
+enum InvitationStatus {
+    pending
+    accepted
+    declined
+}
+
+model ChatGroup {
+    id        String          @id @default(uuid())
+    title     String
+    info      String?
+    createdAt DateTime        @default(now())
+    access    ChatGroupAccess @default(private)
+
+    // relations
+    createdBy       User                  @relation("chat_groups_created", fields: [createdByUserId], references: [id])
     createdByUserId String
-    title           String?
-    messages        ChatMessage[]
-    users           User[]
+    members         Membership[]
+    owner           User                  @relation("chat_groups_owned", fields: [ownerId], references: [id])
+    ownerId         String
+    messages        Message[]
+    invitations     ChatGroupInvitation[]
 }
 
-model ChatMessage {
-    id          String   @id @default(uuid())
-    timestamp   DateTime @default(now())
-    text        String
-    chat        ChatRoom @relation(fields: [chatId], references: [id])
-    chatId      String
-    user        User     @relation(fields: [userId], references: [id])
+enum ChatGroupAccess {
+    public // anyone can join
+    semiPublic // anyone can join, but group is not listed
+    private // explicit invitation required
+}
+
+model Membership {
+    id       String         @id @default(uuid())
+    joinedAt DateTime       @default(now())
+    role     MembershipRole @default(member)
+
+    // relations
+    chatGroup   ChatGroup @relation(fields: [chatGroupId], references: [id])
+    chatGroupId String
+    user        User      @relation(fields: [userId], references: [id])
     userId      String
-    messageType String   @default("chat message")
+}
+
+enum MembershipRole {
+    spectator
+    member
+    admin
+}
+
+model ChatGroupInvitation {
+    id         String    @id @default(uuid())
+    invitedAt  DateTime  @default(now())
+    timesUsed  Int       @default(0)
+    timesValid Int?
+    createdAt  DateTime  @default(now())
+    validUntil DateTime?
+
+    // relations
+    fromUser       User      @relation(fields: [fromUserId], references: [id])
+    fromUserId     String
+    forChat        ChatGroup @relation(fields: [forChatGroupId], references: [id])
+    forChatGroupId String
+}
+
+model Message {
+    id          String      @id @default(uuid())
+    text        String
+    timestamp   DateTime    @default(now())
+    messageType MessageType @default(text)
+
+    // relations
+    user               User        @relation(fields: [userId], references: [id])
+    userId             String
+    replies            Message[]   @relation("reply")
+    repliedTo          Message?    @relation("reply", fields: [repliedToMessageId], references: [id])
+    repliedToMessageId String?
+    // either like this or, figure out how to have relations with varying tables
+    chat               ChatGroup?  @relation(fields: [chatGroupId], references: [id])
+    chatGroupId        String?
+    friendShip         Friendship? @relation(fields: [friendShipId], references: [id])
+    friendShipId       String?
+}
+
+enum MessageType {
+    text
+    event
+    // and later `media`
 }
 
 model Issue {
-    id             String    @id @default(uuid())
-    openedBy       User      @relation(fields: [openedByUserId], references: [id])
+    id          String    @id @default(uuid())
+    title       String
+    description String
+    type        IssueType
+    openedAt    DateTime  @default(now())
+    closedAt    DateTime?
+
+    // relations
+    openedBy       User   @relation(fields: [openedByUserId], references: [id])
     openedByUserId String
-    openedAt       DateTime  @default(now())
-    closedAt       DateTime?
-    title          String
-    description    String
-    type           IssueType
 }
 
 enum IssueType {

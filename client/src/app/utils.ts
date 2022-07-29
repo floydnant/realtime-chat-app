@@ -33,15 +33,24 @@ export const escapeHTML = (unsafe: string) =>
 
 export const moveToMacroQueue = (callback: () => void) => setTimeout(callback, 0);
 
-export const promisifyObservable = <T>(
+type promisifyObservable = {
+    <T>(
+        observable: Observable<T | HttpServerErrorResponse>,
+        rejectOnError: 'if error property exists' | 'with catchError() operator',
+    ): Promise<T>;
+    <T>(observable: Observable<T | HttpServerErrorResponse>, rejectOnError: 'dont reject'): Promise<
+        T | HttpServerErrorResponse
+    >;
+};
+export const promisifyObservable: promisifyObservable = <T>(
     observable: Observable<T>,
-    rejectOnError: 'if error property exists' | 'with catchError() operator' | 'dont reject',
-): Promise<T | HttpServerErrorResponse> =>
+    rejectOnError: string,
+): Promise<T> =>
     new Promise((resolve, reject) => {
         switch (rejectOnError) {
             case 'if error property exists':
                 observable.subscribe(data => {
-                    if ('error' in data) reject(data as unknown as HttpServerErrorResponse);
+                    if ('error' in data) reject(data);
                     else resolve(data);
                 });
                 break;
@@ -49,7 +58,7 @@ export const promisifyObservable = <T>(
             case 'with catchError() operator':
                 observable
 					.pipe(catchError((err, caught) => {
-                        reject(err as HttpServerErrorResponse);
+                        reject(err);
                         return caught;
 					}))
 					.subscribe(data => resolve(data)); //prettier-ignore

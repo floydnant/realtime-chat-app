@@ -1,6 +1,6 @@
 export enum MessageTypes {
-    CHAT_MESSAGE = 'chat message',
-    USER_EVENT = 'user event',
+    CHAT_MESSAGE = 'text',
+    USER_EVENT = 'event',
 }
 
 export interface UserPreview {

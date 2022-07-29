@@ -1,15 +1,10 @@
 export enum SocketEvents {
-    // CHAT_MESSAGE = 'chat message',
-    // USER_EVENT = 'user event',
-    // TYPING_EVENT = 'typing event',
-    // USERS_ONLINE = 'users online',
-
-    // AUTHENTICATE = 'authenticate',
-
-    ////////////////////////////////
     CLIENT__AUTHENTICATE = 'client authenticate',
     SERVER__AUTHENTICATE = 'server authenticate',
     SERVER__AUTHENTICATE_PROMPT = 'server authenticate prompt',
+    CLIENT__LOGOUT = 'client logout',
+
+    SERVER__USER_JOINED_CHAT = 'server user joined chat',
 
     CLIENT__TYPING_EVENT = 'client typing event',
     SERVER__TYPING_EVENT = 'server typing event',

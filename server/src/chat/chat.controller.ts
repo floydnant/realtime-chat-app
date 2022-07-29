@@ -43,7 +43,7 @@ export class ChatController {
     @Get('/joined')
     getAllJoinedChats(@GetUser() user: User) {
         this.logger.verbose(`${user.username} loads all joined chats`);
-        return this.chatService.getAllJoinedChats(user);
+        return this.chatService.getJoinedChats(user.id);
     }
 
     @Post('/join/:chatId')

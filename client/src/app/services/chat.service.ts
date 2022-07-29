@@ -1,48 +1,27 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { Socket } from 'ngx-socket-io';
-import { of, Subject } from 'rxjs';
-import { catchError, filter, map, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
-import { EventName, EventPayload, SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { chatsActions } from '../store/chats/chats.actions';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
 import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
+import { chatsActions } from '../store/chats/chats.actions';
+import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
-
-class TypedSocket {
-    constructor(private socket: Socket) {}
-    on<K extends EventName>(eventName: K, cb: SocketEventPayloadAsFnMap[K]) {
-        return this.socket.on(eventName, cb);
-    }
-    // this guy seems to create some problems, so we don't care about typesafety there
-    once<K extends EventName>(eventName: K, cb: (answer: any) => void /* SocketEventPayloadAsFnMap[K] */) {
-        return this.socket.once(eventName, cb);
-    }
-    emit<K extends EventName>(eventName: K, payload: EventPayload<K>) {
-        return this.socket.emit(eventName, payload);
-    }
-    fromEvent<K extends EventName, T = EventPayload<K>>(eventName: K) {
-        return this.socket.fromEvent<T>(eventName);
-    }
-}
+import { SocketService } from './socket.service';
 
 @Injectable({
     providedIn: 'root',
 })
 export class ChatService {
-    private socket = new TypedSocket(this.untypedSocket);
     constructor(
-        private untypedSocket: Socket,
+        private socket: SocketService,
         private store: Store<AppState>,
-        private router: Router,
         private httpClient: BaseHttpClient,
         private actions$: Actions,
         private toastService: HotToastService,
@@ -51,8 +30,6 @@ export class ChatService {
             this.user = state.user.loggedInUser;
             this.chatState = state.chats;
         });
-
-        this.socket.on(SocketEvents.SERVER__AUTHENTICATE_PROMPT, () => this.authenticateSocket());
     }
 
     private chatState: ChatsState;
@@ -106,7 +83,7 @@ export class ChatService {
         )
         .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
 
-    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChat)).subscribe(({ chatId }) => {
+    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChatSuccess)).subscribe(({ chatId }) => {
         this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
         this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
     });
@@ -138,42 +115,13 @@ export class ChatService {
             .pipe(filter(({ chatIds }) => chatIds.some(id => id == this.chatState.activeChatId)));
     }
 
-    private async authenticateSocket() {
-        if (this.user) {
-            const { authenticated } = await this.requestOneTimeResponse({
-                reqEvent: SocketEvents.CLIENT__AUTHENTICATE,
-                payload: { accessToken: this.user.accessToken },
-                resEvent: SocketEvents.SERVER__AUTHENTICATE,
-            });
-            if (authenticated) this.toastService.success(`Still logged in with '${this.user.username}'.`);
-            else {
-                this.router.navigate(['/auth/login']);
-                this.toastService.info('Please login again.');
-            }
-        } else this.router.navigate(['/auth/login']);
-    }
-
-    private requestOneTimeResponse<K extends EventName, R extends EventName = K>({
-        reqEvent,
-        payload,
-        resEvent = reqEvent,
-    }: {
-        reqEvent: K;
-        payload: EventPayload<K>;
-        resEvent?: R | K;
-    }) {
-        return new Promise<EventPayload<R>>(res => {
-            this.socket.emit(reqEvent, payload);
-            this.socket.once(resEvent, (answer: EventPayload<R>) => res(answer));
-        });
-    }
-
     // CRUD stuff
     getChat(chatId: string) {
         return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
     }
     getChatMessages(chatId: string) {
-        return this.httpClient.get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`);
+        return this.httpClient
+            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`)
     }
 
     createChat(title: string) {

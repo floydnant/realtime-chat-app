@@ -16,6 +16,11 @@ export interface Server_AuthenticateEventPayload {
     authenticated: boolean;
 }
 
+export interface Server_UserJoinedChatPayload {
+    user: UserPreview;
+    chatId: string;
+}
+
 export interface Client_TypingEventPayload {
     chatId: string;
     isTyping: boolean;

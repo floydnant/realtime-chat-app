@@ -11,6 +11,7 @@ export const chatsActions = {
     ),
 
     setActiveChat: createAction('[ CHATS ] set active', props<{ chatId: string }>()),
+    setActiveChatSuccess: createAction('[ CHATS ] set active success', props<{ chatId: string }>()),
 
     loadActiveChatMessages: createAction('[ CHATS ] load active messages', props<{ chatId: string }>()),
     loadActiveChatMessagesSuccess: createAction(

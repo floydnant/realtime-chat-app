@@ -55,14 +55,14 @@ export class UsersService {
             const { id } = this.jwtService.verify<JwtPayload>(accessToken);
             const user = await this.prisma.user.findFirst({
                 where: { id },
-                include: { chats: { select: { id: true } } },
+                include: { chatGroupsJoined: { select: { chatGroupId: true } } },
             });
 
             return {
                 id,
                 username: user?.username,
                 authenticated: !!user,
-                chatIds: user?.chats.map(({ id }) => id),
+                chatIds: user?.chatGroupsJoined.map(({ chatGroupId }) => chatGroupId),
             };
         } catch (err) {
             return {
@@ -151,7 +151,9 @@ export class UsersService {
 
     async getOrCreateAdminUser() {
         const adminUser =
-            (await this.prisma.user.findFirst({ where: { username: 'admin' } })) ||
+            (await this.prisma.user.findFirst({
+                where: { username: 'admin' },
+            })) ||
             (await this.createUser({
                 username: 'admin',
                 email: 'admin@dummy.com',
@@ -164,7 +166,9 @@ export class UsersService {
         const hashedPassword = await this.hashPassword(password);
 
         try {
-            return await this.prisma.user.create({ data: { password: hashedPassword, username, email } });
+            return await this.prisma.user.create({
+                data: { password: hashedPassword, username, email },
+            });
         } catch (err) {
             // duplicate username or email
             if (err.code != 'P2002') throw new InternalServerErrorException(err);

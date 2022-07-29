@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start:dev": "ng serve",
-    "start:dev:lan": "ng serve --host 0.0.0.0",
+    "start:dev:lan": "NG_APP_SERVER_BASE_URL=http://$(ipconfig getifaddr en0):3000 echo \"Listening on http://$(ipconfig getifaddr en0):4200\" && ng serve --host 0.0.0.0",
     "build": "ng build",
     "build:dev": "ng build --watch --configuration development",
     "test": "ng test"
@@ -33,6 +33,7 @@
     "@angular-devkit/build-angular": "~13.3.8",
     "@angular/cli": "~13.3.8",
     "@angular/compiler-cli": "~13.3.11",
+    "@ngx-env/builder": "^2.2.0",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
     "jasmine-core": "~3.8.0",

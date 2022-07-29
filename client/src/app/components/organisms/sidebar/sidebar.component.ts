@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { HotToastService } from '@ngneat/hot-toast';
 import { Store } from '@ngrx/store';
 import { ChatService } from 'src/app/services/chat.service';
 import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { AppState } from 'src/app/store/app.reducer';
+import { userActions } from 'src/app/store/user/user.actions';
 
 @Component({
     selector: 'sidebar',
@@ -14,6 +14,7 @@ import { AppState } from 'src/app/store/app.reducer';
 export class SidebarComponent implements OnInit {
     constructor(private store: Store<AppState>, private chatService: ChatService) {}
 
+    username$ = this.store.select(state => state.user.loggedInUser?.username)
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
 
@@ -29,6 +30,10 @@ export class SidebarComponent implements OnInit {
 
     joinGlobalChat() {
         this.chatService.joinGlobalChat();
+    }
+
+    logout() {
+        this.store.dispatch(userActions.logout())
     }
 
     async ngOnInit() {
