@@ -282,14 +282,6 @@ export class ChatService {
         }
     }
     async leaveChat(user: User, chatId: string) {
-        // let membership = await this.prisma.membership.findFirst({
-        //     where: {
-        //         chatGroupId: chatId,
-        //         userId: user.id,
-        //     },
-        // });
-        // if (!membership) return { successMessage: 'You already left the chat' };
-
         const chatGroup = await this.prisma.chatGroup.findFirst({
             where: {
                 id: chatId,
@@ -303,13 +295,7 @@ export class ChatService {
             },
         });
         if (!chatGroup) return { successMessage: 'You are not part of this group.' };
-        // const chatGroup = await this.prisma.chatGroup.findFirst({
-        //     where: {
-        //         id: chatId,
-        //         members: { some: { id: membership.id } },
-        //     },
-        //     select: { id: true, title: true, ownerId: true },
-        // });
+
         if (chatGroup.ownerId == user.id)
             throw new ConflictException(
                 'You cannot leave a group that you are the owner of. Transfer ownership first.',
