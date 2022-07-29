@@ -22,6 +22,6 @@ const url = {
 
 export const environment = {
     production: true,
-    SERVER_BASE_URL: process.env.NG_APP_SERVER_BASE_URL || isReviewEnv ? url.review : url.prod,
-    STAGE: isReviewEnv ? 'review' : 'production'
+    SERVER_BASE_URL: process.env.NG_APP_SERVER_BASE_URL || (isReviewEnv ? url.review : url.prod),
+    STAGE: isReviewEnv ? 'review' : 'production',
 };
