@@ -2,7 +2,6 @@
     message?.user?.username
 }}</span>
 <div
-    *ngIf="!(variant == 'typing event' && !messageText)"
     class="container {{ variant.replace(' ', '-') }}"
     [class.is-me]="isMe"
     [class.same-user]="sameUserAsPrevMsg"
@@ -10,10 +9,5 @@
     <span class="message" [innerHTML]="message?.text || messageText"></span>
     <div *ngIf="variant == MessageTypes.CHAT_MESSAGE" class="time">
         <span>{{ message?.timestamp | date: 'shortTime' }}</span>
-    </div>
-    <div *ngIf="variant == 'typing event'" class="dots">
-        <span class="dot dot-1" style="--index: 0"></span>
-        <span class="dot dot-2" style="--index: 1"></span>
-        <span class="dot dot-3" style="--index: 2"></span>
     </div>
 </div>

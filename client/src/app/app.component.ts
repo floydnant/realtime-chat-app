@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from './store/app.reducer';
 
 @Component({
     selector: 'app-root',
@@ -8,7 +6,5 @@ import { AppState } from './store/app.reducer';
     styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-    constructor(private store: Store<AppState>) {
-        this.store.subscribe(console.log);
-    }
+    constructor() {}
 }

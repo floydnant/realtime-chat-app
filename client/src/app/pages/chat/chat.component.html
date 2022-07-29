@@ -9,27 +9,39 @@
         ></div>
     </div>
     <div class="chat" #chatRef>
-        <chat-message
-            *ngFor="let message of messages; let i = index"
-            [variant]="message.messageType"
-            [message]="message"
-            [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
-            [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
-        ></chat-message>
-        <p [style.opacity]="chatsState.loadingActiveChatMessages ? '1' : '0'" style="font-size: 2rem"><loading-spinner></loading-spinner></p>
-        <p
-            *ngIf="!chatsState.loadingActiveChatMessages && (activeChat$ | async) && messages.length == 0"
-            style="text-align: center; margin-top: 10px"
-        >
-            No messages yet...
-        </p>
+        <div *ngIf="!chatsState.loadingActiveChatMessages" class="messages">
+            <chat-message
+                *ngFor="let message of messages; let i = index"
+                [variant]="message.messageType"
+                [message]="message"
+                [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
+                [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
+            ></chat-message>
+        </div>
 
-        <chat-message [variant]="'typing event'" [messageText]="(usersTypingText$ | async)!"></chat-message>
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%">
+            <p [style.opacity]="chatsState.loadingActiveChatMessages ? '1' : '0'" style="font-size: 2rem">
+                <loading-spinner></loading-spinner>
+            </p>
+            <h2
+                *ngIf="!chatsState.loadingActiveChatMessages && (activeChat$ | async) && messages.length == 0"
+                style="opacity: 0.6"
+            >
+                No messages yet...
+            </h2>
+            <h2 *ngIf="!(activeChat$ | async)" style="opacity: 0.6">No chat selected...</h2>
+        </div>
     </div>
 
-    <h2 *ngIf="!(activeChat$ | async)" style="text-align: center; height: 100%; opacity: 0.6">No chat selected...</h2>
-
-    <div class="form-group-wrapper" [style.display]="(activeChat$ | async) ? 'block' : 'none'">
+    <div class="bottom-bar" [style.display]="(activeChat$ | async) ? 'block' : 'none'">
+        <div class="info-bar" [class.visible]="(usersTypingText$ | async)">
+            <div [innerHTML]="(usersTypingText$ | async)"></div>
+            <div class="dots">
+                <span class="dot dot-1" style="--index: 0"></span>
+                <span class="dot dot-2" style="--index: 1"></span>
+                <span class="dot dot-3" style="--index: 2"></span>
+            </div>
+        </div>
         <div class="form-group">
             <div class="message-input-container">
                 <div class="message-input-bg"></div>

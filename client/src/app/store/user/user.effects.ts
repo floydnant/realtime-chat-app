@@ -1,6 +1,6 @@
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { Injectable } from '@angular/core';
 import { AuthService } from 'src/app/services/auth.service';
@@ -22,9 +22,9 @@ export class UserEffects {
         () =>
             this.actions$.pipe(
                 ofType(userActions.loginOrSignupSuccess),
-                mergeMap(({ username }) => {
+                tap(({ username }) => {
                     this.toastService.success(`Succesfully logged in with '${username}'`);
-                    return of(setTimeout(() => this.router.navigate(['/chat']), 2000));
+                    this.router.navigate(['/chat']);
                 }),
             ),
         { dispatch: false },
@@ -34,10 +34,10 @@ export class UserEffects {
         () =>
             this.actions$.pipe(
                 ofType(userActions.logout),
-                mergeMap(() => {
+                tap(() => {
                     this.toastService.info('You logged out.');
                     this.router.navigate(['/auth/login']);
-                    return of(this.authService.logout());
+                    this.authService.logout();
                 }),
             ),
         { dispatch: false },
