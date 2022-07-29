@@ -58,14 +58,18 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         const date = new Date(ts);
         const today = ts2 ? new Date(ts2) : new Date();
 
+        const isSameYear = date.getFullYear() == today.getFullYear();
+        const isSameMonth = date.getMonth() == today.getMonth();
+        
+        if (!isSameYear) return this.datePipe.transform(date, 'fullDate');
+        if (!isSameMonth) return this.datePipe.transform(date, 'EEEE, MMMM d');
+        
         const dateDifference = today.getDate() - date.getDate();
-        if (date.getMonth() == today.getMonth() || date.getFullYear() == today.getFullYear())
-            return dateDifference == 0
-                ? 'Today'
-                : dateDifference == 1
-                ? 'Yesterday'
-                : this.datePipe.transform(date, 'EEEE, MMMM d');
-        else return this.datePipe.transform(date, 'fullDate');
+        return dateDifference == 0
+            ? 'Today'
+            : dateDifference == 1
+            ? 'Yesterday'
+            : this.datePipe.transform(date, 'EEEE, MMMM d');
     }
 
     chatsState: ChatsState;
