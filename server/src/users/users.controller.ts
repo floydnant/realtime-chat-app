@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Logger, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
@@ -10,7 +10,7 @@ import { UsersService } from './users.service';
 export class UsersController {
     constructor(private usersService: UsersService) {}
 
-    private logger = new Logger('AuthController');
+    private logger = new Logger('UserController');
 
     @Patch()
     updateUser(@GetUser() user: User, @Body() updateUserDTO: UpdateUserDTO) {
@@ -28,5 +28,11 @@ export class UsersController {
     deleteUser(@GetUser() user: User, @Body() { password }: { password: string }) {
         this.logger.verbose(`deleting user '${user.username}'`);
         return this.usersService.deleteUser(user, password);
+    }
+
+    @Get('/:id')
+    getUser(@GetUser() requestingUser: User, @Param('id') id: string) {
+        this.logger.verbose(`'${requestingUser.username}' gets information about ${id}`);
+        return this.usersService.getUser(requestingUser.id, id);
     }
 }

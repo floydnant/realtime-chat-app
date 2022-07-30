@@ -1,52 +1,18 @@
 import { ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { MembershipRole, Prisma, User } from '@prisma/client';
+import { MembershipRole, User } from '@prisma/client';
 import { IS_PROD } from 'src/constants';
+import {
+    SELECT_chat_preview,
+    WHERE_member,
+    SELECT_all_chat_data,
+    SELECT_message,
+    SELECT_user_preview,
+} from 'src/query-helpers';
 import { PrismaService } from 'src/services/prisma.service';
 import { ChatRoomPreview, UserPreview } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { UsersService } from 'src/users/users.service';
 import { TypedSocket } from './chat.gateway';
-
-type SELECT<T> = { select: T };
-
-const SELECT_user_preview /* : SELECT<Prisma.UserSelect> */ = { select: { id: true, username: true } };
-const SELECT_member_user_preview /* : SELECT<Prisma.MembershipSelect> */ = { select: { user: SELECT_user_preview } };
-const SELECT_message /* : SELECT<Prisma.MessageSelect> */ = {
-    select: {
-        id: true,
-        text: true,
-        timestamp: true,
-        messageType: true,
-        user: SELECT_user_preview,
-    },
-};
-
-const SELECT_all_chat_data /* : SELECT<Prisma.ChatGroupSelect> */ = {
-    select: {
-        id: true,
-        title: true,
-        info: true,
-        createdAt: true,
-        createdBy: SELECT_user_preview,
-        owner: SELECT_user_preview,
-
-        members: SELECT_member_user_preview,
-        messages: SELECT_message,
-    },
-};
-const SELECT_chat_preview /* : SELECT<Prisma.ChatGroupSelect> */ = {
-    select: {
-        id: true,
-        title: true,
-    },
-};
-
-const WHERE_user_id = (userId: string) => ({
-    users: { some: { id: userId } },
-});
-const WHERE_member = (userId: string) => ({
-    members: { some: { userId } },
-});
 
 const globalChatTitle = 'Global Group Chat';
 

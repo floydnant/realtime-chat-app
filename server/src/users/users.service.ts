@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ADMIN_PWD } from 'src/constants';
+import { SELECT_user_preview_WHERE_NOT } from 'src/query-helpers';
 import { PrismaService } from 'src/services/prisma.service';
 import { LoginCredentialsDTO, SignupCredentialsDTO } from './dto/auth-credetials.dto';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
@@ -188,4 +189,166 @@ export class UsersService {
         const salt = await bcrypt.genSalt();
         return await bcrypt.hash(password, salt);
     }
+
+    /////////// public user actions ////////////
+    async getUser(requestingUserId: string, requestedUserId: string) {
+        const { friends, ...requestedUser } = await this.prisma.user.findFirst({
+            // @TODO: maybe this should only be accesible to users who are friends with the requested user
+            where: { id: requestedUserId },
+            select: {
+                username: true,
+                bio: true,
+                lastOnline: true,
+                friends: {
+                    where: {
+                        users: { some: { id: requestingUserId } },
+                    },
+                },
+            },
+        });
+        return {
+            profileImageUrl: null,
+            ...requestedUser,
+            isFriendsWithYou: !!friends.length,
+        };
+    }
+    //#region friendship invitations
+    async inviteUserToFriendship(inviterId: string, inviteeId: string) {
+        if (inviterId == inviteeId) throw new ConflictException('You cannot invite yourself to a friendship.');
+
+        const prevInvitation = await this.prisma.friendshipInvitvation.findFirst({
+            where: {
+                inviterId,
+                inviteeId,
+                status: {
+                    not: 'declined',
+                },
+            },
+            select: {
+                id: true,
+                status: true,
+                invitee: { select: { username: true } },
+            },
+        });
+        if (prevInvitation) {
+            if (prevInvitation.status == 'pending')
+                throw new ConflictException(
+                    `You already have a pending invitation to ${prevInvitation.invitee.username}.`,
+                );
+            // accepted
+            else
+                return {
+                    successMessage: `${prevInvitation.invitee.username} already accepted an invitation from you.`,
+                };
+        }
+
+        const invitation = await this.prisma.friendshipInvitvation.create({
+            data: {
+                invitee: { connect: { id: inviteeId } },
+                inviter: { connect: { id: inviterId } },
+            },
+            select: {
+                id: true,
+                inviterId: true,
+                invitedAt: true,
+                inviteeId: true,
+                status: true,
+            },
+        });
+
+        return invitation;
+    }
+    async getFriendshipInvitationsRecieved(inviteeId: string) {
+        const invitations = await this.prisma.friendshipInvitvation.findMany({
+            where: { inviteeId },
+            select: {
+                id: true,
+                invitedAt: true,
+                inviterId: true,
+                status: true,
+            },
+            orderBy: { invitedAt: 'desc' },
+        });
+        return invitations;
+    }
+    async getFriendshipInvitationsSent(inviterId: string) {
+        const invitations = await this.prisma.friendshipInvitvation.findMany({
+            where: { inviterId },
+            select: {
+                id: true,
+                invitedAt: true,
+                inviteeId: true,
+                status: true,
+            },
+            orderBy: { invitedAt: 'desc' },
+        });
+        return invitations;
+    }
+    async respondToFriendshipInvitation(inviteeId: string, invitationId: string, action: 'accept' | 'decline') {
+        const invitation = await this.prisma.friendshipInvitvation.findFirst({
+            where: {
+                id: invitationId,
+                AND: { inviteeId },
+            },
+            select: { status: true },
+        });
+        if (!invitation) throw new UnauthorizedException('This invitation is not meant for you.');
+
+        // accepted invitations should not be revokable, the user should delete the friendship instead
+        if (invitation.status == 'accepted') return { successMessage: 'You already accepted to this invitation.' };
+
+        if (invitation.status == 'declined' && action == 'decline')
+            return { successMessage: 'You already declined to this invitation.' };
+
+        const status = action == 'accept' ? 'accepted' : 'declined';
+        const { inviterId } = await this.prisma.friendshipInvitvation.update({
+            where: { id: invitationId },
+            data: { status },
+            select: { inviterId: true },
+        });
+
+        if (status == 'declined')
+            return {
+                successMessage: `You have declined the friendship.`,
+            };
+
+        // accepted, check if there is already a friendship
+        const prevFriendship = await this.prisma.friendship.findFirst({
+            where: {
+                users: {
+                    every: {
+                        OR: [{ id: inviteeId }, { id: inviterId }],
+                    },
+                },
+            },
+            select: { users: SELECT_user_preview_WHERE_NOT(inviteeId) },
+        });
+        if (prevFriendship)
+            throw new ConflictException(`You are already friends with ${prevFriendship.users[0].username}`);
+
+        // otherwise create a friendship
+        const {
+            users: [friend], // the only user should be the new friend
+            ...friendship
+        } = await this.prisma.friendship.create({
+            data: {
+                users: {
+                    connect: [{ id: inviteeId }, { id: inviterId }],
+                },
+            },
+            select: {
+                id: true,
+                friendsSince: true,
+                users: SELECT_user_preview_WHERE_NOT(inviteeId),
+            },
+        });
+        return {
+            successMessage: `You have accepted the friendship.`,
+            friendship: {
+                ...friendship,
+                friend,
+            },
+        };
+    }
+    //#endregion
 }

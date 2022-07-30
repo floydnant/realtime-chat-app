@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { FriendshipsController } from './friendships/friendships.controller';
 
 @Module({
     imports: [
@@ -23,7 +24,7 @@ import { UsersService } from './users.service';
             }),
         }),
     ],
-    controllers: [AuthController, UsersController],
+    controllers: [AuthController, UsersController, FriendshipsController],
     providers: [UsersService, PrismaService, JwtStrategy],
     exports: [JwtStrategy, PassportModule, UsersService, JwtModule],
 })
