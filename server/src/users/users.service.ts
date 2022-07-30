@@ -3,13 +3,14 @@ import {
     Injectable,
     InternalServerErrorException,
     Logger,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ADMIN_PWD } from 'src/constants';
-import { SELECT_user_preview_WHERE_NOT } from 'src/query-helpers';
+import { SELECT_user_preview, SELECT_user_preview_WHERE_NOT } from 'src/query-helpers';
 import { PrismaService } from 'src/services/prisma.service';
 import { LoginCredentialsDTO, SignupCredentialsDTO } from './dto/auth-credetials.dto';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
@@ -128,7 +129,7 @@ export class UsersService {
             return {
                 successMessage: `Successfully deleted user '${username}'.`,
             };
-        else return new InternalServerErrorException('Something went wriong');
+        else throw new InternalServerErrorException('Failed to delete your account.');
     }
 
     private getValidatedUser({ username, id }: User) {
@@ -192,27 +193,125 @@ export class UsersService {
 
     /////////// public user actions ////////////
     async getUser(requestingUserId: string, requestedUserId: string) {
-        const { friends, ...requestedUser } = await this.prisma.user.findFirst({
-            // @TODO: maybe this should only be accesible to users who are friends with the requested user
-            where: { id: requestedUserId },
+        try {
+            const { friends, ...requestedUser } = await this.prisma.user.findFirst({
+                // @TODO: maybe this should only be accesible to users who are friends with the requested user
+                where: { id: requestedUserId },
+                select: {
+                    username: true,
+                    bio: true,
+                    lastOnline: true,
+                    friends: {
+                        where: {
+                            users: { some: { id: requestingUserId } },
+                        },
+                        select: { id: true },
+                    },
+                },
+            });
+            return {
+                imageUrl: null,
+                ...requestedUser,
+                friendshipId: friends[0]?.id || null,
+            };
+        } catch (err) {
+            throw new NotFoundException('Could not find user.');
+        }
+    }
+
+    //#region friendships
+    async getFriendships(userId: string) {
+        const friendships = await this.prisma.friendship.findMany({
+            where: {
+                users: { some: { id: userId } },
+            },
             select: {
-                username: true,
-                bio: true,
-                lastOnline: true,
-                friends: {
-                    where: {
-                        users: { some: { id: requestingUserId } },
+                id: true,
+                friendsSince: true,
+                users: SELECT_user_preview_WHERE_NOT(userId),
+            },
+        });
+        return friendships.map(({ users, ...friendship }) => ({
+            ...friendship,
+            friend: users[0],
+        }));
+    }
+
+    async getFriendship(friendId1: string, friendId2: string) {
+        try {
+            const {
+                users: [friend],
+                ...friendship
+            } = await this.prisma.friendship.findFirst({
+                where: {
+                    users: {
+                        every: {
+                            OR: [{ id: friendId1 }, { id: friendId2 }],
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    friendsSince: true,
+                    users: SELECT_user_preview_WHERE_NOT(friendId1),
+                },
+            });
+            return {
+                ...friendship,
+                friend,
+            };
+        } catch (err) {
+            return null;
+        }
+    }
+
+    async getFriendshipMessages(userId: string, friendshipId: string) {
+        const friendship = await this.prisma.friendship.findFirst({
+            where: {
+                id: friendshipId,
+                users: { some: { id: userId } },
+            },
+            // @TODO: outsource this into query helpers
+            select: {
+                messages: {
+                    select: {
+                        id: true,
+                        timestamp: true,
+                        text: true,
+                        messageType: true,
+                        user: SELECT_user_preview,
+                        repliedToMessageId: true,
                     },
                 },
             },
         });
-        return {
-            profileImageUrl: null,
-            ...requestedUser,
-            isFriendsWithYou: !!friends.length,
-        };
+        if (!friendship) throw new NotFoundException('Friendship not found.');
+        return friendship?.messages;
     }
-    //#region friendship invitations
+
+    async deleteFriendship(userId: string, friendshipId: string) {
+        const friendship = await this.prisma.friendship.findFirst({
+            where: {
+                id: friendshipId,
+                users: { some: { id: userId } },
+            },
+        });
+        if (!friendship) throw new NotFoundException('Friendship not found.');
+
+        try {
+            const deletedFriendship = await this.prisma.friendship.delete({
+                where: { id: friendshipId },
+                select: { id: true },
+            });
+            if (!deletedFriendship) throw new Error('Failed to delete friendship.');
+            return { successMessage: 'You deleted the friendship.' };
+        } catch (err) {
+            this.logger.error(err);
+            throw new InternalServerErrorException('Failed to delete friendship.');
+        }
+    }
+
+    //#region invitations
     async inviteUserToFriendship(inviterId: string, inviteeId: string) {
         if (inviterId == inviteeId) throw new ConflictException('You cannot invite yourself to a friendship.');
 
@@ -231,32 +330,53 @@ export class UsersService {
             },
         });
         if (prevInvitation) {
-            if (prevInvitation.status == 'pending')
-                throw new ConflictException(
-                    `You already have a pending invitation to ${prevInvitation.invitee.username}.`,
-                );
-            // accepted
-            else
-                return {
-                    successMessage: `${prevInvitation.invitee.username} already accepted an invitation from you.`,
-                };
+            const successMessage =
+                prevInvitation.status == 'pending'
+                    ? // pending invitation
+                      `You already have a pending invitation to ${prevInvitation.invitee.username}.`
+                    : // accepted invitation
+                      `${prevInvitation.invitee.username} already accepted an invitation from you.`;
+            return {
+                successMessage,
+                invitationId: prevInvitation.id,
+            };
         }
 
-        const invitation = await this.prisma.friendshipInvitvation.create({
-            data: {
-                invitee: { connect: { id: inviteeId } },
-                inviter: { connect: { id: inviterId } },
-            },
-            select: {
-                id: true,
-                inviterId: true,
-                invitedAt: true,
-                inviteeId: true,
-                status: true,
-            },
-        });
+        // check if there is already a friendship
+        const friendship = await this.getFriendship(inviteeId, inviterId);
+        if (friendship) return { successMessage: `You are already friends with ${friendship.friend.username}.` };
 
-        return invitation;
+        try {
+            const { invitee, ...invitation } = await this.prisma.friendshipInvitvation.create({
+                data: {
+                    invitee: { connect: { id: inviteeId } },
+                    inviter: { connect: { id: inviterId } },
+                },
+                select: {
+                    id: true,
+                    inviterId: true,
+                    invitedAt: true,
+                    inviteeId: true,
+                    status: true,
+                    invitee: { select: { username: true } },
+                },
+            });
+
+            return {
+                successMessage: `You invited ${invitee.username} to a friendship.`,
+                invitation,
+            };
+        } catch (err) {
+            // check if invitation failed because invitee doesnt exist
+            try {
+                await this.getUser(inviterId, inviteeId);
+            } catch (err) {
+                throw new NotFoundException('Could not find the user you are trying to invite.');
+            }
+
+            this.logger.error(err);
+            throw new InternalServerErrorException('Failed to create invitation.');
+        }
     }
     async getFriendshipInvitationsRecieved(inviteeId: string) {
         const invitations = await this.prisma.friendshipInvitvation.findMany({
@@ -313,18 +433,8 @@ export class UsersService {
             };
 
         // accepted, check if there is already a friendship
-        const prevFriendship = await this.prisma.friendship.findFirst({
-            where: {
-                users: {
-                    every: {
-                        OR: [{ id: inviteeId }, { id: inviterId }],
-                    },
-                },
-            },
-            select: { users: SELECT_user_preview_WHERE_NOT(inviteeId) },
-        });
-        if (prevFriendship)
-            throw new ConflictException(`You are already friends with ${prevFriendship.users[0].username}`);
+        const prevFriendship = await this.getFriendship(inviteeId, inviterId);
+        if (prevFriendship) return { successMessage: `You are already friends with ${prevFriendship.friend.username}` };
 
         // otherwise create a friendship
         const {
@@ -350,5 +460,28 @@ export class UsersService {
             },
         };
     }
+
+    async deleteFriendshipInvitation(userId: string, invitationId: string) {
+        const invitation = await this.prisma.friendshipInvitvation.findFirst({
+            where: {
+                id: invitationId,
+                OR: [{ inviteeId: userId }, { inviterId: userId }],
+            },
+        });
+        if (!invitation) throw new NotFoundException('Invitation not found.');
+
+        try {
+            const deletedInvitation = await this.prisma.friendshipInvitvation.delete({
+                where: { id: invitationId },
+                select: { id: true },
+            });
+            if (!deletedInvitation) throw new Error('Failed to delete invitation.');
+            return { successMessage: 'You deleted the invitation.' };
+        } catch (err) {
+            this.logger.error(err);
+            throw new InternalServerErrorException('Failed to delete invitation.');
+        }
+    }
+    //#endregion
     //#endregion
 }
