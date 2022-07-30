@@ -1,0 +1,9 @@
+<h1>Sign up</h1>
+<auth-form
+    variant="signup"
+    [errorMessages]="errorMessages"
+    [successMessage]="successMessage"
+    (submit)="submitWrapper($event)"
+></auth-form>
+
+<p>Already have an account? <a routerLink="../login">login</a></p>

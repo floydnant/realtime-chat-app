@@ -1,20 +1,21 @@
 import { Module } from '@nestjs/common';
-// import { ServeStaticModule } from '@nestjs/serve-static';
-// import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from './chat/chat.module';
-import { ExampleGateway } from './example.gateway';
+import { configValidationSchema } from './config.schema';
+import { PrismaService } from './services/prisma.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
     imports: [
-        // ServeStaticModule.forRoot({
-        //     rootPath: join(__dirname, '../../client/dist/realtime-chat-app-client'),
-        //     // rootPath: join(__dirname, '../static'),
-        // }),
+        ConfigModule.forRoot({
+            envFilePath: [`.env`, `.env.${process.env.STAGE}`],
+            validationSchema: configValidationSchema,
+        }),
         ChatModule,
+        UsersModule,
     ],
-    controllers: [AppController],
-    providers: [AppService, ExampleGateway],
+    controllers: [],
+    providers: [PrismaService],
+    exports: [ConfigModule],
 })
 export class AppModule {}

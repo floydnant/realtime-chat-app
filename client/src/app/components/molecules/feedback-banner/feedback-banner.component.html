@@ -1,0 +1,3 @@
+<div *ngIf="messages?.length" class="container" [ngClass]="variant">
+	<p *ngFor="let message of messages">{{ message }} <!-- <span class="close-btn" (click)="close()">[X]</span> --></p>
+</div>

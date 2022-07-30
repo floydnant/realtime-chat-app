@@ -1,0 +1,18 @@
+<div style="display:flex; gap:10px; margin-bottom:20px;">
+    <span class="secondary-100">{{ username$ | async }}</span>
+    <button (click)="logout()">logout</button>
+</div>
+
+<h2>Chats</h2>
+<ul>
+    <li
+        *ngFor="let chat of chatPreviews$ | async"
+        [class.active]="chat.id == (activeChatId$ | async)"
+        (click)="setChatActive(chat.id)"
+    >
+        {{ chat.title }}
+    </li>
+</ul>
+
+<button (click)="createChat()">create Chat</button>
+<button (click)="joinGlobalChat()">join global Chat</button>

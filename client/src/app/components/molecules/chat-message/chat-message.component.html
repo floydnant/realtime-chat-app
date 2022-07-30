@@ -1,0 +1,14 @@
+<span *ngIf="!sameUserAsPrevMsg && variant == MessageTypes.CHAT_MESSAGE && message?.user && !isMe" class="username">{{
+    message?.user?.username
+}}</span>
+<div
+    class="container {{ variant.replace(' ', '-') }}"
+    [class.is-me]="isMe"
+    [class.same-user]="sameUserAsPrevMsg"
+>
+    <span class="message" [innerHTML]="message?.text || messageText"></span>
+    <div *ngIf="variant == MessageTypes.CHAT_MESSAGE" class="time">
+        <!-- @TODO: implement time localisation -->
+        <span>{{ message?.timestamp | date: 'shortTime' }}</span>
+    </div>
+</div>
