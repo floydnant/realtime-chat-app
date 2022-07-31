@@ -1,10 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
+import { ChatType } from 'src/shared/index.model';
 import { chatsActions } from './chats.actions';
-import {
-    ChatsState,
-    StoredMessage,
-    ChatType,
-} from './chats.model';
+import { ChatsState, StoredMessage } from './chats.model';
 
 export const initialState = new ChatsState();
 
@@ -56,10 +53,10 @@ export const chatsReducer = createReducer(
     on(chatsActions.loadChatMessagesSuccess, loadChatMessagesSuccess),
 
     // loading chat previews
-    on(chatsActions.loadChatPreviews, (state) => {
+    on(chatsActions.loadChatPreviews, state => {
         return {
             ...state,
-            loadingChatPreviews: true
+            loadingChatPreviews: true,
         };
     }),
     // successfully loaded chat previews
@@ -98,6 +95,31 @@ export const chatsReducer = createReducer(
                     ...chat,
                 },
             ],
+        };
+    }),
+
+    // load friendship invitations
+    on(chatsActions.loadFriendshipInvitations, state => {
+        return {
+            ...state,
+            loadingInvitationsReceived: true,
+        };
+    }),
+    on(chatsActions.loadFriendshipInvitationsSuccess, (state, { invitations }) => {
+        return {
+            ...state,
+            loadingInvitationsReceived: false,
+            invitationsReceived: invitations,
+        };
+    }),
+    // responded to invitaipn successfully
+    on(chatsActions.respondToInvitationSuccess, (state, { chatPreview, invitationId }) => {
+        return {
+            ...state,
+            chatPreviews: chatPreview
+                ? [...state.chatPreviews, chatPreview]
+                : state.chatPreviews, // prettier-ignore
+            invitationsReceived: state.invitationsReceived.filter(invitation => invitation.id != invitationId),
         };
     }),
 );

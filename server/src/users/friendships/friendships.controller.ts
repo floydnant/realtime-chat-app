@@ -1,6 +1,17 @@
-import { Controller, Delete, Get, Logger, NotFoundException, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+    Controller,
+    Delete,
+    Get,
+    Logger,
+    NotFoundException,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from '@prisma/client';
+import { InvitationStatus, User } from '@prisma/client';
 import { GetUser } from 'src/decorators/get-user.decorator';
 import { UsersService } from '../users.service';
 
@@ -52,15 +63,15 @@ export class FriendshipsController {
         return this.usersService.respondToFriendshipInvitation(invitee.id, invitationId, 'decline');
     }
 
-    @Get('/invitations/recieved')
-    getInvitationsRecieved(@GetUser() user: User) {
-        this.logger.verbose(`'${user.username}' gets all friendship invitations recieved`);
-        return this.usersService.getFriendshipInvitationsRecieved(user.id);
+    @Get('/invitations/received')
+    getInvitationsReceived(@GetUser() user: User, @Query('filter') filter: InvitationStatus) {
+        this.logger.verbose(`'${user.username}' gets all friendship invitations received`);
+        return this.usersService.getFriendshipInvitations(user.id, 'received', filter);
     }
     @Get('/invitations/sent')
-    getInvitationsSent(@GetUser() user: User) {
+    getInvitationsSent(@GetUser() user: User, @Query('filter') filter: InvitationStatus) {
         this.logger.verbose(`'${user.username}' gets all friendship invitations sent`);
-        return this.usersService.getFriendshipInvitationsSent(user.id);
+        return this.usersService.getFriendshipInvitations(user.id, 'sent', filter);
     }
 
     @Delete('/invitations/:invitationId')

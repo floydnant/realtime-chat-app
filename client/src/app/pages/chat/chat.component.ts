@@ -5,11 +5,11 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { ChatsState, ChatType, StoredMessage } from 'src/app/store/chats/chats.model';
+import { ChatsState, StoredMessage } from 'src/app/store/chats/chats.model';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
-import { MessageTypes, UserPreview } from 'src/shared/index.model';
+import { ChatType, MessageTypes, UserPreview } from 'src/shared/index.model';
 import { DatePipe } from '@angular/common';
 
 export interface UserOnlineStatusEventMessage {

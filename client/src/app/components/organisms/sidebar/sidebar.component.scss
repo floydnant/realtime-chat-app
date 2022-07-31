@@ -1,4 +1,4 @@
-ul {
+.chats {
     padding: 0;
     width: 15rem;
 }
@@ -61,5 +61,12 @@ ul {
         right: 0.55rem;
         opacity: 0.6;
         font-size: 0.65em;
+    }
+}
+
+.status-filter {
+    button.isActiveFilter {
+        color: var(--secondary-100);
+        background: #000;
     }
 }

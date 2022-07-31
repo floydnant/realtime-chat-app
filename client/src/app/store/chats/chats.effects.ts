@@ -6,7 +6,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
 import { chatsActions } from './chats.actions';
-import { ChatRoomDetails, ChatsState, ChatType } from './chats.model';
+import { ChatsState } from './chats.model';
 import { AppState } from '../app.reducer';
 import { HotToastService } from '@ngneat/hot-toast';
 import { appActions } from '../app.actions';
@@ -114,6 +114,36 @@ export class ChatsEffects {
                         return handleError(chatPreviewsOrError, chatPreviews =>
                             chatsActions.loadChatPreviewsSuccess({ chatPreviews }),
                         );
+                    }),
+                );
+            }),
+        );
+    });
+
+    loadingInvitationsReceived = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatsActions.loadFriendshipInvitations),
+            mergeMap(({ statusFilter }) => {
+                return this.chatService.getInvitationsReceived(statusFilter).pipe(
+                    map(invitationsOrError => {
+                        return handleError(invitationsOrError, invitations =>
+                            chatsActions.loadFriendshipInvitationsSuccess({ invitations }),
+                        );
+                    }),
+                );
+            }),
+        );
+    });
+    respondtoInvitation = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatsActions.respondToInvitation),
+            mergeMap(({ invitationId, response }) => {
+                return this.chatService.respondToInvitation(invitationId, response).pipe(
+                    map(resOrError => {
+                        return handleError(resOrError, res => {
+                            this.toastService.success(res.successMessage);
+                            return chatsActions.respondToInvitationSuccess({ chatPreview: res.chatPreview, invitationId });
+                        });
                     }),
                 );
             }),

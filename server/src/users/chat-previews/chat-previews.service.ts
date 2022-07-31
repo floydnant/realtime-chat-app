@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/services/prisma.service';
 import { SELECT_user_preview_WHERE_NOT, TAKE_LAST_message_preview } from 'src/query-helpers';
+import { ChatType } from 'src/shared/index.model';
+import { ChatPreview } from 'src/models/index.model';
 
 @Injectable()
 export class ChatPreviewsService {
@@ -27,16 +29,16 @@ export class ChatPreviewsService {
         ]);
 
         const chats = [
-            ...friendships.map(({ id, users, messages }) => ({
+            ...friendships.map<ChatPreview>(({ id, users, messages }) => ({
                 friendshipOrChatGroupId: id,
                 title: users[0].username,
-                chatType: 'private',
+                chatType: ChatType.PRIVATE,
                 lastMessage: messages[0],
             })),
-            ...chatGroups.map(({ id, title, messages }) => ({
+            ...chatGroups.map<ChatPreview>(({ id, title, messages }) => ({
                 friendshipOrChatGroupId: id,
                 title,
-                chatType: 'group',
+                chatType: ChatType.GROUP,
                 lastMessage: messages[0],
             })),
         ];

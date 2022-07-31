@@ -8,7 +8,7 @@
     {{ (loadingChatPreviews$ | async) && 'loading' }}
     <loading-spinner></loading-spinner>
 </p>
-<ul>
+<ul class="chats">
     <li
         *ngFor="let chat of chatPreviews$ | async"
         class="chat"
@@ -25,7 +25,11 @@
                         chat.lastMessage &&
                         (chat.chatType == ChatType.GROUP || (loggedInUser$ | async)?.id == chat.lastMessage.user.id)
                     "
-                    >{{ (loggedInUser$ | async)?.id == chat.lastMessage.user.id ? 'You' : chat.lastMessage.user.username }}:
+                    >{{
+                        (loggedInUser$ | async)?.id == chat.lastMessage.user.id
+                            ? 'You'
+                            : chat.lastMessage.user.username
+                    }}:
                 </span>
                 <span class="text">{{ chat.lastMessage?.text || '&nbsp;' }}</span>
             </div>
@@ -36,3 +40,45 @@
 
 <button (click)="createChat()">create Chat</button>
 <button (click)="joinGlobalChat()">join global Chat</button>
+
+<h2>Invitations</h2>
+<div class="status-filter">
+    <!-- prettier-ignore -->
+    <button 
+        [class.isActiveFilter]="invitationsFilter == 'pending'" 
+        (click)="loadInvitations(InvitationStatus.PENDING)"
+    >
+        pending
+    </button>
+    <button
+        [class.isActiveFilter]="invitationsFilter == 'accepted'"
+        (click)="loadInvitations(InvitationStatus.ACCEPTED)"
+    >
+        accepted
+    </button>
+    <button
+        [class.isActiveFilter]="invitationsFilter == 'declined'"
+        (click)="loadInvitations(InvitationStatus.DECLINED)"
+    >
+        declined
+    </button>
+</div>
+{{ (loadingInvitations$ | async) ? 'Loading...' : '' }}
+<span>
+    {{ (invitations$ | async)?.length }}
+    {{ invitationsFilter }}
+</span>
+<ul class="invitations">
+    <li *ngFor="let invitation of invitations$ | async">
+        {{ invitation.inviter.username }}
+        <span *ngIf="invitation.status != InvitationStatus.ACCEPTED" class="response-actions">
+            <button (click)="respondToInvitation(invitation.id, 'accept')">accept</button>
+            <button
+                (click)="respondToInvitation(invitation.id, 'decline')"
+                [disabled]="invitation.status == InvitationStatus.DECLINED"
+            >
+                decline
+            </button>
+        </span>
+    </li>
+</ul>

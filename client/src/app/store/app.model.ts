@@ -7,3 +7,5 @@ export interface HttpServerErrorResponse extends Omit<HttpErrorResponse, 'type'>
         statusCode: number;
     };
 }
+
+export type HttpSuccessResponse<T extends Record<string, any>> = T & { successMessage: string }

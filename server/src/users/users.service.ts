@@ -7,11 +7,13 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
+import { InvitationStatus, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ADMIN_PWD } from 'src/constants';
+import { ChatPreview } from 'src/models/index.model';
 import { SELECT_user_preview, SELECT_user_preview_WHERE_NOT } from 'src/query-helpers';
 import { PrismaService } from 'src/services/prisma.service';
+import { ChatType } from 'src/shared/index.model';
 import { LoginCredentialsDTO, SignupCredentialsDTO } from './dto/auth-credetials.dto';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
 import { JwtPayload } from './jwt-payload.interface';
@@ -386,26 +388,17 @@ export class UsersService {
             throw new InternalServerErrorException('Failed to create invitation.');
         }
     }
-    async getFriendshipInvitationsRecieved(inviteeId: string) {
+
+    async getFriendshipInvitations(inviterOrInviteeId: string, mode: 'sent' | 'received', filter: InvitationStatus) {
         const invitations = await this.prisma.friendshipInvitvation.findMany({
-            where: { inviteeId },
-            select: {
-                id: true,
-                invitedAt: true,
-                inviterId: true,
-                status: true,
+            where: {
+                [mode == 'received' ? 'inviteeId' : 'inviterId']: inviterOrInviteeId,
+                status: filter ? { equals: filter } : {},
             },
-            orderBy: { invitedAt: 'desc' },
-        });
-        return invitations;
-    }
-    async getFriendshipInvitationsSent(inviterId: string) {
-        const invitations = await this.prisma.friendshipInvitvation.findMany({
-            where: { inviterId },
             select: {
                 id: true,
                 invitedAt: true,
-                inviteeId: true,
+                [mode == 'sent' ? 'invitee' : 'inviter']: SELECT_user_preview,
                 status: true,
             },
             orderBy: { invitedAt: 'desc' },
@@ -460,12 +453,18 @@ export class UsersService {
                 users: SELECT_user_preview_WHERE_NOT(inviteeId),
             },
         });
+        const chatPreview: ChatPreview = {
+            friendshipOrChatGroupId: friendship.id,
+            title: friend.username,
+            chatType: ChatType.PRIVATE,
+        };
         return {
             successMessage: `You have accepted the friendship.`,
             friendship: {
                 ...friendship,
                 friend,
             },
+            chatPreview,
         };
     }
 

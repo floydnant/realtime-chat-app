@@ -5,18 +5,19 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
+import {
+    ChatGroupPreview,
+    ChatType,
+    FriendshipFull,
+    FriendshipInvitation,
+    InvitationStatus,
+} from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { handleError } from '../store/app.effects';
+import { HttpSuccessResponse } from '../store/app.model';
 import { AppState } from '../store/app.reducer';
 import { chatsActions } from '../store/chats/chats.actions';
-import {
-    ChatPreview,
-    ChatRoomApiResponse,
-    ChatGroupPreview,
-    ChatsState,
-    StoredMessage,
-    ChatType,
-} from '../store/chats/chats.model';
+import { ChatsState, StoredMessage, ChatPreview } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -125,9 +126,9 @@ export class ChatService {
     }
 
     // CRUD stuff
-    getChat(chatId: string) {
-        return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
-    }
+    // getChat(chatId: string) {
+    //     return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
+    // }
     getChatMessages(chatId: string, chatType: ChatType) {
         const messages = this.httpClient.get<StoredMessage[]>(
             chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
@@ -159,5 +160,15 @@ export class ChatService {
                 });
                 this.store.dispatch(action);
             });
+    }
+
+    getInvitationsReceived(filter: InvitationStatus) {
+        return this.httpClient.get<FriendshipInvitation[]>(`/friendships/invitations/received?filter=${filter}`);
+    }
+    respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
+        return this.httpClient.patch<HttpSuccessResponse<{ friendship?: FriendshipFull; chatPreview?: ChatPreview }>>(
+            `/friendships/invitations/${response}/${invitationId}`,
+            {},
+        );
     }
 }
