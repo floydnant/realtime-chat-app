@@ -7,6 +7,10 @@ export interface UserPreview {
     id: string;
     username: string;
 }
+export interface UserSearchResult extends UserPreview {
+    bio: string;
+    friendshipId: string;
+}
 
 export interface ChatRoomPreview {
     id: string;

@@ -5,7 +5,7 @@ import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { AppState } from 'src/app/store/app.reducer';
 import { userActions } from 'src/app/store/user/user.actions';
-import { ChatType, InvitationStatus } from 'src/shared/index.model';
+import { ChatType, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
 
 @Component({
     selector: 'sidebar',
@@ -27,6 +27,15 @@ export class SidebarComponent implements OnInit {
     loadingInvitations$ = this.store.select(state => state.chats.loadingInvitationsReceived);
     invitationsFilter: InvitationStatus = InvitationStatus.PENDING
     InvitationStatus = InvitationStatus
+
+    userSearchResult?:  UserSearchResult[]
+    async searchUsers(query: string) {
+        this.userSearchResult = await this.chatService.searchUsers(query)
+    }
+
+    sendFriendInvitation(userId: string) {
+        this.chatService.sendFriendshipInvitation(userId)
+    }
 
     setChatActive(chatId: string) {
         this.store.dispatch(chatsActions.setActiveChat({ chatId }));

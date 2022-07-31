@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
@@ -28,6 +28,12 @@ export class UsersController {
     deleteUser(@GetUser() user: User, @Body() { password }: { password: string }) {
         this.logger.verbose(`deleting user '${user.username}'`);
         return this.usersService.deleteUser(user, password);
+    }
+
+    @Get('/search')
+    searchUsers(@GetUser() user: User, @Query('q') q: string) {
+        this.logger.verbose(`'${user.username}' searches uses for ${q}`);
+        return this.usersService.searchUsers(user.id, q);
     }
 
     @Get('/:id')

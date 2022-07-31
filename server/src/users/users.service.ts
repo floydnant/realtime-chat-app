@@ -228,6 +228,27 @@ export class UsersService {
             throw new NotFoundException('Could not find user.');
         }
     }
+    async searchUsers(userId: string, query: string) {
+        // this is where a full text search engine would come in handy
+        const users = await this.prisma.user.findMany({
+            where: {
+                username: {
+                    contains: query,
+                },
+            },
+            select: {
+                ...SELECT_user_preview.select,
+                bio: true,
+                friends: {
+                    where: {
+                        users: { some: { id: userId } },
+                    },
+                    select: { id: true },
+                },
+            },
+        });
+        return users.map(({ friends, ...u }) => ({ ...u, friendshipId: friends[0]?.id || null }));
+    }
 
     //#region friendships
     async getFriendships(userId: string) {

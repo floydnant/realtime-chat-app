@@ -1,7 +1,9 @@
-<div style="display: flex; gap: 10px; margin-bottom: 20px">
+<div style="display: flex; gap: 10px">
     <span class="secondary-100">{{ (loggedInUser$ | async)?.username }}</span>
     <button (click)="logout()">logout</button>
 </div>
+
+<div class="spacer"></div>
 
 <h2>Chats</h2>
 <p *ngIf="loadingChatPreviews$ | async">
@@ -41,15 +43,17 @@
 <button (click)="createChat()">create Chat</button>
 <button (click)="joinGlobalChat()">join global Chat</button>
 
+<div class="spacer"></div>
+
 <h2>Invitations</h2>
 <div class="status-filter">
     <!-- prettier-ignore -->
-    <button 
-        [class.isActiveFilter]="invitationsFilter == 'pending'" 
-        (click)="loadInvitations(InvitationStatus.PENDING)"
-    >
-        pending
-    </button>
+    <button
+            [class.isActiveFilter]="invitationsFilter == 'pending'"
+            (click)="loadInvitations(InvitationStatus.PENDING)"
+        >
+            pending
+        </button>
     <button
         [class.isActiveFilter]="invitationsFilter == 'accepted'"
         (click)="loadInvitations(InvitationStatus.ACCEPTED)"
@@ -71,14 +75,42 @@
 <ul class="invitations">
     <li *ngFor="let invitation of invitations$ | async">
         {{ invitation.inviter.username }}
-        <span *ngIf="invitation.status != InvitationStatus.ACCEPTED" class="response-actions">
-            <button (click)="respondToInvitation(invitation.id, 'accept')">accept</button>
+        <span class="response-actions">
+            <button
+                (click)="respondToInvitation(invitation.id, 'accept')"
+                [disabled]="invitation.status == InvitationStatus.ACCEPTED"
+            >
+                accept
+            </button>
             <button
                 (click)="respondToInvitation(invitation.id, 'decline')"
-                [disabled]="invitation.status == InvitationStatus.DECLINED"
+                [disabled]="invitation.status != InvitationStatus.PENDING"
             >
                 decline
             </button>
         </span>
     </li>
+</ul>
+
+<div class="spacer"></div>
+
+<h3>Invite a friend</h3>
+<input
+    type="text"
+    placeholder="Search for users"
+    #userSearchInput
+    (keydown.enter)="searchUsers(userSearchInput.value)"
+/>
+<button (click)="searchUsers(userSearchInput.value)">search</button>
+
+<!-- @TODO: add loading state -->
+<ul>
+    <li *ngFor="let user of userSearchResult">
+        {{ user.username }}
+        {{ user.bio }}
+        <button *ngIf="!user.friendshipId" (click)="sendFriendInvitation(user.id)">Invite</button>
+    </li>
+    {{
+        userSearchResult?.length == 0 ? "No user with '" + userSearchInput.value + "' found" : ''
+    }}
 </ul>

@@ -11,6 +11,8 @@ import {
     FriendshipFull,
     FriendshipInvitation,
     InvitationStatus,
+    UserPreview,
+    UserSearchResult,
 } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { handleError } from '../store/app.effects';
@@ -153,7 +155,6 @@ export class ChatService {
         return this.httpClient
             .post<{ successMessage: string; chatRoom: ChatGroupPreview }>('/chats/globalChat/join')
             .subscribe(chatRoomResOrError => {
-                console.log(chatRoomResOrError);
                 const action = handleError(chatRoomResOrError, chatRoomRes => {
                     this.toastService.success(`Successfully joined chat '${chatRoomRes.chatRoom.title}'`);
                     return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
@@ -162,9 +163,35 @@ export class ChatService {
             });
     }
 
+    searchUsers(query: string) {
+        return this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
+    }
+
+    // @TODO: emit respective events to socket
+    sendFriendshipInvitation(userId: string) {
+        const toastId = 'createInvitation';
+        this.toastService.loading('Creating invitation...', { id: toastId });
+        type res = HttpSuccessResponse<{
+            invitation: {
+                id: string;
+                inviterId: string;
+                invitedAt: string;
+                inviteeId: string;
+                status: 'pending';
+            };
+        }>;
+        this.httpClient.post<res>(`/friendships/invitations/${userId}`).subscribe(resOrError => {
+            this.toastService.close(toastId);
+            if ('error' in resOrError) this.toastService.error(resOrError.message);
+            else this.toastService.success(resOrError.successMessage);
+        });
+    }
+
     getInvitationsReceived(filter: InvitationStatus) {
         return this.httpClient.get<FriendshipInvitation[]>(`/friendships/invitations/received?filter=${filter}`);
     }
+
+    // @TODO: emit respective events to socket
     respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
         return this.httpClient.patch<HttpSuccessResponse<{ friendship?: FriendshipFull; chatPreview?: ChatPreview }>>(
             `/friendships/invitations/${response}/${invitationId}`,
