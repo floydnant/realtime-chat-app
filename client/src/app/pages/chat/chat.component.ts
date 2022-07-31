@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
+import { ChatsState, ChatType, StoredMessage } from 'src/app/store/chats/chats.model';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
@@ -51,6 +51,13 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
 
+    chatsState: ChatsState;
+    user: LoggedInUser | null;
+    activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
+
+    MessageTypes = MessageTypes;
+    ChatType = ChatType;
+
     isSameDay(ts1: string, ts2: string) {
         return this.getDay(ts1, ts2) == 'Today';
     }
@@ -60,10 +67,10 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
         const isSameYear = date.getFullYear() == today.getFullYear();
         const isSameMonth = date.getMonth() == today.getMonth();
-        
+
         if (!isSameYear) return this.datePipe.transform(date, 'fullDate');
         if (!isSameMonth) return this.datePipe.transform(date, 'EEEE, MMMM d');
-        
+
         const dateDifference = today.getDate() - date.getDate();
         return dateDifference == 0
             ? 'Today'
@@ -71,12 +78,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             ? 'Yesterday'
             : this.datePipe.transform(date, 'EEEE, MMMM d');
     }
-
-    chatsState: ChatsState;
-    user: LoggedInUser | null;
-    activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
-
-    MessageTypes = MessageTypes;
 
     // TODO: use the generic content editable component from todo app
     @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
@@ -182,8 +183,8 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         }
     }
 
-    messages: (StoredChatMessage | UserOnlineStatusEventMessage)[] = [];
-    addMessageToChat({ ...message }: StoredChatMessage | UserOnlineStatusEvent) {
+    messages: (StoredMessage | UserOnlineStatusEventMessage)[] = [];
+    addMessageToChat({ ...message }: StoredMessage | UserOnlineStatusEvent) {
         // text = escapeHTML(text);
 
         let text: string;

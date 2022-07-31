@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/services/prisma.service';
-import { SELECT_user_preview_WHERE_NOT } from 'src/query-helpers';
+import { SELECT_user_preview_WHERE_NOT, TAKE_LAST_message_preview } from 'src/query-helpers';
 
 @Injectable()
 export class ChatPreviewsService {
@@ -13,11 +13,7 @@ export class ChatPreviewsService {
                 select: {
                     id: true,
                     users: SELECT_user_preview_WHERE_NOT(userId),
-                    messages: {
-                        orderBy: { timestamp: 'desc' },
-                        take: 1,
-                        select: { timestamp: true, text: true, userId: true },
-                    },
+                    messages: TAKE_LAST_message_preview,
                 },
             }),
             this.prisma.chatGroup.findMany({
@@ -25,15 +21,11 @@ export class ChatPreviewsService {
                 select: {
                     id: true,
                     title: true,
-                    messages: {
-                        orderBy: { timestamp: 'desc' },
-                        take: 1,
-                        select: { timestamp: true, text: true, userId: true },
-                    },
+                    messages: TAKE_LAST_message_preview,
                 },
             }),
         ]);
-        // @TODO: sort chats by last message
+
         const chats = [
             ...friendships.map(({ id, users, messages }) => ({
                 friendshipOrChatGroupId: id,

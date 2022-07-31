@@ -1,12 +1,8 @@
 import { createReducer, on } from '@ngrx/store';
-import { getCopyOf } from 'src/app/utils';
 import { chatsActions } from './chats.actions';
 import {
-    ChatRoomDetails,
-    ChatRoomApiResponse,
-    ChatGroupPreview,
     ChatsState,
-    StoredChatMessage,
+    StoredMessage,
     ChatType,
 } from './chats.model';
 
@@ -14,7 +10,7 @@ export const initialState = new ChatsState();
 
 const loadChatMessagesSuccess = (
     state: ChatsState,
-    { messages, chatId }: { chatId: string; messages: StoredChatMessage[] },
+    { messages, chatId }: { chatId: string; messages: StoredMessage[] },
     isActiveChat = false,
 ): ChatsState => {
     return {

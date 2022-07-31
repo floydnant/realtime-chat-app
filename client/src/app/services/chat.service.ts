@@ -14,7 +14,7 @@ import {
     ChatRoomApiResponse,
     ChatGroupPreview,
     ChatsState,
-    StoredChatMessage,
+    StoredMessage,
     ChatType,
 } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
@@ -129,7 +129,7 @@ export class ChatService {
         return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
     }
     getChatMessages(chatId: string, chatType: ChatType) {
-        const messages = this.httpClient.get<StoredChatMessage[]>(
+        const messages = this.httpClient.get<StoredMessage[]>(
             chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
         );
         return messages;

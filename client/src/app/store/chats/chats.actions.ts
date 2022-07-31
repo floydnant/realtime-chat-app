@@ -1,8 +1,8 @@
 import { createAction, props } from '@ngrx/store';
-import { StoredChatMessage, ChatGroupPreview, ChatPreview, ChatType } from './chats.model';
+import { StoredMessage, ChatGroupPreview, ChatPreview, ChatType } from './chats.model';
 
 export const chatsActions = {
-    newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredChatMessage }>()),
+    newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredMessage }>()),
 
     loadChatPreviews: createAction('[ CHATS ] get joined chat previews'),
     loadChatPreviewsSuccess: createAction(
@@ -18,13 +18,13 @@ export const chatsActions = {
         '[ CHATS ] load active messages success',
         props<{
             chatId: string;
-            messages: StoredChatMessage[];
+            messages: StoredMessage[];
             alreadyStored?: boolean;
         }>(),
     ),
     loadChatMessagesSuccess: createAction(
         '[ CHATS ] load messages success',
-        props<{ chatId: string; chatType: ChatType, messages: StoredChatMessage[] }>(),
+        props<{ chatId: string; chatType: ChatType, messages: StoredMessage[] }>(),
     ),
 
     createChat: createAction('[ CHATS ] create chat', props<{ title: string }>()),

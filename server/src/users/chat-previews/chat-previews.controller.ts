@@ -2,7 +2,6 @@ import { Controller, Get, Logger, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { GetUser } from 'src/decorators/get-user.decorator';
-import { UsersService } from '../users.service';
 import { ChatPreviewsService } from './chat-previews.service';
 
 @UseGuards(AuthGuard())
@@ -13,7 +12,7 @@ export class ChatPreviewsController {
 
     @Get()
     async getChatPreviews(@GetUser() user: User) {
-        this.logger.verbose(`${user.username} retrieves chat previews`)
+        this.logger.verbose(`${user.username} retrieves chat previews`);
         return this.chatService.getChatPreviews(user.id);
     }
 }

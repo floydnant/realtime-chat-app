@@ -1,20 +1,36 @@
 <div style="display: flex; gap: 10px; margin-bottom: 20px">
-    <span class="secondary-100">{{ username$ | async }}</span>
+    <span class="secondary-100">{{ (loggedInUser$ | async)?.username }}</span>
     <button (click)="logout()">logout</button>
 </div>
 
 <h2>Chats</h2>
-<p *ngIf="(loadingChatPreviews$ | async)">
+<p *ngIf="loadingChatPreviews$ | async">
     {{ (loadingChatPreviews$ | async) && 'loading' }}
     <loading-spinner></loading-spinner>
 </p>
 <ul>
     <li
         *ngFor="let chat of chatPreviews$ | async"
+        class="chat"
         [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
         (click)="setChatActive(chat.friendshipOrChatGroupId)"
     >
-        {{ chat.title }}
+        <!-- <div class="image"></div> -->
+        <div class="wrapper">
+            <div class="title cut-text">{{ chat.title }}</div>
+            <div class="last-message cut-text">
+                <span
+                    class="username"
+                    *ngIf="
+                        chat.lastMessage &&
+                        (chat.chatType == ChatType.GROUP || (loggedInUser$ | async)?.id == chat.lastMessage.user.id)
+                    "
+                    >{{ (loggedInUser$ | async)?.id == chat.lastMessage.user.id ? 'You' : chat.lastMessage.user.username }}:
+                </span>
+                <span class="text">{{ chat.lastMessage?.text || '&nbsp;' }}</span>
+            </div>
+        </div>
+        <span class="time">{{ chat.lastMessage?.timestamp | date: 'shortTime' }}</span>
     </li>
 </ul>
 

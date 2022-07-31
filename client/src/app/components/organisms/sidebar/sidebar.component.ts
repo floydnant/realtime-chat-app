@@ -5,6 +5,7 @@ import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { AppState } from 'src/app/store/app.reducer';
 import { userActions } from 'src/app/store/user/user.actions';
+import { ChatType } from 'src/app/store/chats/chats.model';
 
 @Component({
     selector: 'sidebar',
@@ -14,7 +15,9 @@ import { userActions } from 'src/app/store/user/user.actions';
 export class SidebarComponent implements OnInit {
     constructor(private store: Store<AppState>, private chatService: ChatService) {}
 
-    username$ = this.store.select(state => state.user.loggedInUser?.username)
+    ChatType = ChatType
+
+    loggedInUser$ = this.store.select(state => state.user.loggedInUser)
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);

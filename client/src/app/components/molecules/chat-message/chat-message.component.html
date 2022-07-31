@@ -1,4 +1,4 @@
-<span *ngIf="!sameUserAsPrevMsg && variant == MessageTypes.CHAT_MESSAGE && message?.user && !isMe" class="username">{{
+<span *ngIf="!hideUsername && !sameUserAsPrevMsg && variant == MessageTypes.CHAT_MESSAGE && message?.user && !isMe" class="username">{{
     message?.user?.username
 }}</span>
 <div

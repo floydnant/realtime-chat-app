@@ -18,6 +18,18 @@ export const SELECT_message /* : SELECT<Prisma.MessageSelect> */ = {
         user: SELECT_user_preview,
     },
 };
+export const SELECT_message_preview = {
+    select: {
+        text: true,
+        timestamp: true,
+        user: SELECT_user_preview,
+    },
+};
+export const TAKE_LAST_message_preview = {
+    ...SELECT_message_preview,
+    orderBy: { timestamp: 'desc' as const },
+    take: 1,
+};
 
 export const SELECT_all_chat_data /* : SELECT<Prisma.ChatGroupSelect> */ = {
     select: {

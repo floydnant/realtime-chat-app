@@ -5,16 +5,19 @@ export class ChatsState_ {
 
     chatPreviews: ChatGroupPreview[] = [];
     chatsDetails: ChatRoomDetails[] = [];
-    messagesByChat: { [chatId: string]: StoredChatMessage[] } = {};
+    messagesByChat: { [chatId: string]: StoredMessage[] } = {};
     loadingActiveChatMessages = false;
 }
 
-export interface StoredChatMessage {
-    id: string;
-    text: string;
+interface MessagePreview {
     timestamp: string;
-    messageType: MessageTypes.CHAT_MESSAGE;
+    text: string;
     user: UserPreview;
+}
+export interface StoredMessage extends MessagePreview {
+    id: string;
+    messageType: MessageTypes.CHAT_MESSAGE;
+    repliedToMessageId?: string;
 }
 
 export interface ChatGroupPreview {
@@ -29,7 +32,7 @@ export class ChatRoomDetails {
     users: UserPreview[];
 }
 export class ChatRoomApiResponse extends ChatRoomDetails {
-    messages: StoredChatMessage[];
+    messages: StoredMessage[];
 }
 
 // new state
@@ -45,7 +48,7 @@ export class ChatsState {
     friendshipsDetails: Record<string, FriendshipDetails> = {};
     loadingDetails: boolean = false;
 
-    messagesByChat: Record<string, StoredChatMessage[]> = {};
+    messagesByChat: Record<string, StoredMessage[]> = {};
     loadingActiveChatMessages = false;
 
     users: Record<string, UserDetails>;
@@ -57,15 +60,12 @@ export enum ChatType {
     PRIVATE = 'private',
 }
 
+
 export interface ChatPreview {
     friendshipOrChatGroupId: string;
     title: string; // <= groupTitle or friendName
     chatType: ChatType;
-    lastMessage?: {
-        timestamp: string;
-        text: string;
-        userId: string;
-    };
+    lastMessage?: MessagePreview;
 }
 // type ChatFull =
 //     | (ChatPreview & { chatType: 'group' } & ChatGroup & ChatGroupDetails)

@@ -21,6 +21,7 @@
                     [message]="message"
                     [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
                     [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
+                    [hideUsername]="(activeChat$ | async)?.chatType == ChatType.PRIVATE"
                 ></chat-message>
             </div>
         </div>
