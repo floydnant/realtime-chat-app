@@ -57,14 +57,22 @@ export class UsersService {
             const { id } = this.jwtService.verify<JwtPayload>(accessToken);
             const user = await this.prisma.user.findFirst({
                 where: { id },
-                include: { chatGroupsJoined: { select: { chatGroupId: true } } },
+                select: {
+                    username: true,
+                    // @TODO: this should be in its own function
+                    chatGroupsJoined: { select: { chatGroupId: true } },
+                    friends: { select: { id: true } },
+                },
             });
 
             return {
                 id,
                 username: user?.username,
                 authenticated: !!user,
-                chatIds: user?.chatGroupsJoined.map(({ chatGroupId }) => chatGroupId),
+                chatIds: [
+                    ...user?.chatGroupsJoined.map(({ chatGroupId }) => chatGroupId),
+                    ...user?.friends.map(({ id }) => id),
+                ],
             };
         } catch (err) {
             return {

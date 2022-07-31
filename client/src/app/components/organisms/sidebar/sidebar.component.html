@@ -1,14 +1,18 @@
-<div style="display:flex; gap:10px; margin-bottom:20px;">
+<div style="display: flex; gap: 10px; margin-bottom: 20px">
     <span class="secondary-100">{{ username$ | async }}</span>
     <button (click)="logout()">logout</button>
 </div>
 
 <h2>Chats</h2>
+<p *ngIf="(loadingChatPreviews$ | async)">
+    {{ (loadingChatPreviews$ | async) && 'loading' }}
+    <loading-spinner></loading-spinner>
+</p>
 <ul>
     <li
         *ngFor="let chat of chatPreviews$ | async"
-        [class.active]="chat.id == (activeChatId$ | async)"
-        (click)="setChatActive(chat.id)"
+        [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
+        (click)="setChatActive(chat.friendshipOrChatGroupId)"
     >
         {{ chat.title }}
     </li>

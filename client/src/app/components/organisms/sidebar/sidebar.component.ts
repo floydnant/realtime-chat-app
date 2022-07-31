@@ -17,6 +17,7 @@ export class SidebarComponent implements OnInit {
     username$ = this.store.select(state => state.user.loggedInUser?.username)
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
+    loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
 
     setChatActive(chatId: string) {
         this.store.dispatch(chatsActions.setActiveChat({ chatId }));

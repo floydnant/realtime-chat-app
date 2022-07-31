@@ -8,7 +8,7 @@ export const chatsSelectors = {
         (activeChatId, chatPreviews) => {
             if (!activeChatId) return null;
 
-            return chatPreviews.find(chat => chat.id == activeChatId);
+            return chatPreviews.find(chat => chat.friendshipOrChatGroupId == activeChatId);
         },
     ),
 

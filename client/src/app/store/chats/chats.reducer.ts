@@ -1,7 +1,14 @@
 import { createReducer, on } from '@ngrx/store';
 import { getCopyOf } from 'src/app/utils';
 import { chatsActions } from './chats.actions';
-import { ChatRoomDetails, ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from './chats.model';
+import {
+    ChatRoomDetails,
+    ChatRoomApiResponse,
+    ChatGroupPreview,
+    ChatsState,
+    StoredChatMessage,
+    ChatType,
+} from './chats.model';
 
 export const initialState = new ChatsState();
 
@@ -52,27 +59,49 @@ export const chatsReducer = createReducer(
     // successfully loaded messages
     on(chatsActions.loadChatMessagesSuccess, loadChatMessagesSuccess),
 
+    // loading chat previews
+    on(chatsActions.loadChatPreviews, (state) => {
+        return {
+            ...state,
+            loadingChatPreviews: true
+        };
+    }),
     // successfully loaded chat previews
     on(chatsActions.loadChatPreviewsSuccess, (state, { chatPreviews }) => {
         return {
             ...state,
+            loadingChatPreviews: false,
             chatPreviews: chatPreviews,
         };
     }),
 
     // successfully created a chat
-    on(chatsActions.createChatSuccess, (state, { createdChat }) => {
+    on(chatsActions.createChatSuccess, (state, { createdChat: { id, ...createdChat } }) => {
         return {
             ...state,
-            chatPreviews: [...state.chatPreviews, createdChat],
+            chatPreviews: [
+                ...state.chatPreviews,
+                {
+                    chatType: ChatType.GROUP,
+                    friendshipOrChatGroupId: id,
+                    ...createdChat,
+                },
+            ],
         };
     }),
 
     // successfully joined a chat
-    on(chatsActions.joinChatSuccess, (state, { chat }) => {
+    on(chatsActions.joinChatSuccess, (state, { chat: { id, ...chat } }) => {
         return {
             ...state,
-            chatPreviews: [...state.chatPreviews, chat],
+            chatPreviews: [
+                ...state.chatPreviews,
+                {
+                    chatType: ChatType.GROUP,
+                    friendshipOrChatGroupId: id,
+                    ...chat,
+                },
+            ],
         };
     }),
 );

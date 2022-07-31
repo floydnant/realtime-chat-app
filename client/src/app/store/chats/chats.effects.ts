@@ -6,7 +6,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
 import { chatsActions } from './chats.actions';
-import { ChatRoomDetails, ChatsState } from './chats.model';
+import { ChatRoomDetails, ChatsState, ChatType } from './chats.model';
 import { AppState } from '../app.reducer';
 import { HotToastService } from '@ngneat/hot-toast';
 import { appActions } from '../app.actions';
@@ -24,11 +24,13 @@ export class ChatsEffects {
         .select(state => state.chats)
         .subscribe(chatsState => {
             this.activeChatId = chatsState.activeChatId;
-            this.chatsDetails = chatsState.chatsDetails;
+            this.chatsState = chatsState;
+            // this.chatsDetails = chatsState.chatsDetails;
             this.chatMessages = chatsState.messagesByChat;
         });
     activeChatId: string | null;
-    chatsDetails: ChatRoomDetails[];
+    chatsState: ChatsState;
+    // chatsDetails: ChatRoomDetails[];
     chatMessages: ChatsState['messagesByChat'];
 
     setActiveChat = createEffect(() => {
@@ -44,14 +46,19 @@ export class ChatsEffects {
     forwardSetActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatsActions.setActiveChatSuccess),
-            map(({ chatId }) => chatsActions.loadActiveChatMessages({ chatId })),
+            map(({ chatId }) => {
+                const chatType = this.chatsState.chatPreviews.find(
+                    chat => chat.friendshipOrChatGroupId == this.activeChatId,
+                )!.chatType;
+                return chatsActions.loadActiveChatMessages({ chatId, chatType });
+            }),
         );
     });
 
     loadActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatsActions.loadActiveChatMessages),
-            mergeMap(({ chatId }) => {
+            mergeMap(({ chatId, chatType }) => {
                 const alreadyLoadedMessages = this.chatMessages[chatId];
                 if (alreadyLoadedMessages)
                     return of(
@@ -62,7 +69,7 @@ export class ChatsEffects {
                         }),
                     );
 
-                return this.chatService.getChatMessages(chatId).pipe(
+                return this.chatService.getChatMessages(chatId, chatType).pipe(
                     map(chatMessagesOrError => {
                         return handleError(chatMessagesOrError, messages =>
                             chatsActions.loadActiveChatMessagesSuccess({ messages, chatId }),
@@ -103,9 +110,9 @@ export class ChatsEffects {
             ofType(chatsActions.loadChatPreviews),
             mergeMap(() => {
                 return this.chatService.getJoinedChats().pipe(
-                    map(joinedChatsOrError => {
-                        return handleError(joinedChatsOrError, joinedChats =>
-                            chatsActions.loadChatPreviewsSuccess({ chatPreviews: joinedChats }),
+                    map(chatPreviewsOrError => {
+                        return handleError(chatPreviewsOrError, chatPreviews =>
+                            chatsActions.loadChatPreviewsSuccess({ chatPreviews }),
                         );
                     }),
                 );

@@ -279,12 +279,18 @@ export class ChatService {
     }
 
     async isUserChatMember(chatId: string, userId: string) {
+        // @TODO: this is not ideal, let look out for a better solution
         const membership = await this.prisma.membership.findFirst({
             where: { chatGroupId: chatId, userId },
             select: { id: true },
         });
+        if (membership) return true;
 
-        return !!membership;
+        const friendship = await this.prisma.friendship.findFirst({
+            where: { id: chatId, users: { some: { id: userId } } },
+            select: { id: true },
+        });
+        return !!friendship;
     }
 
     async getJoinedChats(userId: string): Promise<ChatRoomPreview[]> {
@@ -296,15 +302,13 @@ export class ChatService {
 
     async persistMessageInChat(messageText: string, chatId: string, userId: string) {
         try {
+            // @TODO: this is not ideal, let look out for a better solution
+            const chatGroup = await this.prisma.chatGroup.findUnique({ where: { id: chatId } });
             const persistedMessage = await this.prisma.message.create({
                 data: {
                     text: messageText,
-                    user: {
-                        connect: { id: userId },
-                    },
-                    chat: {
-                        connect: { id: chatId },
-                    },
+                    user: { connect: { id: userId } },
+                    [chatGroup ? 'chat' : 'friendShip']: { connect: { id: chatId } },
                 },
                 include: {
                     user: SELECT_user_preview,

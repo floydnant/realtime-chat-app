@@ -9,7 +9,14 @@ import { SocketEvents } from 'src/shared/socket-events.model';
 import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
 import { chatsActions } from '../store/chats/chats.actions';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
+import {
+    ChatPreview,
+    ChatRoomApiResponse,
+    ChatGroupPreview,
+    ChatsState,
+    StoredChatMessage,
+    ChatType,
+} from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -83,10 +90,12 @@ export class ChatService {
         )
         .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
 
-    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChatSuccess)).subscribe(({ chatId }) => {
-        this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
-        this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
-    });
+    private setActiveChatEvents = this.actions$
+        .pipe(ofType(chatsActions.setActiveChatSuccess))
+        .subscribe(({ chatId }) => {
+            this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
+            this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
+        });
 
     sendMessage(payload: Client_ChatMessagePayload) {
         if (!this.user) return;
@@ -119,27 +128,29 @@ export class ChatService {
     getChat(chatId: string) {
         return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
     }
-    getChatMessages(chatId: string) {
-        return this.httpClient
-            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`)
+    getChatMessages(chatId: string, chatType: ChatType) {
+        const messages = this.httpClient.get<StoredChatMessage[]>(
+            chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
+        );
+        return messages;
     }
 
     createChat(title: string) {
-        return this.httpClient.post<ChatRoomPreview>('/chats/chat', { title });
+        return this.httpClient.post<ChatGroupPreview>('/chats/chat', { title });
     }
 
     getJoinedChats() {
-        return this.httpClient.get<ChatRoomPreview[]>('/chats/joined');
+        return this.httpClient.get<ChatPreview[]>('/chat-previews');
     }
 
     getGlobalChatPreview() {
-        return this.httpClient.get<ChatRoomPreview>('/chats/globalChat');
+        return this.httpClient.get<ChatGroupPreview>('/chats/globalChat');
     }
 
     // TODO: this should be more generic and also inside the effects
     joinGlobalChat() {
         return this.httpClient
-            .post<{ successMessage: string; chatRoom: ChatRoomPreview }>('/chats/globalChat/join')
+            .post<{ successMessage: string; chatRoom: ChatGroupPreview }>('/chats/globalChat/join')
             .subscribe(chatRoomResOrError => {
                 console.log(chatRoomResOrError);
                 const action = handleError(chatRoomResOrError, chatRoomRes => {
