@@ -28,9 +28,12 @@ export class SidebarComponent implements OnInit {
     invitationsFilter: InvitationStatus = InvitationStatus.PENDING
     InvitationStatus = InvitationStatus
 
-    userSearchResult?:  UserSearchResult[]
+    userSearchResult?: UserSearchResult[]
+    loadingSearchResults = false
     async searchUsers(query: string) {
+        this.loadingSearchResults = true
         this.userSearchResult = await this.chatService.searchUsers(query)
+        this.loadingSearchResults = false
     }
 
     sendFriendInvitation(userId: string) {

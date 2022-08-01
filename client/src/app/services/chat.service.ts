@@ -163,8 +163,12 @@ export class ChatService {
             });
     }
 
-    searchUsers(query: string) {
-        return this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
+    async searchUsers(query: string) {
+        if (!query) {
+            this.toastService.warning('You cannot search with an empty query.')
+            return []
+        }
+        return await this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
     }
 
     // @TODO: emit respective events to socket

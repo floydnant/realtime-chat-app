@@ -67,7 +67,7 @@
         declined
     </button>
 </div>
-{{ (loadingInvitations$ | async) ? 'Loading...' : '' }}
+<loading-spinner *ngIf="loadingInvitations$ | async"></loading-spinner>
 <span>
     {{ (invitations$ | async)?.length }}
     {{ invitationsFilter }}
@@ -103,12 +103,13 @@
 />
 <button (click)="searchUsers(userSearchInput.value)">search</button>
 
-<!-- @TODO: add loading state -->
+<br>
+<loading-spinner *ngIf="loadingSearchResults"></loading-spinner>
 <ul>
     <li *ngFor="let user of userSearchResult">
         {{ user.username }}
         {{ user.bio }}
-        <button *ngIf="!user.friendshipId" (click)="sendFriendInvitation(user.id)">Invite</button>
+        <button [disabled]="user.friendshipId" (click)="sendFriendInvitation(user.id)">Invite</button>
     </li>
     {{
         userSearchResult?.length == 0 ? "No user with '" + userSearchInput.value + "' found" : ''
