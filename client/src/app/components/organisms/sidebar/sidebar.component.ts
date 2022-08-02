@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ChatService } from 'src/app/services/chat.service';
+import { ChatGroupService } from 'src/app/services/chat-group.service';
+import { UserService } from 'src/app/services/user.service';
+import { AppState } from 'src/app/store/app.reducer';
 import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
-import { AppState } from 'src/app/store/app.reducer';
 import { userActions } from 'src/app/store/user/user.actions';
 import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
 
@@ -13,27 +14,27 @@ import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from
     styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent implements OnInit {
-    constructor(private store: Store<AppState>, private chatService: ChatService) {}
+    constructor(private store: Store<AppState>, private chatGroupService: ChatGroupService, private userService: UserService) {}
 
     async ngOnInit() {
         this.store.dispatch(chatsActions.loadChatPreviews());
-        this.loadReceivedInvitations()
+        this.loadReceivedInvitations();
     }
 
     ChatType = ChatType;
-    InvitationStatus = InvitationStatus
-    InvitationResponse = InvitationResponse
+    InvitationStatus = InvitationStatus;
+    InvitationResponse = InvitationResponse;
 
     loggedInUser$ = this.store.select(state => state.user.loggedInUser);
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
 
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
-    
+
     receivedInvitations$ = this.store.select(state => state.chats.receivedInvitations);
-    receivedInvitationsFilter: InvitationStatus = InvitationStatus.PENDING
+    receivedInvitationsFilter: InvitationStatus = InvitationStatus.PENDING;
     loadReceivedInvitations(filter?: InvitationStatus) {
-        if (filter) this.receivedInvitationsFilter = filter
+        if (filter) this.receivedInvitationsFilter = filter;
         this.store.dispatch(chatsActions.loadReceivedInvitations({ statusFilter: this.receivedInvitationsFilter }));
     }
     respondToInvitation(invitationId: string, response: InvitationResponse) {
@@ -41,22 +42,22 @@ export class SidebarComponent implements OnInit {
     }
 
     sendInvitation(userId: string) {
-        this.store.dispatch(chatsActions.sendInvitation({ userId }))
+        this.store.dispatch(chatsActions.sendInvitation({ userId }));
     }
-    sentInvitations$ = this.store.select(state => state.chats.sentInvitations)
+    sentInvitations$ = this.store.select(state => state.chats.sentInvitations);
     loadSentInvitations() {
-        this.store.dispatch(chatsActions.loadSentInvitations())
+        this.store.dispatch(chatsActions.loadSentInvitations());
     }
     deleteInvitation(invitationId: string) {
-        this.store.dispatch(chatsActions.deleteInvitation({ invitationId }))
+        this.store.dispatch(chatsActions.deleteInvitation({ invitationId }));
     }
 
-    userSearchResult?: UserSearchResult[]
-    loadingSearchResults = false
+    userSearchResult?: UserSearchResult[];
+    loadingSearchResults = false;
     async searchUsers(query: string) {
-        this.loadingSearchResults = true
-        this.userSearchResult = await this.chatService.searchUsers(query)
-        this.loadingSearchResults = false
+        this.loadingSearchResults = true;
+        this.userSearchResult = await this.userService.searchUsers(query);
+        this.loadingSearchResults = false;
     }
 
     setChatActive(chatId: string) {
@@ -70,7 +71,7 @@ export class SidebarComponent implements OnInit {
     }
 
     joinGlobalChat() {
-        this.chatService.joinGlobalChat();
+        this.chatGroupService.joinGlobalChat();
     }
 
     logout() {

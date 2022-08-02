@@ -10,6 +10,7 @@ import { UsersService } from './users.service';
 import { FriendshipsController } from './friendships/friendships.controller';
 import { ChatPreviewsController } from './chat-previews/chat-previews.controller';
 import { ChatPreviewsService } from './chat-previews/chat-previews.service';
+import { FriendshipsService } from './friendships/friendships.service';
 
 @Module({
     imports: [
@@ -27,7 +28,7 @@ import { ChatPreviewsService } from './chat-previews/chat-previews.service';
         }),
     ],
     controllers: [AuthController, UsersController, FriendshipsController, ChatPreviewsController],
-    providers: [UsersService, PrismaService, JwtStrategy, ChatPreviewsService],
+    providers: [UsersService, PrismaService, JwtStrategy, ChatPreviewsService, FriendshipsService],
     exports: [JwtStrategy, PassportModule, UsersService, JwtModule],
 })
 export class UsersModule {}

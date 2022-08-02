@@ -1,25 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
-import {
-    ChatGroupPreview,
-    ChatType,
-    FriendshipFull,
-    ReceivedFriendshipInvitation,
-    InvitationStatus,
-    UserSearchResult,
-    SentFriendshipInvitation,
-} from 'src/shared/index.model';
+import { ChatType } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { handleError } from '../store/app.effects';
-import { HttpSuccessResponse } from '../store/app.model';
 import { AppState } from '../store/app.reducer';
 import { chatsActions } from '../store/chats/chats.actions';
-import { ChatsState, StoredMessage, ChatPreview, SendFriendshipInvitationResponse } from '../store/chats/chats.model';
+import { ChatsState, StoredMessage } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -34,7 +23,6 @@ export class ChatService {
         private store: Store<AppState>,
         private httpClient: BaseHttpClient,
         private actions$: Actions,
-        private toastService: HotToastService,
     ) {
         store.subscribe(state => {
             this.user = state.user.loggedInUser;
@@ -128,74 +116,10 @@ export class ChatService {
     }
 
     // CRUD stuff
-    // getChat(chatId: string) {
-    //     return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
-    // }
     getChatMessages(chatId: string, chatType: ChatType) {
         const messages = this.httpClient.get<StoredMessage[]>(
             chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
         );
         return messages;
-    }
-
-    createChat(title: string) {
-        return this.httpClient.post<ChatGroupPreview>('/chats/chat', { title });
-    }
-
-    getJoinedChats() {
-        return this.httpClient.get<ChatPreview[]>('/chat-previews');
-    }
-
-    getGlobalChatPreview() {
-        return this.httpClient.get<ChatGroupPreview>('/chats/globalChat');
-    }
-
-    // TODO: this should be more generic and also inside the effects
-    joinGlobalChat() {
-        return this.httpClient
-            .post<{ successMessage: string; chatRoom: ChatGroupPreview }>('/chats/globalChat/join')
-            .subscribe(chatRoomResOrError => {
-                const action = handleError(chatRoomResOrError, chatRoomRes => {
-                    this.toastService.success(`Successfully joined chat '${chatRoomRes.chatRoom.title}'`);
-                    return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
-                });
-                this.store.dispatch(action);
-            });
-    }
-
-    searchUsers(query: string) {
-        if (!query) {
-            this.toastService.warning('You cannot search for an empty username.');
-            return;
-        }
-        return this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
-    }
-
-    // @TODO: emit respective events to socket
-    sendInvitation(userId: string) {
-        return this.httpClient.post<SendFriendshipInvitationResponse>(`/friendships/invitations/${userId}`);
-    }
-    deleteInvitation(invitationId: string) {
-        return this.httpClient.delete<HttpSuccessResponse>(`/friendships/invitations/${invitationId}`);
-    }
-
-    getInvitationsReceived(filter: InvitationStatus) {
-        return this.httpClient.get<ReceivedFriendshipInvitation[]>(
-            `/friendships/invitations/received?filter=${filter}`,
-        );
-    }
-
-    // @TODO: emit respective events to socket
-    respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
-        type Response = HttpSuccessResponse<{
-            friendship?: FriendshipFull;
-            chatPreview?: ChatPreview;
-        }>;
-
-        return this.httpClient.patch<Response>(`/friendships/invitations/${response}/${invitationId}`, {});
-    }
-
-    getInvitationsSent() {
-        return this.httpClient.get<SentFriendshipInvitation[]>(`/friendships/invitations/sent`);
     }
 }
