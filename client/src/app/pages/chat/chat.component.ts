@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { ChatsState, StoredMessage } from 'src/app/store/chats/chats.model';
+import { ChatPreview, ChatsState, StoredMessage } from 'src/app/store/chats/chats.model';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
@@ -45,6 +45,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.user = user.loggedInUser;
             this.chatsState = chats;
         });
+        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => (this.activeChat = chat))
     }
 
     ngOnDestroy() {
@@ -53,7 +54,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
     chatsState: ChatsState;
     user: LoggedInUser | null;
-    activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
+    activeChat: ChatPreview | null;
 
     MessageTypes = MessageTypes;
     ChatType = ChatType;
@@ -134,12 +135,15 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     );
 
     usersOnlineText$ = this.chatService.getUsersOnline().pipe(
-        map(usersOnline =>
-            (usersOnline || [])
-                .filter(u => u != this.user?.username)
+        map(usersOnline => {
+            const users = (usersOnline || [])
+                .filter(u => u != this.user?.username);
+            if (this.activeChat?.chatType == ChatType.PRIVATE) return users.length > 1 ? 'online' : 'offline';
+
+            return users
                 .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
-                .join(', '),
-        ),
+                .join(', ');
+        }),
     );
 
     private _userMessages_ = this.handleSubscription(
