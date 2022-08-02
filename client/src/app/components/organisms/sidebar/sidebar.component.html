@@ -1,3 +1,5 @@
+<div class="spacer"></div>
+
 <div style="display: flex; gap: 10px">
     <span class="secondary-100">{{ (loggedInUser$ | async)?.username }}</span>
     <button (click)="logout()">logout</button>
@@ -47,48 +49,44 @@
 
 <h2>Invitations</h2>
 <div class="status-filter">
-    <!-- prettier-ignore -->
     <button
-            [class.isActiveFilter]="invitationsFilter == 'pending'"
-            (click)="loadInvitations(InvitationStatus.PENDING)"
-        >
-            pending
-        </button>
-    <button
-        [class.isActiveFilter]="invitationsFilter == 'accepted'"
-        (click)="loadInvitations(InvitationStatus.ACCEPTED)"
+        [class.isActiveFilter]="receivedInvitationsFilter == 'pending'"
+        (click)="loadReceivedInvitations(InvitationStatus.PENDING)"
     >
-        accepted
+        pending {{ (receivedInvitations$ | async)?.pending?.length }}
     </button>
     <button
-        [class.isActiveFilter]="invitationsFilter == 'declined'"
-        (click)="loadInvitations(InvitationStatus.DECLINED)"
+        [class.isActiveFilter]="receivedInvitationsFilter == 'accepted'"
+        (click)="loadReceivedInvitations(InvitationStatus.ACCEPTED)"
     >
-        declined
+        accepted {{ (receivedInvitations$ | async)?.accepted?.length }}
+    </button>
+    <button
+        [class.isActiveFilter]="receivedInvitationsFilter == 'declined'"
+        (click)="loadReceivedInvitations(InvitationStatus.DECLINED)"
+    >
+        declined {{ (receivedInvitations$ | async)?.declined?.length }}
     </button>
 </div>
-<loading-spinner *ngIf="loadingInvitations$ | async"></loading-spinner>
-<span>
-    {{ (invitations$ | async)?.length }}
-    {{ invitationsFilter }}
-</span>
+<loading-spinner *ngIf="(receivedInvitations$ | async)?.loading"></loading-spinner>
+
 <ul class="invitations">
-    <li *ngFor="let invitation of invitations$ | async">
-        {{ invitation.inviter.username }}
-        <span class="response-actions">
+    <li *ngFor="let invitation of (receivedInvitations$ | async)?.[receivedInvitationsFilter]">
+        {{ invitation.inviter.username }}, {{ invitation.invitedAt | date: 'MMM d, h:mm a' }}
+        <div class="response-actions">
             <button
-                (click)="respondToInvitation(invitation.id, 'accept')"
+                (click)="respondToInvitation(invitation.id, InvitationResponse.ACCEPT)"
                 [disabled]="invitation.status == InvitationStatus.ACCEPTED"
             >
                 accept
             </button>
             <button
-                (click)="respondToInvitation(invitation.id, 'decline')"
+                (click)="respondToInvitation(invitation.id, InvitationResponse.DECLINE)"
                 [disabled]="invitation.status != InvitationStatus.PENDING"
             >
                 decline
             </button>
-        </span>
+        </div>
     </li>
 </ul>
 
@@ -103,15 +101,35 @@
 />
 <button (click)="searchUsers(userSearchInput.value)">search</button>
 
-<br>
+<br />
 <loading-spinner *ngIf="loadingSearchResults"></loading-spinner>
 <ul>
     <li *ngFor="let user of userSearchResult">
         {{ user.username }}
         {{ user.bio }}
-        <button [disabled]="user.friendshipId" (click)="sendFriendInvitation(user.id)">Invite</button>
+        <button [disabled]="user.friendshipId" (click)="sendInvitation(user.id)">Invite</button>
     </li>
     {{
-        userSearchResult?.length == 0 ? "No user with '" + userSearchInput.value + "' found" : ''
+        userSearchResult?.length == 0 ? 'No user found' : ''
+    }}
+</ul>
+
+<div class="spacer"></div>
+
+<h3>Invitations sent</h3>
+<button (click)="loadSentInvitations()">{{ (sentInvitations$ | async)?.all ? 're' : '' }}load</button>
+<loading-spinner *ngIf="(sentInvitations$ | async)?.loading"></loading-spinner>
+<ul class="sent-invitations">
+    <li *ngFor="let invitation of (sentInvitations$ | async)?.all">
+        {{ invitation.invitee.username }}, {{ invitation.invitedAt | date: 'MMM d, h:mm a' }}
+        {{ invitation.status == 'accepted' ? '(accepted)' : '' }}
+        <span class="response-actions">
+            <button (click)="deleteInvitation(invitation.id)">
+                {{ invitation.status == InvitationStatus.ACCEPTED ? 'delete' : 'revoke' }}
+            </button>
+        </span>
+    </li>
+    {{
+        (sentInvitations$ | async)?.all?.length == 0 ? 'No invitations' : ''
     }}
 </ul>

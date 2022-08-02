@@ -42,16 +42,23 @@ export interface StoredMessage_<T extends ModelVersion> extends MessagePreview_<
     repliedToMessageId?: string;
 }
 
+export type ReceivedFriendshipInvitation = Omit<FriendshipInvitation, 'invitee'>;
+export type SentFriendshipInvitation = Omit<FriendshipInvitation, 'inviter'>;
 export interface FriendshipInvitation {
     id: string;
     status: InvitationStatus;
     inviter: UserPreview;
+    invitee: UserPreview;
     invitedAt: string;
 }
 export enum InvitationStatus {
     PENDING = 'pending',
     ACCEPTED = 'accepted',
     DECLINED = 'declined',
+}
+export enum InvitationResponse {
+    ACCEPT = 'accept',
+    DECLINE = 'decline',
 }
 
 // type ChatFull =

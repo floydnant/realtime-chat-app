@@ -1,5 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { ChatType } from 'src/shared/index.model';
+import { userActions } from '../user/user.actions';
 import { chatsActions } from './chats.actions';
 import { ChatsState, StoredMessage } from './chats.model';
 
@@ -22,6 +23,8 @@ const loadChatMessagesSuccess = (
 
 export const chatsReducer = createReducer(
     initialState,
+
+    on(userActions.logout, () => initialState),
 
     // new incoming message
     on(chatsActions.newMessage, (state, { chatId, message }) => {
@@ -99,27 +102,84 @@ export const chatsReducer = createReducer(
     }),
 
     // load friendship invitations
-    on(chatsActions.loadFriendshipInvitations, state => {
+    on(chatsActions.loadReceivedInvitations, state => {
         return {
             ...state,
-            loadingInvitationsReceived: true,
+            receivedInvitations: {
+                ...state.receivedInvitations,
+                loading: true,
+            },
         };
     }),
-    on(chatsActions.loadFriendshipInvitationsSuccess, (state, { invitations }) => {
+    on(chatsActions.loadReceivedInvitationsSuccess, (state, { invitations, statusFilter }) => {
         return {
             ...state,
-            loadingInvitationsReceived: false,
-            invitationsReceived: invitations,
+            receivedInvitations: {
+                ...state.receivedInvitations,
+                [statusFilter]: invitations,
+                loading: false,
+            },
         };
     }),
-    // responded to invitaipn successfully
-    on(chatsActions.respondToInvitationSuccess, (state, { chatPreview, invitationId }) => {
+    // responded to invitation successfully
+    on(chatsActions.respondToInvitationSuccess, (state, { chatPreview, invitationId, invitationResponse }) => {
+        const invitation = state.receivedInvitations.pending.find(({ id }) => id == invitationId)!;
+        const invitationsKey = invitationResponse == 'accept' ? 'accepted' : 'declined';
         return {
             ...state,
             chatPreviews: chatPreview
                 ? [...state.chatPreviews, chatPreview]
                 : state.chatPreviews, // prettier-ignore
-            invitationsReceived: state.invitationsReceived.filter(invitation => invitation.id != invitationId),
+
+            receivedInvitations: {
+                ...state.receivedInvitations,
+                pending: state.receivedInvitations.pending.filter(invitation => invitation.id != invitationId),
+                [invitationsKey]: [...state.receivedInvitations[invitationsKey], invitation],
+            },
+        };
+    }),
+
+    // load sent invitations
+    on(chatsActions.loadSentInvitations, state => {
+        return {
+            ...state,
+            sentInvitations: {
+                ...state.sentInvitations,
+                loading: true,
+            },
+        };
+    }),
+    // loaded sent invitations successfully
+    on(chatsActions.loadSentInvitationsSuccess, (state, { invitations }) => {
+        return {
+            ...state,
+            sentInvitations: {
+                ...state.sentInvitations,
+                all: invitations,
+                loading: false,
+            },
+        };
+    }),
+
+    // sent invitation successfully
+    on(chatsActions.sendInvitationSuccess, (state, { invitation, alreadyInvited }) => {
+        return {
+            ...state,
+            sentInvitations: {
+                ...state.sentInvitations,
+                all: alreadyInvited ? state.sentInvitations.all : [...(state.sentInvitations.all || []), invitation],
+            },
+        };
+    }),
+    
+    // deleted invitation successfully
+    on(chatsActions.deleteInvitationSuccess, (state, { invitationId }) => {
+        return {
+            ...state,
+            sentInvitations: {
+                ...state.sentInvitations,
+                all: state.sentInvitations.all?.filter(({ id }) => id != invitationId),
+            },
         };
     }),
 );

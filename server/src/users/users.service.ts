@@ -369,33 +369,37 @@ export class UsersService {
                       `${prevInvitation.invitee.username} already accepted an invitation from you.`;
             return {
                 successMessage,
-                invitationId: prevInvitation.id,
+                alreadyInvited: true,
             };
         }
 
         // check if there is already a friendship
         const friendship = await this.getFriendship(inviteeId, inviterId);
-        if (friendship) return { successMessage: `You are already friends with ${friendship.friend.username}.` };
+        if (friendship)
+            return {
+                successMessage: `You are already friends with ${friendship.friend.username}.`,
+                alreadyInvited: true,
+            };
 
         try {
-            const { invitee, ...invitation } = await this.prisma.friendshipInvitvation.create({
+            const invitation = await this.prisma.friendshipInvitvation.create({
                 data: {
                     invitee: { connect: { id: inviteeId } },
                     inviter: { connect: { id: inviterId } },
                 },
                 select: {
                     id: true,
-                    inviterId: true,
                     invitedAt: true,
-                    inviteeId: true,
+                    invitee: SELECT_user_preview,
                     status: true,
-                    invitee: { select: { username: true } },
                 },
             });
+            if (!invitation) throw '';
 
             return {
-                successMessage: `You invited ${invitee.username} to a friendship.`,
+                successMessage: `You invited ${invitation.invitee.username} to a friendship.`,
                 invitation,
+                alreadyInvited: false,
             };
         } catch (err) {
             // check if invitation failed because invitee doesnt exist

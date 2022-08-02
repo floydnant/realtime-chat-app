@@ -5,7 +5,7 @@ import { chatsActions } from 'src/app/store/chats/chats.actions';
 import { chatsSelectors } from 'src/app/store/chats/chats.selector';
 import { AppState } from 'src/app/store/app.reducer';
 import { userActions } from 'src/app/store/user/user.actions';
-import { ChatType, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
+import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
 
 @Component({
     selector: 'sidebar',
@@ -15,7 +15,14 @@ import { ChatType, InvitationStatus, UserSearchResult } from 'src/shared/index.m
 export class SidebarComponent implements OnInit {
     constructor(private store: Store<AppState>, private chatService: ChatService) {}
 
+    async ngOnInit() {
+        this.store.dispatch(chatsActions.loadChatPreviews());
+        this.loadReceivedInvitations()
+    }
+
     ChatType = ChatType;
+    InvitationStatus = InvitationStatus
+    InvitationResponse = InvitationResponse
 
     loggedInUser$ = this.store.select(state => state.user.loggedInUser);
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
@@ -23,10 +30,26 @@ export class SidebarComponent implements OnInit {
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
     
-    invitations$ = this.store.select(state => state.chats.invitationsReceived);
-    loadingInvitations$ = this.store.select(state => state.chats.loadingInvitationsReceived);
-    invitationsFilter: InvitationStatus = InvitationStatus.PENDING
-    InvitationStatus = InvitationStatus
+    receivedInvitations$ = this.store.select(state => state.chats.receivedInvitations);
+    receivedInvitationsFilter: InvitationStatus = InvitationStatus.PENDING
+    loadReceivedInvitations(filter?: InvitationStatus) {
+        if (filter) this.receivedInvitationsFilter = filter
+        this.store.dispatch(chatsActions.loadReceivedInvitations({ statusFilter: this.receivedInvitationsFilter }));
+    }
+    respondToInvitation(invitationId: string, response: InvitationResponse) {
+        this.store.dispatch(chatsActions.respondToInvitation({ invitationId, response }));
+    }
+
+    sendInvitation(userId: string) {
+        this.store.dispatch(chatsActions.sendInvitation({ userId }))
+    }
+    sentInvitations$ = this.store.select(state => state.chats.sentInvitations)
+    loadSentInvitations() {
+        this.store.dispatch(chatsActions.loadSentInvitations())
+    }
+    deleteInvitation(invitationId: string) {
+        this.store.dispatch(chatsActions.deleteInvitation({ invitationId }))
+    }
 
     userSearchResult?: UserSearchResult[]
     loadingSearchResults = false
@@ -34,10 +57,6 @@ export class SidebarComponent implements OnInit {
         this.loadingSearchResults = true
         this.userSearchResult = await this.chatService.searchUsers(query)
         this.loadingSearchResults = false
-    }
-
-    sendFriendInvitation(userId: string) {
-        this.chatService.sendFriendshipInvitation(userId)
     }
 
     setChatActive(chatId: string) {
@@ -56,18 +75,5 @@ export class SidebarComponent implements OnInit {
 
     logout() {
         this.store.dispatch(userActions.logout());
-    }
-
-    loadInvitations(filter?: InvitationStatus) {
-        if (filter) this.invitationsFilter = filter
-        this.store.dispatch(chatsActions.loadFriendshipInvitations({ statusFilter: this.invitationsFilter }));
-    }
-    respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
-        this.store.dispatch(chatsActions.respondToInvitation({ invitationId, response }));
-    }
-
-    async ngOnInit() {
-        this.store.dispatch(chatsActions.loadChatPreviews());
-        this.loadInvitations()
     }
 }

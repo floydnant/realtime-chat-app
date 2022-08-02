@@ -1,9 +1,13 @@
 import { createAction, props } from '@ngrx/store';
-import { ChatGroupPreview, ChatType, FriendshipInvitation, InvitationStatus } from 'src/shared/index.model';
 import {
-    ChatPreview,
-    StoredMessage,
-} from './chats.model';
+    ChatGroupPreview,
+    ChatType,
+    ReceivedFriendshipInvitation,
+    InvitationStatus,
+    SentFriendshipInvitation,
+    InvitationResponse,
+} from 'src/shared/index.model';
+import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chats.model';
 
 export const chatsActions = {
     newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredMessage }>()),
@@ -41,20 +45,44 @@ export const chatsActions = {
 
     // @TODO: friendship + invitation CRUD
 
-    loadFriendshipInvitations: createAction(
-        '[ FRIENDSHIPS ] load invitations',
+    loadReceivedInvitations: createAction(
+        '[ FRIENDSHIPS ] load received invitations',
         props<{ statusFilter: InvitationStatus }>(),
     ),
-    loadFriendshipInvitationsSuccess: createAction(
-        '[ FRIENDSHIPS ] load invitations success',
-        props<{ invitations: FriendshipInvitation[] }>(),
+    loadReceivedInvitationsSuccess: createAction(
+        '[ FRIENDSHIPS ] load received invitations success',
+        props<{ invitations: ReceivedFriendshipInvitation[]; statusFilter: InvitationStatus }>(),
     ),
+    loadReceivedInvitationsError: createAction('[ FRIENDSHIPS ] load invitations error'),
     respondToInvitation: createAction(
         '[ FRIENDSHIPS ] respond to invitation',
-        props<{ invitationId: string; response: 'accept' | 'decline' }>(),
+        props<{ invitationId: string; response: InvitationResponse }>(),
     ),
     respondToInvitationSuccess: createAction(
         '[ FRIENDSHIPS ] respond to invitation success',
-        props<{ chatPreview?: ChatPreview, invitationId: string }>(),
+        props<{
+            chatPreview?: ChatPreview;
+            invitationId: string;
+            invitationResponse: InvitationResponse;
+        }>(),
+    ),
+
+    loadSentInvitations: createAction('[ FRIENDSHIPS ] load sent invitations'),
+    loadSentInvitationsSuccess: createAction(
+        '[ FRIENDSHIPS ] load sent invitations success',
+        props<{ invitations: SentFriendshipInvitation[] }>(),
+    ),
+    loadSentInvitationsError: createAction('[ FRIENDSHIPS ] load sent invitations error'),
+
+    sendInvitation: createAction('[ FRIENDSHIPS ] send invitation', props<{ userId: string }>()),
+    sendInvitationSuccess: createAction(
+        '[ FRIENDSHIPS ] send invitation success',
+        props<SendFriendshipInvitationResponse>(),
+    ),
+
+    deleteInvitation: createAction('[ FRIENDSHIPS ] delete invitation', props<{ invitationId: string }>()),
+    deleteInvitationSuccess: createAction(
+        '[ FRIENDSHIPS ] delete invitation success',
+        props<{ invitationId: string }>(),
     ),
 };

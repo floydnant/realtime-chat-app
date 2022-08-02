@@ -2,13 +2,15 @@ import {
     ChatPreview_,
     StoredMessage_,
     MessagePreview_,
-    FriendshipInvitation,
+    ReceivedFriendshipInvitation,
     ChatGroup,
     ChatGroupDetails,
     Friendship,
     FriendshipDetails,
     UserDetails,
+    SentFriendshipInvitation,
 } from 'src/shared/index.model';
+import { HttpSuccessResponse } from '../app.model';
 
 export type MessagePreview = MessagePreview_<'client'>;
 export type StoredMessage = StoredMessage_<'client'>;
@@ -20,20 +22,46 @@ export class ChatsState {
     chatPreviews: ChatPreview[] = [];
     loadingChatPreviews: boolean = false;
 
-    chatGroups: Record<string, ChatGroup> = {};
-    chatGroupsDetails: Record<string, ChatGroupDetails> = {};
-    friendships: Record<string, Friendship> = {};
-    friendshipsDetails: Record<string, FriendshipDetails> = {};
-    loadingDetails: boolean = false;
+    // @TODO: implement details view
+    // chatGroups: Record<string, ChatGroup> = {};
+    // chatGroupsDetails: Record<string, ChatGroupDetails> = {};
+    // friendships: Record<string, Friendship> = {};
+    // friendshipsDetails: Record<string, FriendshipDetails> = {};
+    // loadingDetails: boolean = false;
 
     messagesByChat: Record<string, StoredMessage[]> = {};
     loadingActiveChatMessages = false;
 
     users: Record<string, UserDetails>;
 
-    invitationsReceived: FriendshipInvitation[] = [];
-    loadingInvitationsReceived = false;
+    receivedInvitations: {
+        pending: ReceivedFriendshipInvitation[];
+        accepted: ReceivedFriendshipInvitation[];
+        declined: ReceivedFriendshipInvitation[];
+        loading: boolean;
+    } = {
+        // @TODO: maybe let them default to null
+        pending: [],
+        accepted: [],
+        declined: [],
+        loading: false,
+    };
+
+    sentInvitations: {
+        all?: SentFriendshipInvitation[];
+        loading: boolean;
+    } = {
+        loading: false,
+    };
 }
+
+export type SendFriendshipInvitationResponse = HttpSuccessResponse<{
+    invitation: SentFriendshipInvitation;
+    alreadyInvited: false
+} | {
+    invitation: undefined;
+    alreadyInvited: true
+}>;
 
 // export class ChatRoomDetails {
 //     id: string;

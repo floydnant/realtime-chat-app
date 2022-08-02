@@ -23,7 +23,7 @@ export class UserEffects {
             this.actions$.pipe(
                 ofType(userActions.loginOrSignupSuccess),
                 tap(({ username }) => {
-                    this.toastService.success(`Succesfully logged in with '${username}'`);
+                    this.toastService.success(`Logged in with '${username}'`);
                     this.router.navigate(['/chat']);
                 }),
             ),

@@ -9,17 +9,17 @@ import {
     ChatGroupPreview,
     ChatType,
     FriendshipFull,
-    FriendshipInvitation,
+    ReceivedFriendshipInvitation,
     InvitationStatus,
-    UserPreview,
     UserSearchResult,
+    SentFriendshipInvitation,
 } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { handleError } from '../store/app.effects';
 import { HttpSuccessResponse } from '../store/app.model';
 import { AppState } from '../store/app.reducer';
 import { chatsActions } from '../store/chats/chats.actions';
-import { ChatsState, StoredMessage, ChatPreview } from '../store/chats/chats.model';
+import { ChatsState, StoredMessage, ChatPreview, SendFriendshipInvitationResponse } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -163,43 +163,39 @@ export class ChatService {
             });
     }
 
-    async searchUsers(query: string) {
+    searchUsers(query: string) {
         if (!query) {
-            this.toastService.warning('You cannot search with an empty query.')
-            return []
+            this.toastService.warning('You cannot search for an empty username.');
+            return;
         }
-        return await this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
+        return this.httpClient.getAsync<UserSearchResult[]>(`/user/search?q=${query}`);
     }
 
     // @TODO: emit respective events to socket
-    sendFriendshipInvitation(userId: string) {
-        const toastId = 'createInvitation';
-        this.toastService.loading('Creating invitation...', { id: toastId });
-        type res = HttpSuccessResponse<{
-            invitation: {
-                id: string;
-                inviterId: string;
-                invitedAt: string;
-                inviteeId: string;
-                status: 'pending';
-            };
-        }>;
-        this.httpClient.post<res>(`/friendships/invitations/${userId}`).subscribe(resOrError => {
-            this.toastService.close(toastId);
-            if ('error' in resOrError) this.toastService.error(resOrError.message);
-            else this.toastService.success(resOrError.successMessage);
-        });
+    sendInvitation(userId: string) {
+        return this.httpClient.post<SendFriendshipInvitationResponse>(`/friendships/invitations/${userId}`);
+    }
+    deleteInvitation(invitationId: string) {
+        return this.httpClient.delete<HttpSuccessResponse>(`/friendships/invitations/${invitationId}`);
     }
 
     getInvitationsReceived(filter: InvitationStatus) {
-        return this.httpClient.get<FriendshipInvitation[]>(`/friendships/invitations/received?filter=${filter}`);
+        return this.httpClient.get<ReceivedFriendshipInvitation[]>(
+            `/friendships/invitations/received?filter=${filter}`,
+        );
     }
 
     // @TODO: emit respective events to socket
     respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
-        return this.httpClient.patch<HttpSuccessResponse<{ friendship?: FriendshipFull; chatPreview?: ChatPreview }>>(
-            `/friendships/invitations/${response}/${invitationId}`,
-            {},
-        );
+        type Response = HttpSuccessResponse<{
+            friendship?: FriendshipFull;
+            chatPreview?: ChatPreview;
+        }>;
+
+        return this.httpClient.patch<Response>(`/friendships/invitations/${response}/${invitationId}`, {});
+    }
+
+    getInvitationsSent() {
+        return this.httpClient.get<SentFriendshipInvitation[]>(`/friendships/invitations/sent`);
     }
 }

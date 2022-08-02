@@ -8,4 +8,4 @@ export interface HttpServerErrorResponse extends Omit<HttpErrorResponse, 'type'>
     };
 }
 
-export type HttpSuccessResponse<T extends Record<string, any>> = T & { successMessage: string }
+export type HttpSuccessResponse<T extends Record<string, any> = {}> = T & { successMessage: string }

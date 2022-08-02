@@ -10,7 +10,7 @@ async function bootstrap() {
 
     const corsConfig = {
         origin: '*',
-        methods: ['GET', 'POST', 'PATCH'],
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         credentials: true,
     };
     app.useWebSocketAdapter(new ExtendedIoAdapter(app, corsConfig));
