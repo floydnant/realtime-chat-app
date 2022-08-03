@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { map, mergeMap } from 'rxjs';
 import { FriendshipService } from 'src/app/services/friendship.service';
 import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
-import { chatActions } from './chats.actions';
+import { chatActions } from './chat.actions';
 
 @Injectable()
 export class FriendshipEffects {

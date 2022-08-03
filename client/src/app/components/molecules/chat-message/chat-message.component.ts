@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { UserOnlineStatusEventMessage } from 'src/app/pages/chat/chat.component';
-import { StoredMessage } from 'src/app/store/chats/chats.model';
+import { StoredMessage } from 'src/app/store/chat/chat.model';
 import { MessageTypes } from 'src/shared/index.model';
 
 @Component({

@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { mergeMap, map } from 'rxjs';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { throwIfErrorExists, catchAndHandleError, handleError } from '../app.effects';
-import { chatActions } from './chats.actions';
+import { chatActions } from './chat.actions';
 
 @Injectable()
 export class ChatGroupEffects {

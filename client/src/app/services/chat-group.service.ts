@@ -4,8 +4,8 @@ import { Store } from '@ngrx/store';
 import { ChatGroupPreview } from 'src/shared/index.model';
 import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
-import { chatActions } from '../store/chats/chats.actions';
-import { ChatPreview } from '../store/chats/chats.model';
+import { chatActions } from '../store/chat/chat.actions';
+import { ChatPreview } from '../store/chat/chat.model';
 import { BaseHttpClient } from './base-http-client.service';
 
 @Injectable({

@@ -1,6 +1,6 @@
 import { createSelector } from '@ngrx/store';
 import { AppState } from '../app.reducer';
-import { ChatPreview } from './chats.model';
+import { ChatPreview } from './chat.model';
 
 export const chatsSelectors = {
     selectActiveChat: createSelector(

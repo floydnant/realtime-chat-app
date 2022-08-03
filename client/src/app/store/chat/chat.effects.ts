@@ -7,8 +7,8 @@ import { ChatService } from 'src/app/services/chat.service';
 import { appActions } from '../app.actions';
 import { handleError } from '../app.effects';
 import { AppState } from '../app.reducer';
-import { chatActions } from './chats.actions';
-import { ChatsState } from './chats.model';
+import { chatActions } from './chat.actions';
+import { ChatsState } from './chat.model';
 
 @Injectable()
 export class ChatsEffects {

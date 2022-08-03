@@ -3,8 +3,8 @@ import { Store } from '@ngrx/store';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { UserService } from 'src/app/services/user.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { chatActions } from 'src/app/store/chats/chats.actions';
-import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { chatActions } from 'src/app/store/chat/chat.actions';
+import { chatsSelectors } from 'src/app/store/chat/chat.selector';
 import { userActions } from 'src/app/store/user/user.actions';
 import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
 

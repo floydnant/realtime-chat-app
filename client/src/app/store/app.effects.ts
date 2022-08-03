@@ -3,13 +3,13 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, mergeMap, tap } from 'rxjs/operators';
 import { appActions } from './app.actions';
 import { HttpServerErrorResponse } from './app.model';
-import { ChatsEffects } from './chats/chats.effects';
+import { ChatsEffects } from './chat/chat.effects';
 import { UserEffects } from './user/user.effects';
 import { HotToastService } from '@ngneat/hot-toast';
 import { Action } from '@ngrx/store';
 import { throwError, of, Observable } from 'rxjs';
-import { ChatGroupEffects } from './chats/chat-group.effects';
-import { FriendshipEffects } from './chats/friendship.effects';
+import { ChatGroupEffects } from './chat/chat-group.effects';
+import { FriendshipEffects } from './chat/friendship.effects';
 
 @Injectable()
 class AppEffects {

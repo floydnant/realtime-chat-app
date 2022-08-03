@@ -1,8 +1,8 @@
 import { createReducer, on } from '@ngrx/store';
 import { ChatType } from 'src/shared/index.model';
 import { userActions } from '../user/user.actions';
-import { chatActions } from './chats.actions';
-import { ChatsState, StoredMessage } from './chats.model';
+import { chatActions } from './chat.actions';
+import { ChatsState, StoredMessage } from './chat.model';
 
 export const initialState = new ChatsState();
 

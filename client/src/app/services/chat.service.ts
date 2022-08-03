@@ -7,8 +7,8 @@ import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model'
 import { ChatType } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { AppState } from '../store/app.reducer';
-import { chatActions } from '../store/chats/chats.actions';
-import { ChatsState, StoredMessage } from '../store/chats/chats.model';
+import { chatActions } from '../store/chat/chat.actions';
+import { ChatsState, StoredMessage } from '../store/chat/chat.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';

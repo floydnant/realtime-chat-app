@@ -1,8 +1,8 @@
 import { ActionReducerMap, MetaReducer } from '@ngrx/store';
 import { environment } from 'src/environments/environment';
-import { ChatsState } from './chats/chats.model';
+import { ChatsState } from './chat/chat.model';
 import { UserState } from './user/user.model';
-import { chatsReducer } from './chats/chats.reducer';
+import { chatsReducer } from './chat/chat.reducer';
 import { userReducer } from './user/user.reducer';
 
 export interface AppState {

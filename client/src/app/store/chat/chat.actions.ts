@@ -7,7 +7,7 @@ import {
     SentFriendshipInvitation,
     InvitationResponse,
 } from 'src/shared/index.model';
-import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chats.model';
+import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chat.model';
 
 export const chatActions = {
     newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredMessage }>()),

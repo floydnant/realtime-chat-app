@@ -6,7 +6,7 @@ import {
     SentFriendshipInvitation,
 } from 'src/shared/index.model';
 import { HttpSuccessResponse } from '../store/app.model';
-import { SendFriendshipInvitationResponse, ChatPreview } from '../store/chats/chats.model';
+import { SendFriendshipInvitationResponse, ChatPreview } from '../store/chat/chat.model';
 import { BaseHttpClient } from './base-http-client.service';
 
 @Injectable({
