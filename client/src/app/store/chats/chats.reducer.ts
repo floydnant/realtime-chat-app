@@ -1,7 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 import { ChatType } from 'src/shared/index.model';
 import { userActions } from '../user/user.actions';
-import { chatsActions } from './chats.actions';
+import { chatActions } from './chats.actions';
 import { ChatsState, StoredMessage } from './chats.model';
 
 export const initialState = new ChatsState();
@@ -27,7 +27,7 @@ export const chatsReducer = createReducer(
     on(userActions.logout, () => initialState),
 
     // new incoming message
-    on(chatsActions.newMessage, (state, { chatId, message }) => {
+    on(chatActions.newMessage, (state, { chatId, message }) => {
         return {
             ...state,
             messagesByChat: {
@@ -38,32 +38,32 @@ export const chatsReducer = createReducer(
     }),
 
     // set active chat
-    on(chatsActions.setActiveChatSuccess, (state, { chatId }) => {
+    on(chatActions.setActiveChatSuccess, (state, { chatId }) => {
         return { ...state, activeChatId: chatId };
     }),
     // load messages for active chat
-    on(chatsActions.loadActiveChatMessages, state => ({
+    on(chatActions.loadActiveChatMessages, state => ({
         ...state,
         loadingActiveChatMessages: true,
     })),
 
     // successfully loaded messages for active chat
-    on(chatsActions.loadActiveChatMessagesSuccess, (state, action) => {
+    on(chatActions.loadActiveChatMessagesSuccess, (state, action) => {
         if (action.alreadyStored) return { ...state, loadingActiveChatMessages: false };
         return loadChatMessagesSuccess(state, action, true);
     }),
     // successfully loaded messages
-    on(chatsActions.loadChatMessagesSuccess, loadChatMessagesSuccess),
+    on(chatActions.loadChatMessagesSuccess, loadChatMessagesSuccess),
 
     // loading chat previews
-    on(chatsActions.loadChatPreviews, state => {
+    on(chatActions.loadChatPreviews, state => {
         return {
             ...state,
             loadingChatPreviews: true,
         };
     }),
     // successfully loaded chat previews
-    on(chatsActions.loadChatPreviewsSuccess, (state, { chatPreviews }) => {
+    on(chatActions.loadChatPreviewsSuccess, (state, { chatPreviews }) => {
         return {
             ...state,
             loadingChatPreviews: false,
@@ -72,7 +72,7 @@ export const chatsReducer = createReducer(
     }),
 
     // successfully created a chat
-    on(chatsActions.createChatSuccess, (state, { createdChat: { id, ...createdChat } }) => {
+    on(chatActions.createChatSuccess, (state, { createdChat: { id, ...createdChat } }) => {
         return {
             ...state,
             chatPreviews: [
@@ -87,7 +87,7 @@ export const chatsReducer = createReducer(
     }),
 
     // successfully joined a chat
-    on(chatsActions.joinChatSuccess, (state, { chat: { id, ...chat } }) => {
+    on(chatActions.joinChatSuccess, (state, { chat: { id, ...chat } }) => {
         return {
             ...state,
             chatPreviews: [
@@ -102,7 +102,7 @@ export const chatsReducer = createReducer(
     }),
 
     // load friendship invitations
-    on(chatsActions.loadReceivedInvitations, state => {
+    on(chatActions.loadReceivedInvitations, state => {
         return {
             ...state,
             receivedInvitations: {
@@ -111,7 +111,7 @@ export const chatsReducer = createReducer(
             },
         };
     }),
-    on(chatsActions.loadReceivedInvitationsSuccess, (state, { invitations, statusFilter }) => {
+    on(chatActions.loadReceivedInvitationsSuccess, (state, { invitations, statusFilter }) => {
         return {
             ...state,
             receivedInvitations: {
@@ -122,7 +122,7 @@ export const chatsReducer = createReducer(
         };
     }),
     // responded to invitation successfully
-    on(chatsActions.respondToInvitationSuccess, (state, { chatPreview, invitationId, invitationResponse }) => {
+    on(chatActions.respondToInvitationSuccess, (state, { chatPreview, invitationId, invitationResponse }) => {
         const invitation = state.receivedInvitations.pending.find(({ id }) => id == invitationId)!;
         const invitationsKey = invitationResponse == 'accept' ? 'accepted' : 'declined';
         return {
@@ -140,7 +140,7 @@ export const chatsReducer = createReducer(
     }),
 
     // load sent invitations
-    on(chatsActions.loadSentInvitations, state => {
+    on(chatActions.loadSentInvitations, state => {
         return {
             ...state,
             sentInvitations: {
@@ -150,7 +150,7 @@ export const chatsReducer = createReducer(
         };
     }),
     // loaded sent invitations successfully
-    on(chatsActions.loadSentInvitationsSuccess, (state, { invitations }) => {
+    on(chatActions.loadSentInvitationsSuccess, (state, { invitations }) => {
         return {
             ...state,
             sentInvitations: {
@@ -162,7 +162,7 @@ export const chatsReducer = createReducer(
     }),
 
     // sent invitation successfully
-    on(chatsActions.sendInvitationSuccess, (state, { invitation, alreadyInvited }) => {
+    on(chatActions.sendInvitationSuccess, (state, { invitation, alreadyInvited }) => {
         return {
             ...state,
             sentInvitations: {
@@ -171,9 +171,9 @@ export const chatsReducer = createReducer(
             },
         };
     }),
-    
+
     // deleted invitation successfully
-    on(chatsActions.deleteInvitationSuccess, (state, { invitationId }) => {
+    on(chatActions.deleteInvitationSuccess, (state, { invitationId }) => {
         return {
             ...state,
             sentInvitations: {

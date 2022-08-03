@@ -9,7 +9,7 @@ import {
 } from 'src/shared/index.model';
 import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chats.model';
 
-export const chatsActions = {
+export const chatActions = {
     newMessage: createAction('[ CHATS ] new message', props<{ chatId: string; message: StoredMessage }>()),
 
     loadChatPreviews: createAction('[ CHATS ] get joined chat previews'),

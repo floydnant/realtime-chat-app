@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { ChatGroupPreview } from 'src/shared/index.model';
 import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
-import { chatsActions } from '../store/chats/chats.actions';
+import { chatActions } from '../store/chats/chats.actions';
 import { ChatPreview } from '../store/chats/chats.model';
 import { BaseHttpClient } from './base-http-client.service';
 
@@ -37,7 +37,7 @@ export class ChatGroupService {
             .subscribe(chatRoomResOrError => {
                 const action = handleError(chatRoomResOrError, chatRoomRes => {
                     this.toastService.success(`You joined '${chatRoomRes.chatRoom.title}'`);
-                    return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
+                    return chatActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
                 });
                 this.store.dispatch(action);
             });

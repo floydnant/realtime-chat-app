@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { map, mergeMap } from 'rxjs';
 import { FriendshipService } from 'src/app/services/friendship.service';
 import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
-import { chatsActions } from './chats.actions';
+import { chatActions } from './chats.actions';
 
 @Injectable()
 export class FriendshipEffects {
@@ -16,12 +16,12 @@ export class FriendshipEffects {
 
     loadInvitationsReceived = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.loadReceivedInvitations),
+            ofType(chatActions.loadReceivedInvitations),
             mergeMap(({ statusFilter }) => {
                 return this.friendshipService.getInvitationsReceived(statusFilter).pipe(
                     map(invitationsOrError => {
                         return handleError(invitationsOrError, invitations =>
-                            chatsActions.loadReceivedInvitationsSuccess({
+                            chatActions.loadReceivedInvitationsSuccess({
                                 invitations,
                                 statusFilter,
                             }),
@@ -34,13 +34,13 @@ export class FriendshipEffects {
 
     respondtoInvitation = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.respondToInvitation),
+            ofType(chatActions.respondToInvitation),
             mergeMap(({ invitationId, response }) => {
                 return this.friendshipService.respondToInvitation(invitationId, response).pipe(
                     map(resOrError => {
                         return handleError(resOrError, res => {
                             this.toastService.success(res.successMessage);
-                            return chatsActions.respondToInvitationSuccess({
+                            return chatActions.respondToInvitationSuccess({
                                 chatPreview: res.chatPreview,
                                 invitationId,
                                 invitationResponse: response,
@@ -54,12 +54,12 @@ export class FriendshipEffects {
 
     loadInvitationsSent = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.loadSentInvitations),
+            ofType(chatActions.loadSentInvitations),
             mergeMap(() => {
                 return this.friendshipService.getInvitationsSent().pipe(
                     map(invitationsOrError => {
                         return handleError(invitationsOrError, invitations =>
-                            chatsActions.loadSentInvitationsSuccess({ invitations }),
+                            chatActions.loadSentInvitationsSuccess({ invitations }),
                         );
                     }),
                 );
@@ -69,7 +69,7 @@ export class FriendshipEffects {
 
     sendInvitation = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.sendInvitation),
+            ofType(chatActions.sendInvitation),
             mergeMap(({ userId }) => {
                 return this.friendshipService.sendInvitation(userId).pipe(
                     throwIfErrorExists(),
@@ -78,7 +78,7 @@ export class FriendshipEffects {
                         success: res => res.successMessage,
                         error: res => res.error.message,
                     }),
-                    map(res => chatsActions.sendInvitationSuccess(res)),
+                    map(res => chatActions.sendInvitationSuccess(res)),
                     catchAndHandleError(),
                 );
             }),
@@ -87,7 +87,7 @@ export class FriendshipEffects {
 
     deleteInvitation = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.deleteInvitation),
+            ofType(chatActions.deleteInvitation),
             mergeMap(({ invitationId }) => {
                 return this.friendshipService.deleteInvitation(invitationId).pipe(
                     throwIfErrorExists(),
@@ -96,7 +96,7 @@ export class FriendshipEffects {
                         success: res => res.successMessage,
                         error: res => res.error.message,
                     }),
-                    map(() => chatsActions.deleteInvitationSuccess({ invitationId })),
+                    map(() => chatActions.deleteInvitationSuccess({ invitationId })),
                     catchAndHandleError(),
                 );
             }),

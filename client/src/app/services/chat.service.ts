@@ -7,7 +7,7 @@ import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model'
 import { ChatType } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { AppState } from '../store/app.reducer';
-import { chatsActions } from '../store/chats/chats.actions';
+import { chatActions } from '../store/chats/chats.actions';
 import { ChatsState, StoredMessage } from '../store/chats/chats.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
@@ -82,7 +82,7 @@ export class ChatService {
         .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
 
     private setActiveChatEvents = this.actions$
-        .pipe(ofType(chatsActions.setActiveChatSuccess))
+        .pipe(ofType(chatActions.setActiveChatSuccess))
         .subscribe(({ chatId }) => {
             this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
             this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
@@ -96,14 +96,14 @@ export class ChatService {
     }
     getChatMessageUpdates() {
         return this.socket.fromEvent(SocketEvents.SERVER__CHAT_MESSAGE).pipe(
-            tap(payload => this.store.dispatch(chatsActions.newMessage(payload))),
+            tap(payload => this.store.dispatch(chatActions.newMessage(payload))),
             filter(({ chatId }) => chatId == this.chatState.activeChatId),
         );
     }
 
     getChatInitializationUpdates() {
         return this.actions$.pipe(
-            ofType(chatsActions.loadActiveChatMessagesSuccess),
+            ofType(chatActions.loadActiveChatMessagesSuccess),
             map(({ messages }) => messages),
         );
     }

@@ -7,7 +7,7 @@ import { ChatService } from 'src/app/services/chat.service';
 import { appActions } from '../app.actions';
 import { handleError } from '../app.effects';
 import { AppState } from '../app.reducer';
-import { chatsActions } from './chats.actions';
+import { chatActions } from './chats.actions';
 import { ChatsState } from './chats.model';
 
 @Injectable()
@@ -29,34 +29,34 @@ export class ChatsEffects {
 
     setActiveChat = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.setActiveChat),
+            ofType(chatActions.setActiveChat),
             map(({ chatId }) => {
                 if (chatId == this.activeChatId) return appActions.nothing();
-                return chatsActions.setActiveChatSuccess({ chatId });
+                return chatActions.setActiveChatSuccess({ chatId });
             }),
         );
     });
 
     forwardSetActiveChat = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.setActiveChatSuccess),
+            ofType(chatActions.setActiveChatSuccess),
             map(({ chatId }) => {
                 const chatType = this.chatsState.chatPreviews.find(
                     chat => chat.friendshipOrChatGroupId == this.activeChatId,
                 )!.chatType;
-                return chatsActions.loadActiveChatMessages({ chatId, chatType });
+                return chatActions.loadActiveChatMessages({ chatId, chatType });
             }),
         );
     });
 
     loadActiveChat = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.loadActiveChatMessages),
+            ofType(chatActions.loadActiveChatMessages),
             mergeMap(({ chatId, chatType }) => {
                 const alreadyLoadedMessages = this.chatMessages[chatId];
                 if (alreadyLoadedMessages)
                     return of(
-                        chatsActions.loadActiveChatMessagesSuccess({
+                        chatActions.loadActiveChatMessagesSuccess({
                             alreadyStored: true,
                             chatId,
                             messages: alreadyLoadedMessages,
@@ -66,7 +66,7 @@ export class ChatsEffects {
                 return this.chatService.getChatMessages(chatId, chatType).pipe(
                     map(chatMessagesOrError => {
                         return handleError(chatMessagesOrError, messages =>
-                            chatsActions.loadActiveChatMessagesSuccess({ messages, chatId }),
+                            chatActions.loadActiveChatMessagesSuccess({ messages, chatId }),
                         );
                     }),
                 );

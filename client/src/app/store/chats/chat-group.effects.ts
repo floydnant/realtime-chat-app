@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { mergeMap, map } from 'rxjs';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { throwIfErrorExists, catchAndHandleError, handleError } from '../app.effects';
-import { chatsActions } from './chats.actions';
+import { chatActions } from './chats.actions';
 
 @Injectable()
 export class ChatGroupEffects {
@@ -16,7 +16,7 @@ export class ChatGroupEffects {
 
     createChat = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.createChat),
+            ofType(chatActions.createChat),
             mergeMap(({ title }) => {
                 return this.chatGroupService.createChat(title).pipe(
                     // error is needed for toastService to register it and show the respective toast
@@ -26,7 +26,7 @@ export class ChatGroupEffects {
                         success: `Created chat '${title}'.`,
                         error: `Could not create chat.`,
                     }),
-                    map(createdChat => chatsActions.createChatSuccess({ createdChat })),
+                    map(createdChat => chatActions.createChatSuccess({ createdChat })),
                     catchAndHandleError(),
                 );
             }),
@@ -35,19 +35,19 @@ export class ChatGroupEffects {
 
     setCreatedChatActive = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.createChatSuccess),
-            map(({ createdChat }) => chatsActions.setActiveChat({ chatId: createdChat.id })),
+            ofType(chatActions.createChatSuccess),
+            map(({ createdChat }) => chatActions.setActiveChat({ chatId: createdChat.id })),
         );
     });
 
     loadJoinedChatPreviews = createEffect(() => {
         return this.actions$.pipe(
-            ofType(chatsActions.loadChatPreviews),
+            ofType(chatActions.loadChatPreviews),
             mergeMap(() => {
                 return this.chatGroupService.getJoinedChats().pipe(
                     map(chatPreviewsOrError => {
                         return handleError(chatPreviewsOrError, chatPreviews =>
-                            chatsActions.loadChatPreviewsSuccess({ chatPreviews }),
+                            chatActions.loadChatPreviewsSuccess({ chatPreviews }),
                         );
                     }),
                 );
