@@ -1,16 +1,16 @@
 import { ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { MembershipRole, User } from '@prisma/client';
-import { IS_PROD } from 'src/constants';
 import {
     SELECT_chat_preview,
     WHERE_member,
     SELECT_all_chat_data,
     SELECT_message,
     SELECT_user_preview,
-} from 'src/query-helpers';
-import { PrismaService } from 'src/services/prisma.service';
-import { ChatRoomPreview, UserPreview } from 'src/shared/index.model';
+} from 'src/prisma-abstractions/query-helpers';
+import { PrismaService } from 'src/prisma-abstractions/prisma.service';
+import { ChatRoomPreview } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
+import { SocketManagerService } from 'src/socket/socket-manager.service';
 import { UsersService } from 'src/users/users.service';
 import { TypedSocket } from './chat.gateway';
 
@@ -23,117 +23,15 @@ export interface AuthenticatedUser {
 }
 @Injectable()
 export class ChatService {
-    constructor(private prisma: PrismaService, private usersService: UsersService) {
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService,
+        private socketManager: SocketManagerService,
+    ) {
         this.getOrCreateGlobalChat();
     }
 
     private logger = new Logger('ChatService');
-
-    private usersOnline: AuthenticatedUser[] = [];
-    private usersOnlineByChat: {
-        [chatId: string]: AuthenticatedUser[];
-    } = {};
-    private filterOnlineUsers(cb: (user: AuthenticatedUser) => boolean) {
-        Object.keys(this.usersOnlineByChat).forEach(chatId => {
-            this.usersOnlineByChat[chatId] = this.usersOnlineByChat[chatId].filter(cb);
-        });
-        this.usersOnline = this.usersOnline.filter(cb);
-    }
-    private filterOutDisconnectedClients(connectedClientIds: Set<string>) {
-        this.filterOnlineUsers(user => connectedClientIds.has(user.client.id));
-    }
-    setUserOffline(clientId: string) {
-        this.filterOnlineUsers(u => u.client.id != clientId);
-    }
-    setUserOnline(user: AuthenticatedUser, chatIds: string[]) {
-        chatIds.forEach(chatId => this.addUserOnlineToChat(user, chatId, true));
-        this.usersOnline.push(user);
-    }
-    private addUserOnlineToChat(user: AuthenticatedUser, chatId: string, alreadyOnline = false) {
-        this.logger.verbose(`${user.username} was added to ${chatId}`);
-        user.client.join(chatId);
-        this.usersOnlineByChat[chatId] = [...(this.usersOnlineByChat[chatId] || []), user];
-        if (!alreadyOnline) this.usersOnline.push(user);
-    }
-    private removeUserOnlineFromChat(userId: string, chatId: string) {
-        this.usersOnlineByChat[chatId] = this.usersOnlineByChat[chatId].filter(u => u.userId != userId);
-    }
-    removeChatsWithoutUsersOnline() {
-        const newUsersOnlineByChat = {};
-        Object.entries(this.usersOnlineByChat).forEach(([chatId, users]) => {
-            if (users.length) newUsersOnlineByChat[chatId] = users;
-        });
-        this.usersOnlineByChat = newUsersOnlineByChat;
-    }
-    getUsersOnlineForChat(chatId: string) {
-        return this.usersOnlineByChat[chatId] || [];
-    }
-    getUserOnline(id: string, property?: keyof AuthenticatedUser): AuthenticatedUser | null {
-        property ||= 'client';
-        // const user = Object.values(this.usersOnlineByChat).reduce((prev: AuthenticatedUser | null, curr) => {
-        //     if (prev) return prev;
-        //     return curr.find(user => (property == 'client' ? user.client.id : user[property]) == id);
-        // }, null);
-        const user = this.usersOnline.find(user => (property == 'client' ? user.client.id : user[property]) == id);
-        if (!user) this.logger.warn(`Could not find user with ${property} '${id}'`);
-
-        return user;
-    }
-    getChatsWithUser(clientId: string) {
-        return Object.entries(this.usersOnlineByChat)
-            .filter(([, users]) => users.some(u => u.client.id == clientId))
-            .map(([chatId]) => chatId);
-    }
-    async logUsersOnline() {
-        if (IS_PROD) return;
-        const usersOnlinePerChat = await Promise.all(
-            Object.entries(this.usersOnlineByChat).map(async ([chatId, users]) => ({
-                ...(await this.getChatName(chatId)),
-                chatId,
-                users: users.map(u => u.username),
-            })),
-        );
-        const usersOnlineMap = {};
-        usersOnlinePerChat.forEach(({ chatId, title, users }) => {
-            // usersOnlineMap[`${title} -- ${chatId}`] = users;
-            usersOnlineMap[chatId] = { title, users };
-        });
-        // console.log('users online per chat:', usersOnlineMap, '\n');
-        console.table(usersOnlineMap);
-    }
-
-    onClientConnected(connectedClientIds: Set<string>) {
-        this.filterOutDisconnectedClients(connectedClientIds);
-    }
-
-    onClientLogout(clientId: string): { loggedOutUser: UserPreview | null; chatIds: string[] } | undefined {
-        const loggedOutUser = this.getUserOnline(clientId);
-        if (!loggedOutUser) return;
-
-        const chatIds = this.getChatsWithUser(clientId);
-        this.setUserOffline(clientId);
-
-        this.removeChatsWithoutUsersOnline();
-        this.logUsersOnline();
-
-        const { userId: id, username } = loggedOutUser;
-        return {
-            loggedOutUser: { username, id },
-            chatIds,
-        };
-    }
-
-    async authenticateSocket(clientId: string, accessToken: string) {
-        const { authenticated, id, username, chatIds } = await this.usersService.authenticateFromToken(accessToken);
-
-        return {
-            authenticated,
-            user: { username, id } as UserPreview,
-            chatIds,
-        };
-    }
-
-    ///////////////////////// CRUD stuff //////////////////////////
 
     async createChat(userId: string, title: string): Promise<ChatRoomPreview> {
         const chatGroup = await this.prisma.chatGroup.create({
@@ -157,9 +55,9 @@ export class ChatService {
             ...SELECT_chat_preview,
         });
 
-        const onlineUser = this.getUserOnline(userId, 'userId');
-        if (onlineUser) this.addUserOnlineToChat(onlineUser, chatGroup.id, true);
-        this.logUsersOnline();
+        const onlineUser = this.socketManager.getUserOnline(userId, 'userId');
+        if (onlineUser) this.socketManager.addUserOnlineToChat(onlineUser, chatGroup.id, true);
+        this.socketManager.logUsersOnline();
         return chatGroup;
     }
 
@@ -212,7 +110,6 @@ export class ChatService {
         return chatGroup.messages;
     }
 
-    // @TODO: outsource notifying other chat members, that someone new joined -> gateway / gateway state helper
     async joinChat(user: User, chatId: string) {
         try {
             let chatGroup = await this.prisma.chatGroup.findFirst({
@@ -230,9 +127,10 @@ export class ChatService {
             });
             if (!chatGroup) throw new NotFoundException();
 
-            const onlineUser = this.getUserOnline(user.id, 'userId');
+            const onlineUser = this.socketManager.getUserOnline(user.id, 'userId');
             if (onlineUser) {
-                this.addUserOnlineToChat(onlineUser, chatId, true);
+                this.socketManager.addUserOnlineToChat(onlineUser, chatId, true);
+                // @TODO: outsource notifying other chat members, that someone new joined -> socketManager
                 onlineUser.client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_JOINED_CHAT, {
                     chatId,
                     user: { id: user.id, username: user.username },
@@ -271,7 +169,7 @@ export class ChatService {
             where: { id: chatGroup.members[0].id },
         });
 
-        this.removeUserOnlineFromChat(user.id, chatId);
+        this.socketManager.removeUserOnlineFromChat(user.id, chatId);
 
         return {
             successMessage: `Successfully left chat '${chatGroup.title || chatGroup.id}'`,

@@ -4,6 +4,7 @@ import {
     ReceivedFriendshipInvitation,
     FriendshipFull,
     SentFriendshipInvitation,
+    InvitationResponse,
 } from 'src/shared/index.model';
 import { HttpSuccessResponse } from '../store/app.model';
 import { SendFriendshipInvitationResponse, ChatPreview } from '../store/chat/chat.model';
@@ -31,7 +32,7 @@ export class FriendshipService {
     }
 
     // @TODO: emit respective events to socket
-    respondToInvitation(invitationId: string, response: 'accept' | 'decline') {
+    respondToInvitation(invitationId: string, response: InvitationResponse) {
         type Response = HttpSuccessResponse<{
             friendship?: FriendshipFull;
             chatPreview?: ChatPreview;

@@ -2,15 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { PrismaService } from 'src/services/prisma.service';
+import { PrismaModule } from 'src/prisma-abstractions/prisma.module';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { FriendshipsController } from './friendships/friendships.controller';
-import { ChatPreviewsController } from './chat-previews/chat-previews.controller';
-import { ChatPreviewsService } from './chat-previews/chat-previews.service';
-import { FriendshipsService } from './friendships/friendships.service';
 
 @Module({
     imports: [
@@ -26,9 +22,10 @@ import { FriendshipsService } from './friendships/friendships.service';
                 },
             }),
         }),
+        PrismaModule,
     ],
-    controllers: [AuthController, UsersController, FriendshipsController, ChatPreviewsController],
-    providers: [UsersService, PrismaService, JwtStrategy, ChatPreviewsService, FriendshipsService],
+    controllers: [AuthController, UsersController],
+    providers: [UsersService, JwtStrategy],
     exports: [JwtStrategy, PassportModule, UsersService, JwtModule],
 })
 export class UsersModule {}

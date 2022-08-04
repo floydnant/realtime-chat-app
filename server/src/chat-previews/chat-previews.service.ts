@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/services/prisma.service';
-import { SELECT_user_preview_WHERE_NOT, TAKE_LAST_message_preview } from 'src/query-helpers';
+import { PrismaService } from 'src/prisma-abstractions/prisma.service';
+import { SELECT_user_preview_WHERE_NOT, TAKE_LAST_message_preview } from 'src/prisma-abstractions/query-helpers';
 import { ChatType } from 'src/shared/index.model';
 import { ChatPreview } from 'src/models/index.model';
 

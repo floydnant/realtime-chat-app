@@ -8,10 +8,10 @@ import {
 } from '@nestjs/common';
 import { InvitationStatus } from '@prisma/client';
 import { ChatPreview } from 'src/models/index.model';
-import { SELECT_user_preview_WHERE_NOT, SELECT_user_preview } from 'src/query-helpers';
-import { PrismaService } from 'src/services/prisma.service';
+import { SELECT_user_preview_WHERE_NOT, SELECT_user_preview } from 'src/prisma-abstractions/query-helpers';
+import { PrismaService } from 'src/prisma-abstractions/prisma.service';
 import { ChatType } from 'src/shared/index.model';
-import { UsersService } from '../users.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FriendshipsService {

@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from './chat/chat.module';
 import { configValidationSchema } from './config.schema';
-import { PrismaService } from './services/prisma.service';
+import { FriendshipsModule } from './friendships/friendships.module';
+import { PrismaModule } from './prisma-abstractions/prisma.module';
 import { UsersModule } from './users/users.module';
+import { ChatPreviewsModule } from './chat-previews/chat-previews.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
     imports: [
@@ -13,9 +16,13 @@ import { UsersModule } from './users/users.module';
         }),
         ChatModule,
         UsersModule,
+        FriendshipsModule,
+        PrismaModule,
+        ChatPreviewsModule,
+        SocketModule,
     ],
     controllers: [],
-    providers: [PrismaService],
+    providers: [],
     exports: [ConfigModule],
 })
 export class AppModule {}
