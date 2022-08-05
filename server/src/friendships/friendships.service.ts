@@ -259,8 +259,11 @@ export class FriendshipsService {
             chatType: ChatType.PRIVATE,
         };
 
-        // @TODO: add both participants to the new room
-        // this.socketManager.addUserOnlineToChat()
+        // @FIXME: show participants as online
+        const inviteeOnline = this.socketManager.getUserOnline(inviteeId, 'userId');
+        if (inviteeOnline) this.socketManager.addUserOnlineToChat(inviteeOnline, friendship.id, true);
+        const inviterOnline = this.socketManager.getUserOnline(inviterId, 'userId');
+        if (inviterOnline) this.socketManager.addUserOnlineToChat(inviterOnline, friendship.id, true);
 
         this.socketManager.addToSocketQueue({
             eventName: SocketEvents.SERVER__ACCEPT_FRIEND_INVITE,
