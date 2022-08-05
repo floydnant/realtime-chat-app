@@ -1,15 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Subject } from 'rxjs';
-import { AuthenticatedUser } from 'src/chat/chat.service';
 import { IS_PROD } from 'src/constants';
 import { SocketEventPayloadMap } from 'src/shared/event-payload-map.model';
 import { UserPreview } from 'src/shared/index.model';
-import { SocketEvents } from 'src/shared/socket-events.model';
 import { UsersService } from 'src/users/users.service';
+import { TypedSocket } from './socket.gateway';
+
+export interface AuthenticatedUser {
+    username: string;
+    userId: string;
+    client: TypedSocket;
+}
 
 interface SocketQueue {
     eventName: keyof SocketEventPayloadMap;
     payload: SocketEventPayloadMap[keyof SocketEventPayloadMap];
+    clientId?: string;
 }
 
 @Injectable()
@@ -22,16 +28,16 @@ export class SocketManagerService {
     getSocketQueue() {
         return this.socketQueue.asObservable();
     }
-    addToSocketQueue(socketQueue: SocketQueue) {
-        // @TODO: add support to only emit to a client with userId
-        this.socketQueue.next(socketQueue);
-
-        // this.socketQueue.next({
-        //     eventName: SocketEvents.SERVER__NEW_FRIEND_INVITE,
-        //     payload: {
-        //         invitationId: 'Some test Id',
-        //     },
-        // });
+    addToSocketQueue<E extends keyof SocketEventPayloadMap>({
+        userId,
+        ...event
+    }: {
+        eventName: E;
+        payload: SocketEventPayloadMap[E];
+        userId?: string;
+    }) {
+        const user = this.getUserOnline(userId, 'userId');
+        this.socketQueue.next({ ...event, clientId: user?.client?.id });
     }
 
     private usersOnline: AuthenticatedUser[] = [];

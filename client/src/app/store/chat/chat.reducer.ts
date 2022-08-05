@@ -102,6 +102,15 @@ export const chatsReducer = createReducer(
     }),
 
     // load friendship invitations
+    on(chatActions.newInvitationReceived, (state, { invitation }) => {
+        return {
+            ...state,
+            receivedInvitations: {
+                ...state.receivedInvitations,
+                pending: [invitation, ...state.receivedInvitations.pending],
+            },
+        };
+    }),
     on(chatActions.loadReceivedInvitations, state => {
         return {
             ...state,
@@ -136,6 +145,13 @@ export const chatsReducer = createReducer(
                 pending: state.receivedInvitations.pending.filter(invitation => invitation.id != invitationId),
                 [invitationsKey]: [...state.receivedInvitations[invitationsKey], invitation],
             },
+        };
+    }),
+    // friend accepted invitation
+    on(chatActions.friendAcceptedInvitation, (state, { chatPreview }) => {
+        return {
+            ...state,
+            chatPreviews: [...state.chatPreviews, chatPreview],
         };
     }),
 
@@ -179,6 +195,12 @@ export const chatsReducer = createReducer(
             sentInvitations: {
                 ...state.sentInvitations,
                 all: state.sentInvitations.all?.filter(({ id }) => id != invitationId),
+            },
+            receivedInvitations: {
+                ...state.receivedInvitations,
+                pending: state.receivedInvitations.pending?.filter(({ id }) => id != invitationId),
+                accepted: state.receivedInvitations.accepted?.filter(({ id }) => id != invitationId),
+                declined: state.receivedInvitations.declined?.filter(({ id }) => id != invitationId),
             },
         };
     }),

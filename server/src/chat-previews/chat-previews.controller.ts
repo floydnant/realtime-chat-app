@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { GetUser } from 'src/decorators/get-user.decorator';
@@ -14,5 +14,14 @@ export class ChatPreviewsController {
     async getChatPreviews(@GetUser() user: User) {
         this.logger.verbose(`${user.username} retrieves chat previews`);
         return this.chatService.getChatPreviews(user.id);
+    }
+    @Get('/:id')
+    async getChatPreviewById(
+        @GetUser() user: User,
+        @Param('id') id: string,
+        @Query('type') type: 'group' | 'friendship',
+    ) {
+        this.logger.verbose(`${user.username} retrieves chat preview ${id}`);
+        return this.chatService.getChatPreview(user.id, id, type);
     }
 }

@@ -12,15 +12,8 @@ import { ChatRoomPreview } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { SocketManagerService } from 'src/socket/socket-manager.service';
 import { UsersService } from 'src/users/users.service';
-import { TypedSocket } from './chat.gateway';
 
 const globalChatTitle = 'Global Group Chat';
-
-export interface AuthenticatedUser {
-    username: string;
-    userId: string;
-    client: TypedSocket;
-}
 @Injectable()
 export class ChatService {
     constructor(

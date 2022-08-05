@@ -10,12 +10,18 @@ import { InvitationStatus } from '@prisma/client';
 import { ChatPreview } from 'src/models/index.model';
 import { SELECT_user_preview_WHERE_NOT, SELECT_user_preview } from 'src/prisma-abstractions/query-helpers';
 import { PrismaService } from 'src/prisma-abstractions/prisma.service';
-import { ChatType } from 'src/shared/index.model';
+import { ChatType, InvitationResponse } from 'src/shared/index.model';
 import { UsersService } from '../users/users.service';
+import { SocketManagerService } from 'src/socket/socket-manager.service';
+import { SocketEvents } from 'src/shared/socket-events.model';
 
 @Injectable()
 export class FriendshipsService {
-    constructor(private prisma: PrismaService, private usersService: UsersService) {}
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService,
+        private socketManager: SocketManagerService,
+    ) {}
     private logger = new Logger('FriendshipsService');
 
     async getFriendships(userId: string) {
@@ -164,6 +170,12 @@ export class FriendshipsService {
             });
             if (!invitation) throw '';
 
+            this.socketManager.addToSocketQueue({
+                eventName: SocketEvents.SERVER__NEW_FRIEND_INVITE,
+                payload: { invitationId: invitation.id },
+                userId: invitation.invitee.id,
+            });
+
             return {
                 successMessage: `You invited ${invitation.invitee.username} to a friendship.`,
                 invitation,
@@ -198,15 +210,10 @@ export class FriendshipsService {
         });
         return invitations;
     }
-    async respondToFriendshipInvitation(inviteeId: string, invitationId: string, action: 'accept' | 'decline') {
-        const invitation = await this.prisma.friendshipInvitvation.findFirst({
-            where: {
-                id: invitationId,
-                AND: { inviteeId },
-            },
-            select: { status: true },
-        });
-        if (!invitation) throw new UnauthorizedException('This invitation is not meant for you.');
+    async respondToFriendshipInvitation(inviteeId: string, invitationId: string, action: InvitationResponse) {
+        const invitation = await this.getInvitation(inviteeId, invitationId);
+        if (invitation.inviter.id == inviteeId)
+            throw new UnauthorizedException('You cannot respond to your own invitation.');
 
         // accepted invitations should not be revokable, the user should delete the friendship instead
         if (invitation.status == 'accepted') return { successMessage: 'You already accepted to this invitation.' };
@@ -251,6 +258,16 @@ export class FriendshipsService {
             title: friend.username,
             chatType: ChatType.PRIVATE,
         };
+
+        // @TODO: add both participants to the new room
+        // this.socketManager.addUserOnlineToChat()
+
+        this.socketManager.addToSocketQueue({
+            eventName: SocketEvents.SERVER__ACCEPT_FRIEND_INVITE,
+            payload: { friendshipId: friendship.id },
+            userId: friend.id,
+        });
+
         return {
             successMessage: `You have accepted the friendship.`,
             friendship: {
@@ -261,21 +278,41 @@ export class FriendshipsService {
         };
     }
 
-    async deleteFriendshipInvitation(userId: string, invitationId: string) {
+    async getInvitation(userId: string, invitationId: string) {
         const invitation = await this.prisma.friendshipInvitvation.findFirst({
             where: {
                 id: invitationId,
                 OR: [{ inviteeId: userId }, { inviterId: userId }],
             },
+            select: {
+                id: true,
+                invitee: SELECT_user_preview,
+                inviter: SELECT_user_preview,
+                status: true,
+                invitedAt: true,
+            },
         });
         if (!invitation) throw new NotFoundException('Invitation not found.');
+
+        return invitation;
+    }
+
+    async deleteFriendshipInvitation(userId: string, invitationId: string) {
+        await this.getInvitation(userId, invitationId); // just to check if it exists and the user has rights to access it
 
         try {
             const deletedInvitation = await this.prisma.friendshipInvitvation.delete({
                 where: { id: invitationId },
-                select: { id: true },
+                select: { id: true, inviteeId: true },
             });
             if (!deletedInvitation) throw new Error('Failed to delete invitation.');
+
+            this.socketManager.addToSocketQueue({
+                eventName: SocketEvents.SERVER__DELETE_FRIEND_INVITE,
+                payload: { invitationId },
+                userId: deletedInvitation.inviteeId,
+            });
+
             return { successMessage: 'You deleted the invitation.' };
         } catch (err) {
             this.logger.error(err);

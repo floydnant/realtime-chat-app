@@ -5,6 +5,7 @@ import {
     FriendshipFull,
     SentFriendshipInvitation,
     InvitationResponse,
+    FriendshipInvitation,
 } from 'src/shared/index.model';
 import { HttpSuccessResponse } from '../store/app.model';
 import { SendFriendshipInvitationResponse, ChatPreview } from '../store/chat/chat.model';
@@ -16,7 +17,9 @@ import { BaseHttpClient } from './base-http-client.service';
 export class FriendshipService {
     constructor(private http: BaseHttpClient) {}
 
-    // @TODO: emit respective events to socket
+    getInvitation(invitationId: string) {
+        return this.http.get<FriendshipInvitation>(`/friendships/invitations/${invitationId}`);
+    }
     sendInvitation(userId: string) {
         return this.http.post<SendFriendshipInvitationResponse>(`/friendships/invitations/${userId}`);
     }
@@ -31,7 +34,10 @@ export class FriendshipService {
         return this.http.get<ReceivedFriendshipInvitation[]>(`/friendships/invitations/received?filter=${filter}`);
     }
 
-    // @TODO: emit respective events to socket
+    getFriendshipChatPreview(friendshipId: string) {
+        return this.http.get<ChatPreview>(`/chat-previews/${friendshipId}?type=friendship`);
+    }
+
     respondToInvitation(invitationId: string, response: InvitationResponse) {
         type Response = HttpSuccessResponse<{
             friendship?: FriendshipFull;

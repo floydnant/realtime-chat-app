@@ -6,12 +6,13 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { TypedSocket } from 'src/chat/chat.gateway';
+import { Server, Socket } from 'socket.io';
 import { Client_AuthenticateEventPayload } from 'src/shared/chat-event-payloads.model';
 import { SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { SocketManagerService } from './socket-manager.service';
+
+export type TypedSocket = Socket<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
 @WebSocketGateway()
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -21,9 +22,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     @WebSocketServer() server: Server<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
     onModuleInit() {
-        this.socketManager.getSocketQueue().subscribe(({ eventName, payload }) => {
+        this.socketManager.getSocketQueue().subscribe(async ({ eventName, payload, clientId }) => {
+            const client = (await this.server.fetchSockets()).find(({ id }) => id == clientId);
             this.logger.verbose('Emitting event from socket queue:', eventName);
-            this.server.emit(eventName, payload);
+
+            if (client) client.emit(eventName, payload);
+            else this.server.emit(eventName, payload);
         });
     }
 

@@ -8,6 +8,9 @@ import {
     Server_TypingEventPayload,
     Server_UserOnlineStatusEventPayload,
     Server_UsersOnlinePayload,
+    Server_NewFriendInvite,
+    Server_DeleteFriendInvite,
+    Server_AcceptFriendInvite,
 } from './chat-event-payloads.model';
 import { SocketEvents } from './socket-events.model';
 
@@ -18,6 +21,10 @@ export interface SocketEventPayloadMap {
     [SocketEvents.CLIENT__LOGOUT]: undefined | null;
 
     [SocketEvents.SERVER__USER_JOINED_CHAT]: Server_UserJoinedChatPayload;
+
+    [SocketEvents.SERVER__NEW_FRIEND_INVITE]: Server_NewFriendInvite;
+    [SocketEvents.SERVER__ACCEPT_FRIEND_INVITE]: Server_AcceptFriendInvite;
+    [SocketEvents.SERVER__DELETE_FRIEND_INVITE]: Server_DeleteFriendInvite;
 
     [SocketEvents.CLIENT__TYPING_EVENT]: Client_TypingEventPayload;
     [SocketEvents.SERVER__TYPING_EVENT]: Server_TypingEventPayload;

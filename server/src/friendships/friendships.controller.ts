@@ -13,6 +13,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { InvitationStatus, User } from '@prisma/client';
 import { GetUser } from 'src/decorators/get-user.decorator';
+import { InvitationResponse } from 'src/shared/index.model';
 import { FriendshipsService } from './friendships.service';
 
 @UseGuards(AuthGuard())
@@ -55,12 +56,20 @@ export class FriendshipsController {
     @Patch('/invitations/accept/:invitationId')
     acceptInvitation(@GetUser() invitee: User, @Param('invitationId') invitationId: string) {
         this.logger.verbose(`'${invitee.username}' accepts friendship invitation ${invitationId}`);
-        return this.friendshipsService.respondToFriendshipInvitation(invitee.id, invitationId, 'accept');
+        return this.friendshipsService.respondToFriendshipInvitation(
+            invitee.id,
+            invitationId,
+            InvitationResponse.ACCEPT,
+        );
     }
     @Patch('/invitations/decline/:invitationId')
     declineInvitation(@GetUser() invitee: User, @Param('invitationId') invitationId: string) {
         this.logger.verbose(`'${invitee.username}' declines friendship invitation ${invitationId}`);
-        return this.friendshipsService.respondToFriendshipInvitation(invitee.id, invitationId, 'decline');
+        return this.friendshipsService.respondToFriendshipInvitation(
+            invitee.id,
+            invitationId,
+            InvitationResponse.DECLINE,
+        );
     }
 
     @Get('/invitations/received')
@@ -74,6 +83,14 @@ export class FriendshipsController {
         return this.friendshipsService.getFriendshipInvitations(user.id, 'sent', filter);
     }
 
+    @Get('/invitations/:invitationId')
+    async getInvitationById(@GetUser() user: User, @Param('invitationId') invitationId: string) {
+        this.logger.verbose(`'${user.username}' retrieves invitation ${invitationId}`);
+
+        const invitation = await this.friendshipsService.getInvitation(user.id, invitationId);
+        if (!invitation) throw new NotFoundException('Invitation not found.');
+        return invitation;
+    }
     @Delete('/invitations/:invitationId')
     deleteInvitation(@GetUser() user: User, @Param('invitationId') invitationId: string) {
         this.logger.verbose(`'${user.username}' deletes friendship invitation ${invitationId}`);

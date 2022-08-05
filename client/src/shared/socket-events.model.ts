@@ -6,6 +6,10 @@ export enum SocketEvents {
 
     SERVER__USER_JOINED_CHAT = 'server user joined chat',
 
+    SERVER__NEW_FRIEND_INVITE = 'server new friend invite',
+    SERVER__ACCEPT_FRIEND_INVITE = 'server accept friend invite',
+    SERVER__DELETE_FRIEND_INVITE = 'server delete friend invite',
+
     CLIENT__TYPING_EVENT = 'client typing event',
     SERVER__TYPING_EVENT = 'server typing event',
 

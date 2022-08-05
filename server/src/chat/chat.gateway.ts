@@ -8,12 +8,11 @@ import {
 } from 'src/shared/chat-event-payloads.model';
 import { SocketEventPayloadAsFnMap } from 'src/shared/event-payload-map.model';
 import { SocketManagerService } from 'src/socket/socket-manager.service';
+import { TypedSocket } from 'src/socket/socket.gateway';
 import { SocketEvents } from '../shared/socket-events.model';
 import { ChatService } from './chat.service';
 
 export const GROUP_CHAT = 'global group chat';
-
-export type TypedSocket = Socket<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
 @WebSocketGateway()
 export class ChatGateway {

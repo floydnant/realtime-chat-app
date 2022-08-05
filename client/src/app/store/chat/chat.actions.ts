@@ -6,6 +6,7 @@ import {
     InvitationStatus,
     SentFriendshipInvitation,
     InvitationResponse,
+    FriendshipInvitation,
 } from 'src/shared/index.model';
 import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chat.model';
 
@@ -43,8 +44,12 @@ export const chatActions = {
 
     joinChatSuccess: createAction('[ CHATS ] join chat success', props<{ chat: ChatGroupPreview }>()),
 
-    // @TODO: friendship + invitation CRUD
+    // friendship + invitation CRUD
 
+    newInvitationReceived: createAction(
+        '[ FRIENDSHIPS ] new invitation received',
+        props<{ invitation: FriendshipInvitation }>(),
+    ),
     loadReceivedInvitations: createAction(
         '[ FRIENDSHIPS ] load received invitations',
         props<{ statusFilter: InvitationStatus }>(),
@@ -65,6 +70,11 @@ export const chatActions = {
             invitationId: string;
             invitationResponse: InvitationResponse;
         }>(),
+    ),
+
+    friendAcceptedInvitation: createAction(
+        '[ FRIENDSHIPS ] friend accepted invitation',
+        props<{ chatPreview: ChatPreview }>(),
     ),
 
     loadSentInvitations: createAction('[ FRIENDSHIPS ] load sent invitations'),
