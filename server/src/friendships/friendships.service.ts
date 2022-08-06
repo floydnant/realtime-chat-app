@@ -116,7 +116,6 @@ export class FriendshipsService {
     }
 
     //#region invitations
-    // @TODO: add check if the invitEE already has a pending invitation to the invitER
     async inviteUserToFriendship(inviterId: string, inviteeId: string) {
         if (inviterId == inviteeId) throw new ConflictException('You cannot invite yourself to a friendship.');
 

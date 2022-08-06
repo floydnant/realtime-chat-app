@@ -35,15 +35,15 @@ export class ChatsState {
     users: Record<string, UserDetails>;
 
     receivedInvitations: {
-        pending: ReceivedFriendshipInvitation[];
-        accepted: ReceivedFriendshipInvitation[];
-        declined: ReceivedFriendshipInvitation[];
+        pending?: ReceivedFriendshipInvitation[];
+        accepted?: ReceivedFriendshipInvitation[];
+        declined?: ReceivedFriendshipInvitation[];
         loading: boolean;
     } = {
         // @TODO: maybe let them default to null
-        pending: [],
-        accepted: [],
-        declined: [],
+        pending: undefined,
+        accepted: undefined,
+        declined: undefined,
         loading: false,
     };
 

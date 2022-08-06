@@ -107,7 +107,7 @@ export const chatsReducer = createReducer(
             ...state,
             receivedInvitations: {
                 ...state.receivedInvitations,
-                pending: [invitation, ...state.receivedInvitations.pending],
+                pending: [invitation, ...(state.receivedInvitations.pending || [])],
             },
         };
     }),
@@ -132,7 +132,7 @@ export const chatsReducer = createReducer(
     }),
     // responded to invitation successfully
     on(chatActions.respondToInvitationSuccess, (state, { chatPreview, invitationId, invitationResponse }) => {
-        const invitation = state.receivedInvitations.pending.find(({ id }) => id == invitationId)!;
+        const invitation = state.receivedInvitations.pending?.find(({ id }) => id == invitationId)!;
         const invitationsKey = invitationResponse == 'accept' ? 'accepted' : 'declined';
         return {
             ...state,
@@ -142,8 +142,8 @@ export const chatsReducer = createReducer(
 
             receivedInvitations: {
                 ...state.receivedInvitations,
-                pending: state.receivedInvitations.pending.filter(invitation => invitation.id != invitationId),
-                [invitationsKey]: [...state.receivedInvitations[invitationsKey], invitation],
+                pending: state.receivedInvitations.pending?.filter(invitation => invitation.id != invitationId),
+                [invitationsKey]: [...(state.receivedInvitations[invitationsKey] || []), invitation],
             },
         };
     }),

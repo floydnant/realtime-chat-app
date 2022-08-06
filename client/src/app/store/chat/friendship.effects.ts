@@ -24,7 +24,7 @@ export class FriendshipEffects {
                 this.friendshipService.getInvitation(invitationId).pipe(
                     map(invitationOrError => {
                         return handleError(invitationOrError, invitation => {
-                            this.toastService.info(`New friendship invitation from ${invitation.inviter.username}`);
+                            this.toastService.info(`${invitation.inviter.username} invited you to a friendship.`);
                             return chatActions.newInvitationReceived({ invitation });
                         });
                     }),

@@ -170,7 +170,7 @@ export class ChatService {
     }
 
     async isUserChatMember(chatId: string, userId: string) {
-        // @TODO: this is not ideal, let look out for a better solution
+        // @TODO: this is not ideal, lets look out for a better solution
         const membership = await this.prisma.membership.findFirst({
             where: { chatGroupId: chatId, userId },
             select: { id: true },
@@ -193,7 +193,7 @@ export class ChatService {
 
     async persistMessageInChat(messageText: string, chatId: string, userId: string) {
         try {
-            // @TODO: this is not ideal, let look out for a better solution
+            // @TODO: this is not ideal, lets look out for a better solution
             const chatGroup = await this.prisma.chatGroup.findUnique({ where: { id: chatId } });
             const persistedMessage = await this.prisma.message.create({
                 data: {

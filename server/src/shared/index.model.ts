@@ -9,7 +9,7 @@ export interface UserPreview {
 }
 export interface UserSearchResult extends UserPreview {
     bio: string;
-    friendshipId: string;
+    friendshipId?: string;
 }
 
 export interface ChatRoomPreview {

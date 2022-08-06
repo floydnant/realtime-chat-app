@@ -20,7 +20,7 @@ interface SocketQueue {
 
 @Injectable()
 export class SocketManagerService {
-    constructor(private usersService: UsersService /* , private chatService: ChatService */) {}
+    constructor(private usersService: UsersService) {}
 
     private logger = new Logger('SocketManagerService');
 

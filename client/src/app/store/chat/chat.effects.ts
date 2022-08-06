@@ -19,12 +19,10 @@ export class ChatsEffects {
         .subscribe(chatsState => {
             this.activeChatId = chatsState.activeChatId;
             this.chatsState = chatsState;
-            // this.chatsDetails = chatsState.chatsDetails;
             this.chatMessages = chatsState.messagesByChat;
         });
     activeChatId: string | null;
     chatsState: ChatsState;
-    // chatsDetails: ChatRoomDetails[];
     chatMessages: ChatsState['messagesByChat'];
 
     setActiveChat = createEffect(() => {
@@ -42,7 +40,7 @@ export class ChatsEffects {
             ofType(chatActions.setActiveChatSuccess),
             map(({ chatId }) => {
                 const chatType = this.chatsState.chatPreviews.find(
-                    chat => chat.friendshipOrChatGroupId == this.activeChatId,
+                    chat => chat.friendshipOrChatGroupId == chatId,
                 )!.chatType;
                 return chatActions.loadActiveChatMessages({ chatId, chatType });
             }),
