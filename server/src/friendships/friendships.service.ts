@@ -122,8 +122,13 @@ export class FriendshipsService {
 
         const prevInvitation = await this.prisma.friendshipInvitvation.findFirst({
             where: {
-                inviterId,
-                inviteeId,
+                OR: [
+                    { inviterId, inviteeId },
+                    {
+                        inviterId: inviteeId,
+                        inviteeId: inviterId,
+                    },
+                ],
                 status: {
                     not: 'declined',
                 },
@@ -131,16 +136,27 @@ export class FriendshipsService {
             select: {
                 id: true,
                 status: true,
-                invitee: { select: { username: true } },
+                invitee: SELECT_user_preview,
+                inviter: SELECT_user_preview,
             },
         });
         if (prevInvitation) {
-            const successMessage =
-                prevInvitation.status == 'pending'
-                    ? // pending invitation
-                      `You already have a pending invitation to ${prevInvitation.invitee.username}.`
-                    : // accepted invitation
-                      `${prevInvitation.invitee.username} already accepted an invitation from you.`;
+            let successMessage: string;
+
+            if (prevInvitation.invitee.id == inviterId)
+                successMessage =
+                    prevInvitation.status == 'pending'
+                        ? // pending invitation from other user
+                          `${prevInvitation.inviter.username} already invited you.`
+                        : // accepted invitation from other user
+                          `You already accepted an invitation from ${prevInvitation.inviter.username}`;
+            else
+                successMessage =
+                    prevInvitation.status == 'pending'
+                        ? // user has pending invitation to other user
+                          `You already have a pending invitation to ${prevInvitation.invitee.username}.`
+                        : // other user accepted invitation
+                          `${prevInvitation.invitee.username} already accepted an invitation from you.`;
             return {
                 successMessage,
                 alreadyInvited: true,
