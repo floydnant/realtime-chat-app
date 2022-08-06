@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
+import { ChatType } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
-import { chatsActions } from '../store/chats/chats.actions';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
+import { chatActions } from '../store/chat/chat.actions';
+import { ChatsState, StoredMessage } from '../store/chat/chat.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -24,7 +23,6 @@ export class ChatService {
         private store: Store<AppState>,
         private httpClient: BaseHttpClient,
         private actions$: Actions,
-        private toastService: HotToastService,
     ) {
         store.subscribe(state => {
             this.user = state.user.loggedInUser;
@@ -83,10 +81,12 @@ export class ChatService {
         )
         .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
 
-    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChatSuccess)).subscribe(({ chatId }) => {
-        this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
-        this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
-    });
+    private setActiveChatEvents = this.actions$
+        .pipe(ofType(chatActions.setActiveChatSuccess))
+        .subscribe(({ chatId }) => {
+            this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
+            this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
+        });
 
     sendMessage(payload: Client_ChatMessagePayload) {
         if (!this.user) return;
@@ -96,14 +96,14 @@ export class ChatService {
     }
     getChatMessageUpdates() {
         return this.socket.fromEvent(SocketEvents.SERVER__CHAT_MESSAGE).pipe(
-            tap(payload => this.store.dispatch(chatsActions.newMessage(payload))),
+            tap(payload => this.store.dispatch(chatActions.newMessage(payload))),
             filter(({ chatId }) => chatId == this.chatState.activeChatId),
         );
     }
 
     getChatInitializationUpdates() {
         return this.actions$.pipe(
-            ofType(chatsActions.loadActiveChatMessagesSuccess),
+            ofType(chatActions.loadActiveChatMessagesSuccess),
             map(({ messages }) => messages),
         );
     }
@@ -116,37 +116,10 @@ export class ChatService {
     }
 
     // CRUD stuff
-    getChat(chatId: string) {
-        return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
-    }
-    getChatMessages(chatId: string) {
-        return this.httpClient
-            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`)
-    }
-
-    createChat(title: string) {
-        return this.httpClient.post<ChatRoomPreview>('/chats/chat', { title });
-    }
-
-    getJoinedChats() {
-        return this.httpClient.get<ChatRoomPreview[]>('/chats/joined');
-    }
-
-    getGlobalChatPreview() {
-        return this.httpClient.get<ChatRoomPreview>('/chats/globalChat');
-    }
-
-    // TODO: this should be more generic and also inside the effects
-    joinGlobalChat() {
-        return this.httpClient
-            .post<{ successMessage: string; chatRoom: ChatRoomPreview }>('/chats/globalChat/join')
-            .subscribe(chatRoomResOrError => {
-                console.log(chatRoomResOrError);
-                const action = handleError(chatRoomResOrError, chatRoomRes => {
-                    this.toastService.success(`Successfully joined chat '${chatRoomRes.chatRoom.title}'`);
-                    return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
-                });
-                this.store.dispatch(action);
-            });
+    getChatMessages(chatId: string, chatType: ChatType) {
+        const messages = this.httpClient.get<StoredMessage[]>(
+            chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
+        );
+        return messages;
     }
 }

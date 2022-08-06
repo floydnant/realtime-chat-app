@@ -3,11 +3,13 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, mergeMap, tap } from 'rxjs/operators';
 import { appActions } from './app.actions';
 import { HttpServerErrorResponse } from './app.model';
-import { ChatsEffects } from './chats/chats.effects';
+import { ChatsEffects } from './chat/chat.effects';
 import { UserEffects } from './user/user.effects';
 import { HotToastService } from '@ngneat/hot-toast';
 import { Action } from '@ngrx/store';
 import { throwError, of, Observable } from 'rxjs';
+import { ChatGroupEffects } from './chat/chat-group.effects';
+import { FriendshipEffects } from './chat/friendship.effects';
 
 @Injectable()
 class AppEffects {
@@ -32,7 +34,7 @@ class AppEffects {
     );
 }
 
-export const effects = [AppEffects, UserEffects, ChatsEffects];
+export const effects = [AppEffects, UserEffects, ChatsEffects, ChatGroupEffects, FriendshipEffects];
 
 export const handleError = <T, R>(dataOrError: T | HttpServerErrorResponse, actionCallback: (data: T) => R) => {
     if ('error' in dataOrError) return appActions.error(dataOrError);
@@ -44,9 +46,11 @@ export const throwIfErrorExists = () => {
     return mergeMap(<T>(dataOrError: T | HttpServerErrorResponse) =>
         'error' in dataOrError ? throwError(() => dataOrError) : of(dataOrError),
     );
-}
+};
 
 type ErrorAction = ReturnType<typeof appActions.error>;
 export const catchAndHandleError = (showToast = false) => {
-    return catchError<Action, Observable<ErrorAction>>((err: HttpServerErrorResponse) => of(appActions.error({...err, showToast })));
-}
+    return catchError<Action, Observable<ErrorAction>>((err: HttpServerErrorResponse) =>
+        of(appActions.error({ ...err, showToast })),
+    );
+};

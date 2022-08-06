@@ -41,10 +41,10 @@ model FriendshipInvitvation {
     invitedAt DateTime         @default(now())
 
     // relations
-    fromUser   User   @relation("invitation_from_user", fields: [fromUserId], references: [id])
-    fromUserId String
-    toUser     User   @relation("invitation_to_user", fields: [toUserId], references: [id])
-    toUserId   String
+    inviter   User   @relation("invitation_from_user", fields: [inviterId], references: [id])
+    inviterId String
+    invitee   User   @relation("invitation_to_user", fields: [inviteeId], references: [id])
+    inviteeId String
 }
 
 enum InvitationStatus {

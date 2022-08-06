@@ -1,11 +1,11 @@
 <sidebar></sidebar>
 <div class="container">
     <div class="chat-title-bar">
-        <h1 class="chat-title">{{ (activeChat$ | async)?.title }}</h1>
+        <h1 class="chat-title">{{ activeChat?.title }}</h1>
         <div
             class="users-online cut-text"
             [class.show]="usersOnlineText$ | async"
-            [innerHTML]="'online: ' + (usersOnlineText$ | async)"
+            [innerHTML]="usersOnlineText$ | async"
         ></div>
     </div>
     <div class="chat" #chatRef>
@@ -21,6 +21,7 @@
                     [message]="message"
                     [isMe]="message.messageType == MessageTypes.CHAT_MESSAGE ? message.user.id == user?.id : false"
                     [sameUserAsPrevMsg]="message?.user?.id == messages[i - 1]?.user?.id"
+                    [hideUsername]="activeChat?.chatType == ChatType.PRIVATE"
                 ></chat-message>
             </div>
         </div>
@@ -30,16 +31,16 @@
                 <loading-spinner></loading-spinner>
             </p>
             <h2
-                *ngIf="!chatsState.loadingActiveChatMessages && (activeChat$ | async) && messages.length == 0"
+                *ngIf="!chatsState.loadingActiveChatMessages && activeChat && messages.length == 0"
                 style="opacity: 0.6"
             >
                 No messages yet...
             </h2>
-            <h2 *ngIf="!(activeChat$ | async)" style="opacity: 0.6">No chat selected...</h2>
+            <h2 *ngIf="!activeChat" style="opacity: 0.6">No chat selected...</h2>
         </div>
     </div>
 
-    <div class="bottom-bar" [style.display]="(activeChat$ | async) ? 'block' : 'none'">
+    <div class="bottom-bar" [style.display]="activeChat ? 'block' : 'none'">
         <div class="info-bar" [class.visible]="usersTypingText$ | async">
             <div [innerHTML]="usersTypingText$ | async"></div>
             <div class="dots">

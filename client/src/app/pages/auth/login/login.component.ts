@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';
 import { LoginCredentialsDTO } from 'src/app/store/user/user.model';
 
 @Component({
@@ -8,7 +8,7 @@ import { LoginCredentialsDTO } from 'src/app/store/user/user.model';
     styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
-    constructor(private authService: AuthService) {}
+    constructor(private authService: UserService) {}
 
     errorMessages: string | string[];
     successMessage: string;

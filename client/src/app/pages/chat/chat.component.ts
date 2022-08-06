@@ -5,11 +5,11 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
-import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { ChatPreview, ChatsState, StoredMessage } from 'src/app/store/chat/chat.model';
+import { chatsSelectors } from 'src/app/store/chat/chat.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
-import { MessageTypes, UserPreview } from 'src/shared/index.model';
+import { ChatType, MessageTypes, UserPreview } from 'src/shared/index.model';
 import { DatePipe } from '@angular/common';
 
 export interface UserOnlineStatusEventMessage {
@@ -45,11 +45,19 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.user = user.loggedInUser;
             this.chatsState = chats;
         });
+        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => (this.activeChat = chat))
     }
 
     ngOnDestroy() {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
+
+    chatsState: ChatsState;
+    user: LoggedInUser | null;
+    activeChat: ChatPreview | null;
+
+    MessageTypes = MessageTypes;
+    ChatType = ChatType;
 
     isSameDay(ts1: string, ts2: string) {
         return this.getDay(ts1, ts2) == 'Today';
@@ -60,10 +68,10 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
         const isSameYear = date.getFullYear() == today.getFullYear();
         const isSameMonth = date.getMonth() == today.getMonth();
-        
+
         if (!isSameYear) return this.datePipe.transform(date, 'fullDate');
         if (!isSameMonth) return this.datePipe.transform(date, 'EEEE, MMMM d');
-        
+
         const dateDifference = today.getDate() - date.getDate();
         return dateDifference == 0
             ? 'Today'
@@ -71,12 +79,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             ? 'Yesterday'
             : this.datePipe.transform(date, 'EEEE, MMMM d');
     }
-
-    chatsState: ChatsState;
-    user: LoggedInUser | null;
-    activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
-
-    MessageTypes = MessageTypes;
 
     // TODO: use the generic content editable component from todo app
     @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
@@ -133,12 +135,15 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     );
 
     usersOnlineText$ = this.chatService.getUsersOnline().pipe(
-        map(usersOnline =>
-            (usersOnline || [])
-                .filter(u => u != this.user?.username)
+        map(usersOnline => {
+            const users = (usersOnline || [])
+                .filter(u => u != this.user?.username);
+            if (this.activeChat?.chatType == ChatType.PRIVATE) return users.length > 1 ? 'online' : 'offline';
+
+            return users
                 .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
-                .join(', '),
-        ),
+                .join(', ');
+        }),
     );
 
     private _userMessages_ = this.handleSubscription(
@@ -182,8 +187,8 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         }
     }
 
-    messages: (StoredChatMessage | UserOnlineStatusEventMessage)[] = [];
-    addMessageToChat({ ...message }: StoredChatMessage | UserOnlineStatusEvent) {
+    messages: (StoredMessage | UserOnlineStatusEventMessage)[] = [];
+    addMessageToChat({ ...message }: StoredMessage | UserOnlineStatusEvent) {
         // text = escapeHTML(text);
 
         let text: string;

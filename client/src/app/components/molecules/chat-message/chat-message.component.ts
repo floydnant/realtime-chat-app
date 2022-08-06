@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { UserOnlineStatusEventMessage } from 'src/app/pages/chat/chat.component';
-import { StoredChatMessage } from 'src/app/store/chats/chats.model';
+import { StoredMessage } from 'src/app/store/chat/chat.model';
 import { MessageTypes } from 'src/shared/index.model';
 
 @Component({
@@ -10,9 +10,10 @@ import { MessageTypes } from 'src/shared/index.model';
 })
 export class ChatMessageComponent {
     @Input() variant: MessageTypes.CHAT_MESSAGE | MessageTypes.USER_EVENT;
-    @Input() message?: StoredChatMessage | UserOnlineStatusEventMessage;
+    @Input() message?: StoredMessage | UserOnlineStatusEventMessage;
     @Input() isMe = false;
     @Input() sameUserAsPrevMsg = false;
+    @Input() hideUsername? = false;
 
     @Input() messageText?: string;
 
