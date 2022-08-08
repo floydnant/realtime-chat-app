@@ -1,20 +1,11 @@
-<div class="flex gap-2">
-    <span class="text-gray-200">{{ (loggedInUser$ | async)?.username }}</span>
-</div>
-<div class="menu | flex flex-col">
-    <a
-        routerLink="/invites"
-        class="button !border-0 !bg-transparent text-gray-100 !no-underline"
-        routerLinkActive="text-secondary-300"
-    >
-        <span>Invites</span>
-        <span *ngIf="pendingInvitationsCount$ | async" class="badge bg-secondary-400">{{
-            pendingInvitationsCount$ | async
-        }}</span></a
-    >
-
-    <a routerLink="/chat" class="button !border-0 !bg-transparent text-gray-100 !no-underline" routerLinkActive="text-secondary-300"
-        >Chats</a
-    >
-    <button class="text-left border-0 bg-transparent" (click)="logout()">logout</button>
+<div class="relative w-fit">
+    <button class="flex gap-1 items-center" (click)="menu.toggle(); $event.stopPropagation();">
+        <span class="text-gray-200">{{ (loggedInUser$ | async)?.username }}</span>
+        <div>
+            <span *ngIf="pendingInvitationsCount" class="badge bg-secondary-400">{{ pendingInvitationsCount }}</span>
+        </div>
+        <i class="fas fa-caret-down"></i>
+    </button>
+    
+    <app-drop-down class="absolute top-[calc(100%+.5rem)] left-[50%] z-50" [items]="menuItems" #menu></app-drop-down>
 </div>

@@ -58,8 +58,8 @@ module.exports = {
                 'fade-to-left': 'linear-gradient(to left, #131515 61.98%, rgba(19, 21, 21, 0) 100%)',
                 'fade-to-right': 'linear-gradient(to right, #131515 61.98%, rgba(19, 21, 21, 0) 100%)',
 
-                'fancy-400': 'linear-gradient(90deg, #7E00FD 0%, #00E5AC 97.92%)',
-                'fancy-500': 'linear-gradient(90deg, #5B00B7 0%, #00A47B 97.92%)',
+                'fancy-400': 'linear-gradient(to bottom right, #7E00FD 0%, #00E5AC 97.92%)',
+                'fancy-500': 'linear-gradient(to bottom right, #5B00B7 0%, #00A47B 97.92%)',
 
                 'grad-secondary': 'linear-gradient(92.13deg, #9747FF 20.72%, #7E00FD 100%)',
             },
@@ -67,8 +67,15 @@ module.exports = {
                 'glow-secondary': '0px 0px 10px 1px #9224FF',
                 card: '0px 4px 4px rgba(0, 0, 0, 0.25), 0px 4px 10px rgba(0, 0, 0, 0.25), 0px 4px 20px rgba(0, 0, 0, 0.25)',
             },
-            backdropBlur: {
-                frosted: '40px',
+            opacity: {
+                15: '0.15',
+                25: '0.25',
+                35: '0.35',
+                45: '0.45',
+                65: '0.65',
+                75: '0.75',
+                85: '0.85',
+                95: '0.95',
             },
         },
     },

@@ -1,0 +1,34 @@
+<hr *ngIf="props.type == MenuItemType.SEPERATOR; else menuItem" class="border-gray-700"/>
+
+<ng-template #menuItem>
+    <div
+        class="flex px-3 py-1 hover:bg-gray-600 rounded-lg text-gray-200 transition-colors"
+        [class]="{
+            'text-red-400': props.type == MenuItemType.DANGER,
+            'hover:!bg-red-400': props.type == MenuItemType.DANGER,
+            'text-primary-400': props.type == MenuItemType.PRIMARY,
+            'hover:!bg-primary-400': props.type == MenuItemType.PRIMARY,
+            'hover:text-gray-900': props.type == MenuItemType.DANGER || props.type == MenuItemType.PRIMARY,
+            'hover:bg-opacity-70': seeThrough
+        }"
+    >
+        <a
+            *ngIf="props.route; else elseBlock"
+            [routerLink]="props.disabled ? '' : props.route"
+            routerLinkActive="!text-secondary-200 font-bold"
+            class="text-inherit w-full !no-underline mr-3"
+            [class.disabled]="props.disabled"
+            (click)="onClick($event)"
+            >{{ props.label }}</a
+        >
+        <ng-template #elseBlock
+            ><button class="w-full text-left mr-3" [disabled]="props.disabled" (click)="onClick($event)">
+                {{ props.label }}
+            </button></ng-template
+        >
+
+        <div>
+            <span *ngIf="props.badge" class="badge bg-secondary-400 ml-1">{{ props.badge }}</span>
+        </div>
+    </div>
+</ng-template>

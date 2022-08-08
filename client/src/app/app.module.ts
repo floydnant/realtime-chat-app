@@ -32,6 +32,8 @@ import { ReceivedComponent } from './pages/invites/received/received.component';
 import { SentComponent } from './pages/invites/sent/sent.component';
 import { InvitationComponent } from './components/molecules/invitation/invitation.component';
 import { UserMenuComponent } from './components/organisms/user-menu/user-menu.component';
+import { DropDownComponent } from './components/molecules/drop-down/drop-down.component';
+import { MenuItemComponent } from './components/atoms/menu-item/menu-item.component';
 
 @NgModule({
     declarations: [
@@ -54,6 +56,8 @@ import { UserMenuComponent } from './components/organisms/user-menu/user-menu.co
         SentComponent,
         InvitationComponent,
         UserMenuComponent,
+        DropDownComponent,
+        MenuItemComponent,
     ],
     imports: [
         BrowserModule,
