@@ -10,7 +10,8 @@
     position: relative;
     margin: 0 auto;
     height: calc(100% - 0px);
-    width: min(100%, 800px);
+    // width: min(100%, 800px);
+    @apply w-full;
 
     display: flex;
     flex-direction: column;
