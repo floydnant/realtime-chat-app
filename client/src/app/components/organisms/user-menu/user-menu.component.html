@@ -1,0 +1,20 @@
+<div class="flex gap-2">
+    <span class="text-gray-200">{{ (loggedInUser$ | async)?.username }}</span>
+</div>
+<div class="menu | flex flex-col">
+    <a
+        routerLink="/invites"
+        class="button !border-0 !bg-transparent text-gray-100 !no-underline"
+        routerLinkActive="text-secondary-300"
+    >
+        <span>Invites</span>
+        <span *ngIf="pendingInvitationsCount$ | async" class="badge bg-secondary-400">{{
+            pendingInvitationsCount$ | async
+        }}</span></a
+    >
+
+    <a routerLink="/chat" class="button !border-0 !bg-transparent text-gray-100 !no-underline" routerLinkActive="text-secondary-300"
+        >Chats</a
+    >
+    <button class="text-left border-0 bg-transparent" (click)="logout()">logout</button>
+</div>

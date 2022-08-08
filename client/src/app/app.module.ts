@@ -28,6 +28,10 @@ import { HotToastModule } from '@ngneat/hot-toast';
 import { LoadingSpinnerComponent } from './components/atoms/loading-spinner/loading-spinner.component';
 import { DatePipe } from '@angular/common';
 import { InvitesComponent } from './pages/invites/invites.component';
+import { ReceivedComponent } from './pages/invites/received/received.component';
+import { SentComponent } from './pages/invites/sent/sent.component';
+import { InvitationComponent } from './components/molecules/invitation/invitation.component';
+import { UserMenuComponent } from './components/organisms/user-menu/user-menu.component';
 
 @NgModule({
     declarations: [
@@ -46,6 +50,10 @@ import { InvitesComponent } from './pages/invites/invites.component';
         SidebarComponent,
         LoadingSpinnerComponent,
         InvitesComponent,
+        ReceivedComponent,
+        SentComponent,
+        InvitationComponent,
+        UserMenuComponent,
     ],
     imports: [
         BrowserModule,

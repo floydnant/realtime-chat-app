@@ -1,14 +1,4 @@
-<div style="display: flex; gap: 10px">
-    <span class="secondary-100">{{ (loggedInUser$ | async)?.username }}</span>
-    <button (click)="logout()">logout</button>
-</div>
-
-<span>
-    <a routerLink="/invites">Invites</a>
-    <span *ngIf="(newInvitations$ | async)?.length" class="bg-secondary-400 py-0.5 px-[.4rem] ml-2 rounded-xl">{{
-        (newInvitations$ | async)?.length
-    }}</span>
-</span>
+<user-menu></user-menu>
 
 <div class="spacer"></div>
 
@@ -17,14 +7,16 @@
 <div class="overflow-auto max-h-full pr-2">
     <div class="flex mb-2 gap-2">
         <input type="text" placeholder="Search" class="w-full" />
-        <button (click)="createChat()" title="Create a group chat">+</button>
+        <button (click)="createChat()" title="Create a group chat"><i class="far fa-edit"></i></button>
     </div>
-    <button class="w-full mb-2" (click)="joinGlobalChat()">join global Chat</button>
+    <button *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)" class="w-full mb-2" (click)="joinGlobalChat()">
+        join global Chat
+    </button>
 
     <ul class="chats | w-full">
         <li
             *ngFor="let chat of chatPreviews$ | async"
-            class="chat | w-full"
+            class="chat"
             [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
             (click)="setChatActive(chat.friendshipOrChatGroupId)"
         >

@@ -1,0 +1,65 @@
+<h3 class="mb-2">Received</h3>
+<div class="flex">
+    <div class="status-filter | rounded-lg bg-gray-800 w-max">
+        <button
+            class="border-0"
+            [class.!bg-gray-600]="receivedInvitationsFilter == 'pending'"
+            (click)="loadReceivedInvitations(InvitationStatus.PENDING)"
+        >
+            pending
+            <span class="badge bg-secondary-400 !shadow-lg">{{ (receivedInvitations$ | async)?.pending?.length }}</span>
+        </button>
+        <button
+            class="border-0"
+            [class.!bg-gray-600]="receivedInvitationsFilter == 'accepted'"
+            (click)="loadReceivedInvitations(InvitationStatus.ACCEPTED)"
+        >
+            accepted
+        </button>
+        <button
+            class="border-0"
+            [class.!bg-gray-600]="receivedInvitationsFilter == 'declined'"
+            (click)="loadReceivedInvitations(InvitationStatus.DECLINED)"
+        >
+            declined
+        </button>
+    </div>
+    <a
+        routerLink="../sent"
+        class="button !no-underline ml-2 hover:bg-primary-400 hover:text-gray-900 hover:border-transparent"
+        >invite a friend</a
+    >
+</div>
+
+<div class="mt-4 text-center">
+    <loading-spinner *ngIf="(receivedInvitations$ | async)?.loading" class="text-2xl"></loading-spinner>
+    <p
+        *ngIf="!(receivedInvitations$ | async)?.[receivedInvitationsFilter]?.length && !(receivedInvitations$ | async)?.loading"
+        class="text-gray-300"
+    >
+        You have no {{ receivedInvitationsFilter }} invitations.
+    </p>
+</div>
+
+<ul class="invitations">
+    <app-invitation
+        *ngFor="let invitation of (receivedInvitations$ | async)?.[receivedInvitationsFilter]"
+        [title]="invitation.inviter.username"
+        [subTitle]="(invitation.invitedAt | date: 'MMM d, h:mm a')!"
+    >
+        <button
+            class="btn-primary py-0.5 font-normal h-max"
+            (click)="respondToInvitation(invitation.id, InvitationResponse.ACCEPT)"
+            [disabled]="invitation.status == InvitationStatus.ACCEPTED"
+        >
+            Accept
+        </button>
+        <button
+            class="btn-danger py-0.5 font-normal h-max"
+            (click)="respondToInvitation(invitation.id, InvitationResponse.DECLINE)"
+            [disabled]="invitation.status != InvitationStatus.PENDING"
+        >
+            Decline
+        </button>
+    </app-invitation>
+</ul>

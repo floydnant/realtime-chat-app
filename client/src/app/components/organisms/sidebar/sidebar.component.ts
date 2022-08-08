@@ -4,6 +4,7 @@ import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { UserService } from 'src/app/services/user.service';
 import { AppState } from 'src/app/store/app.reducer';
 import { chatActions } from 'src/app/store/chat/chat.actions';
+import { ChatPreview } from 'src/app/store/chat/chat.model';
 import { chatsSelectors } from 'src/app/store/chat/chat.selector';
 import { userActions } from 'src/app/store/user/user.actions';
 import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
@@ -14,15 +15,10 @@ import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from
     styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent implements OnInit {
-    constructor(
-        private store: Store<AppState>,
-        private chatGroupService: ChatGroupService,
-        private userService: UserService,
-    ) {}
+    constructor(private store: Store<AppState>, private chatGroupService: ChatGroupService) {}
 
     async ngOnInit() {
         this.store.dispatch(chatActions.loadChatPreviews());
-        this.loadReceivedInvitations();
     }
 
     ChatType = ChatType;
@@ -33,9 +29,8 @@ export class SidebarComponent implements OnInit {
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
 
-    newInvitations$ = this.store.select(state => state.chats.receivedInvitations.pending);
-    loadReceivedInvitations() {
-        this.store.dispatch(chatActions.loadReceivedInvitations({ statusFilter: InvitationStatus.PENDING }));
+    isMemberOfGlobalGroup(chatPreviews: ChatPreview[] | null) {
+        return chatPreviews?.some(c => c.title == 'Global Group Chat');
     }
 
     setChatActive(chatId: string) {
@@ -50,9 +45,5 @@ export class SidebarComponent implements OnInit {
 
     joinGlobalChat() {
         this.chatGroupService.joinGlobalChat();
-    }
-
-    logout() {
-        this.store.dispatch(userActions.logout());
     }
 }

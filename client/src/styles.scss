@@ -4,46 +4,46 @@
 
 $colors: (
     primary: (
-        100: #E1FFF8,
-        200: #BBFFEE,
-        300: #86FFE1,
-        400: #00E5AC,
-        500: #00A47B,
-        600: #005B45,
+        100: #e1fff8,
+        200: #bbffee,
+        300: #86ffe1,
+        400: #00e5ac,
+        500: #00a47b,
+        600: #005b45,
         700: #003528,
-        800: #00221A,
-        900: #00130E,
+        800: #00221a,
+        900: #00130e,
     ),
     secondary: (
-        100: #D7AEFF,
-        200: #B871FF,
-        300: #9224FF,
-        400: #8D1CFF,
-        500: #5B00B7,
+        100: #d7aeff,
+        200: #b871ff,
+        300: #9224ff,
+        400: #8d1cff,
+        500: #5b00b7,
         600: #420083,
         700: #340068,
         800: #230046,
-        900: #15002B,
+        900: #15002b,
     ),
     red: (
-        100: #FEB9D6,
-        200: #FF84B8,
-        300: #FD4A95,
-        400: #F20166,
-        500: #B9004E,
-        600: #8C003B,
-        700: #64002A,
-        800: #40001B,
-        900: #24000F,
+        100: #feb9d6,
+        200: #ff84b8,
+        300: #fd4a95,
+        400: #f20166,
+        500: #b9004e,
+        600: #8c003b,
+        700: #64002a,
+        800: #40001b,
+        900: #24000f,
     ),
     gray: (
-        100: #EFF0F0,
-        200: #D4D8D7,
-        300: #B9BFBE,
-        400: #8F9A97,
-        500: #6D7876,
+        100: #eff0f0,
+        200: #d4d8d7,
+        300: #b9bfbe,
+        400: #8f9a97,
+        500: #6d7876,
         600: #505856,
-        700: #383E3C,
+        700: #383e3c,
         800: #222525,
         900: #131515,
     ),
@@ -108,10 +108,7 @@ app-root {
 // }
 
 a {
-    color: var(--secondary-100);
-}
-a:not(:hover) {
-    text-decoration: none;
+    @apply text-secondary-200 hover:underline;
 }
 
 .cut-text {
@@ -122,8 +119,25 @@ a:not(:hover) {
     text-overflow: ellipsis;
 }
 
-button {
-    @apply bg-gray-800 hover:bg-gray-700 py-1 px-3 rounded-lg transition-colors border border-subtle text-gray-200;
+@layer components {
+    .btn-primary {
+        @apply bg-primary-400 text-gray-900 hover:bg-primary-500 font-bold;
+    }
+    .btn-secondary {
+        @apply bg-secondary-400 text-gray-900 hover:bg-secondary-500 font-bold;
+    }
+    .btn-danger {
+        @apply bg-red-400 text-gray-900 hover:bg-red-500 font-bold;
+    }
+
+    .badge {
+        @apply h-3 min-h-[0.75rem] py-0.5 px-[.4rem] ml-2 rounded-xl no-underline;
+    }
+}
+
+button,
+.button {
+    @apply bg-gray-800 hover:bg-gray-700 py-1 px-3 rounded-lg transition-colors border border-subtle text-gray-300;
 
     &[disabled] {
         @apply cursor-not-allowed opacity-60 grayscale;
@@ -131,6 +145,18 @@ button {
 }
 
 input[type='text'],
+input[type='password'],
+input[type='email'],
 textarea {
     @apply bg-gray-800 text-gray-100 py-1 px-3 rounded-lg focus:border-secondary-400 outline-none border border-subtle placeholder:text-gray-500;
+}
+
+h1 {
+    @apply text-4xl font-bold;
+}
+h2 {
+    @apply text-2xl font-bold;
+}
+h3 {
+    @apply text-xl font-bold;
 }

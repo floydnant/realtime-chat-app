@@ -1,0 +1,52 @@
+<h3 class="mb-2">Invite friends</h3>
+<div class="flex gap-2 mb-3 w-[26rem]">
+    <input
+        class="w-full"
+        type="text"
+        placeholder="Search for users"
+        #userSearchInput
+        (keydown.enter)="searchUsers(userSearchInput.value)"
+    />
+    <button (click)="searchUsers(userSearchInput.value)" class="flex">
+        Search <loading-spinner *ngIf="loadingSearchResults" class="ml-2"></loading-spinner>
+    </button>
+</div>
+<ul>
+    <li
+        *ngFor="let user of userSearchResult"
+        class="bg-gray-800 border border-subtle p-2 mb-2 flex justify-between items-center rounded-lg"
+    >
+        <div class="username | text-xl font-bold">{{ user.username }}</div>
+        <!-- <div class="bio | text-sm text-gray-400">{{ user.bio }}</div> -->
+        <button [disabled]="user.friendshipId" (click)="sendInvitation(user.id)">Invite</button>
+    </li>
+    {{
+        userSearchResult?.length == 0 ? 'No user found' : ''
+    }}
+</ul>
+
+<div class="spacer"></div>
+
+<h3 class="mb-2 mt-4">Sent</h3>
+<!-- <button (click)="loadSentInvitations()">{{ (sentInvitations$ | async)?.all ? 're' : '' }}load</button> -->
+<p class="text-center">
+    <loading-spinner *ngIf="(sentInvitations$ | async)?.loading"></loading-spinner>
+    {{ (sentInvitations$ | async)?.all?.length == 0 ? 'You did not sent invites yet.' : '' }}
+</p>
+<ul class="sent-invitations">
+    <app-invitation
+        *ngFor="let invitation of (sentInvitations$ | async)?.all"
+        [title]="invitation.invitee.username"
+        [subTitle]="(invitation.invitedAt | date: 'MMM d, h:mm a')!"
+    >
+        <span>
+            <span *ngIf="invitation.status == 'accepted'" class="text-primary-400 font-bold mr-2">Accepted</span>
+            <button
+                [class.btn-danger]="invitation.status != InvitationStatus.ACCEPTED"
+                (click)="deleteInvitation(invitation.id)"
+            >
+                {{ invitation.status == InvitationStatus.ACCEPTED ? 'Delete' : 'Revoke' }}
+            </button>
+        </span>
+    </app-invitation>
+</ul>

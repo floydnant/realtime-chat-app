@@ -1,7 +1,7 @@
 <sidebar></sidebar>
 <div class="_container">
     <div class="chat-title-bar">
-        <h1 class="chat-title">{{ activeChat?.title }}</h1>
+        <h1 class="chat-title | !mb-0 text-2xl">{{ activeChat?.title }}</h1>
         <div
             class="users-online cut-text"
             [class.show]="usersOnlineText$ | async"
@@ -69,7 +69,7 @@
                     (click)="sendMessage()"
                 >
                     <i
-                        class="fas fa-paper-plane | group-hover:!text-gray-800 bg-fancy-400 !text-transparent bg-clip-text"
+                        class="fas fa-paper-plane | group-disabled:!text-gray-400 group-hover:!text-gray-800 bg-fancy-400 !text-transparent bg-clip-text"
                     ></i>
                 </button>
             </div>

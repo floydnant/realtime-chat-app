@@ -1,5 +1,5 @@
 :host {
-    @apply h-full flex flex-col pt-3 pl-3 min-w-[19rem];
+    @apply h-full flex flex-col pt-3 pl-3 w-80 min-w-[20rem] max-w-[20rem];
 }
 
 .spacer {
@@ -14,7 +14,7 @@
     padding: 0.4rem;
     list-style-type: none;
     cursor: pointer;
-    @apply bg-gray-800 text-gray-300 border border-subtle p-2 mb-1 rounded-xl hover:bg-gray-700 transition-colors w-full;
+    @apply bg-gray-800 text-gray-300 border border-subtle p-2 mb-2 rounded-xl hover:bg-gray-700 transition-colors w-full;
 
     display: flex;
     justify-content: flex-start;

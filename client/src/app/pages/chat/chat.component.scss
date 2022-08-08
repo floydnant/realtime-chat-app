@@ -19,22 +19,14 @@
     align-items: center;
 }
 .chat-title-bar {
-    z-index: 10;
-    width: 100%;
-    border-radius: 0 0 14px 14px;
-    padding: 10px;
+    @apply w-full p-3 z-10 bg-fade-to-bottom;
 
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
 
-    @apply bg-fade-to-bottom;
 
-    .chat-title {
-        @apply font-bold text-xl;
-        margin-bottom: 5px;
-    }
     .users-online {
         font-size: 0.8rem;
 
@@ -102,11 +94,8 @@
 }
 
 .bottom-bar {
-    @apply w-full;
+    @apply w-full p-3;
     z-index: 5;
-
-    padding: 10px;
-    width: 100%;
 
     display: flex;
     flex-direction: row;
