@@ -7,7 +7,7 @@
         #userSearchInput
         (keydown.enter)="searchUsers(userSearchInput.value)"
     />
-    <button (click)="searchUsers(userSearchInput.value)" class="flex">
+    <button class="button flex" (click)="searchUsers(userSearchInput.value)">
         Search <loading-spinner *ngIf="loadingSearchResults" class="ml-2"></loading-spinner>
     </button>
 </div>
@@ -18,7 +18,7 @@
     >
         <div class="username | text-xl font-bold">{{ user.username }}</div>
         <!-- <div class="bio | text-sm text-gray-400">{{ user.bio }}</div> -->
-        <button [disabled]="user.friendshipId" (click)="sendInvitation(user.id)">Invite</button>
+        <button class="button" [disabled]="user.friendshipId" (click)="sendInvitation(user.id)">Invite</button>
     </li>
     {{
         userSearchResult?.length == 0 ? 'No user found' : ''
@@ -31,7 +31,7 @@
 <!-- <button (click)="loadSentInvitations()">{{ (sentInvitations$ | async)?.all ? 're' : '' }}load</button> -->
 <p class="text-center">
     <loading-spinner *ngIf="(sentInvitations$ | async)?.loading"></loading-spinner>
-    {{ (sentInvitations$ | async)?.all?.length == 0 ? 'You did not sent invites yet.' : '' }}
+    <span class="text-gray-300">{{ (sentInvitations$ | async)?.all?.length == 0 ? 'You didn\'t sent any invites yet.' : '' }}</span>
 </p>
 <ul class="sent-invitations">
     <app-invitation
@@ -42,6 +42,7 @@
         <span>
             <span *ngIf="invitation.status == 'accepted'" class="text-primary-400 font-bold mr-2">Accepted</span>
             <button
+                class="button"
                 [class.btn-danger]="invitation.status != InvitationStatus.ACCEPTED"
                 (click)="deleteInvitation(invitation.id)"
             >

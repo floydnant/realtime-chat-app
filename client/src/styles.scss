@@ -119,28 +119,28 @@ a {
     text-overflow: ellipsis;
 }
 
+[disabled],
+.disabled {
+    @apply cursor-not-allowed opacity-60 grayscale;
+}
+
 @layer components {
+    .button {
+        @apply bg-gray-800 hover:bg-gray-700 py-1 px-3 rounded-lg transition-colors border border-subtle text-gray-300;
+    }
+
     .btn-primary {
-        @apply bg-primary-400 text-gray-900 hover:bg-primary-500 font-bold;
+        @apply button bg-primary-400 text-gray-900 hover:bg-primary-500 font-bold border-0;
     }
     .btn-secondary {
-        @apply bg-secondary-400 text-gray-900 hover:bg-secondary-500 font-bold;
+        @apply button bg-secondary-400 text-gray-900 hover:bg-secondary-500 font-bold border-0;
     }
     .btn-danger {
-        @apply bg-red-400 text-gray-900 hover:bg-red-500 font-bold;
+        @apply button bg-red-400 text-gray-900 hover:bg-red-500 font-bold border-0;
     }
 
     .badge {
-        @apply h-3 min-h-[0.75rem] py-0.5 px-[.4rem] ml-2 rounded-xl no-underline;
-    }
-}
-
-button,
-.button {
-    @apply bg-gray-800 hover:bg-gray-700 py-1 px-3 rounded-lg transition-colors border border-subtle text-gray-300;
-
-    &[disabled] {
-        @apply cursor-not-allowed opacity-60 grayscale;
+        @apply inline-flex justify-center items-center h-6 min-w-[1.5rem] py-[.1rem] px-[.3rem] rounded-xl;
     }
 }
 
@@ -159,4 +159,8 @@ h2 {
 }
 h3 {
     @apply text-xl font-bold;
+}
+
+hr {
+    @apply border-gray-700 my-2;
 }

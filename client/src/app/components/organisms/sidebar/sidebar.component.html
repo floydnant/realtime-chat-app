@@ -4,13 +4,25 @@
 
 <h2 class="text-2xl font-bold mb-3">Chats <loading-spinner *ngIf="loadingChatPreviews$ | async"></loading-spinner></h2>
 
-<div class="overflow-auto max-h-full pr-2">
+<div class="overflow-auto h-full max-h-full pr-3">
     <div class="flex mb-2 gap-2">
         <input type="text" placeholder="Search" class="w-full" />
-        <button (click)="createChat()" title="Create a group chat"><i class="far fa-edit"></i></button>
+        <div class="relative">
+            <button class="button" (click)="menu.toggle(); $event.stopPropagation()" title="Create a group chat">
+                <i class="far fa-edit"></i>
+            </button>
+            <app-drop-down
+                class="absolute top-full right-full z-50"
+                #menu
+                [items]="[
+                    { label: 'Create group chat', action: createChat },
+                    { label: 'Invite a friend', route: '/invites/sent' }
+                ]"
+            ></app-drop-down>
+        </div>
     </div>
-    <button *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)" class="w-full mb-2" (click)="joinGlobalChat()">
-        join global Chat
+    <button class="button btn-primary w-full mb-2" *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)" (click)="joinGlobalChat()">
+        Join global Chat
     </button>
 
     <ul class="chats | w-full">

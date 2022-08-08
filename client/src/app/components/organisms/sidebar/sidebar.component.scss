@@ -1,5 +1,5 @@
 :host {
-    @apply h-full flex flex-col pt-3 pl-3 w-80 min-w-[20rem] max-w-[20rem];
+    @apply h-full flex flex-col pt-3 pl-3 w-80 min-w-[20rem] max-w-[20rem] bg-gradient-to-bl from-gray-900 to-gray-800;
 }
 
 .spacer {
@@ -14,7 +14,10 @@
     padding: 0.4rem;
     list-style-type: none;
     cursor: pointer;
-    @apply bg-gray-800 text-gray-300 border border-subtle p-2 mb-2 rounded-xl hover:bg-gray-700 transition-colors w-full;
+    @apply bg-gray-700 text-gray-300 p-2 mb-2 rounded-xl w-full hover:bg-gray-600;
+    &:not(.active) {
+        @apply hover:brightness-125 transition-[filter];
+    }
 
     display: flex;
     justify-content: flex-start;
@@ -22,7 +25,7 @@
     align-items: center;
 
     &.active {
-        @apply bg-grad-secondary text-gray-100;
+        @apply bg-grad-secondary text-gray-100 border-secondary-400;
 
         // .image {
         //     background: var(--secondary-100);

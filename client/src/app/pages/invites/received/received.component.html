@@ -1,23 +1,23 @@
 <h3 class="mb-2">Received</h3>
 <div class="flex">
-    <div class="status-filter | rounded-lg bg-gray-800 w-max">
+    <div class="status-filter | rounded-[9px] bg-gray-800 w-max border border-subtle">
         <button
-            class="border-0"
+            class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'pending'"
             (click)="loadReceivedInvitations(InvitationStatus.PENDING)"
         >
             pending
-            <span class="badge bg-secondary-400 !shadow-lg">{{ (receivedInvitations$ | async)?.pending?.length }}</span>
+            <span class="badge bg-secondary-400 !shadow-lg ml-1">{{ (receivedInvitations$ | async)?.pending?.length }}</span>
         </button>
         <button
-            class="border-0"
+            class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'accepted'"
             (click)="loadReceivedInvitations(InvitationStatus.ACCEPTED)"
         >
             accepted
         </button>
         <button
-            class="border-0"
+            class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'declined'"
             (click)="loadReceivedInvitations(InvitationStatus.DECLINED)"
         >

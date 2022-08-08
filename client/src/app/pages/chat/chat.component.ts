@@ -127,7 +127,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             if (usersTyping.length == 0) return '';
 
             const usersTypingText = `${usersTyping
-                .map(u => `<span class="text-primary-400">${escapeHTML(u)}</span>`)
+                .map(u => `<span class="text-secondary-200">${escapeHTML(u)}</span>`)
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
