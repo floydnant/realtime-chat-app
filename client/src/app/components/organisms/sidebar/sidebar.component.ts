@@ -26,8 +26,6 @@ export class SidebarComponent implements OnInit {
     }
 
     ChatType = ChatType;
-    InvitationStatus = InvitationStatus;
-    InvitationResponse = InvitationResponse;
 
     loggedInUser$ = this.store.select(state => state.user.loggedInUser);
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
@@ -35,33 +33,9 @@ export class SidebarComponent implements OnInit {
     chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
 
-    receivedInvitations$ = this.store.select(state => state.chats.receivedInvitations);
-    receivedInvitationsFilter: InvitationStatus = InvitationStatus.PENDING;
-    loadReceivedInvitations(filter?: InvitationStatus) {
-        if (filter) this.receivedInvitationsFilter = filter;
-        this.store.dispatch(chatActions.loadReceivedInvitations({ statusFilter: this.receivedInvitationsFilter }));
-    }
-    respondToInvitation(invitationId: string, response: InvitationResponse) {
-        this.store.dispatch(chatActions.respondToInvitation({ invitationId, response }));
-    }
-
-    sendInvitation(userId: string) {
-        this.store.dispatch(chatActions.sendInvitation({ userId }));
-    }
-    sentInvitations$ = this.store.select(state => state.chats.sentInvitations);
-    loadSentInvitations() {
-        this.store.dispatch(chatActions.loadSentInvitations());
-    }
-    deleteInvitation(invitationId: string) {
-        this.store.dispatch(chatActions.deleteInvitation({ invitationId }));
-    }
-
-    userSearchResult?: UserSearchResult[];
-    loadingSearchResults = false;
-    async searchUsers(query: string) {
-        this.loadingSearchResults = true;
-        this.userSearchResult = await this.userService.searchUsers(query);
-        this.loadingSearchResults = false;
+    newInvitations$ = this.store.select(state => state.chats.receivedInvitations.pending);
+    loadReceivedInvitations() {
+        this.store.dispatch(chatActions.loadReceivedInvitations({ statusFilter: InvitationStatus.PENDING }));
     }
 
     setChatActive(chatId: string) {

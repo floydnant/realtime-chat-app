@@ -5,7 +5,7 @@
     justify-content: center;
     align-items: center;
 }
-.container {
+._container {
     box-sizing: border-box;
     position: relative;
     margin: 0 auto;
@@ -28,15 +28,13 @@
     justify-content: center;
     align-items: flex-start;
 
-    background: var(--primary-800);
-    box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
+    @apply bg-fade-to-bottom;
 
     .chat-title {
-        font-size: 1.3rem;
+        @apply font-bold text-xl;
         margin-bottom: 5px;
     }
     .users-online {
-        color: var(--primary-200);
         font-size: 0.8rem;
 
         &:not(.show) {
@@ -103,21 +101,17 @@
 }
 
 .bottom-bar {
+    @apply w-full;
     z-index: 5;
 
     padding: 10px;
     width: 100%;
-
-    border-radius: 14px 14px 0 0;
 
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     gap: 10px;
-
-    background: var(--primary-800);
-    box-shadow: 0 0 5px var(--primary-900), 0 0 10px var(--primary-900), 0 0 20px var(--primary-900);
 }
 
 .info-bar {
@@ -177,34 +171,20 @@
 }
 
 .message-input,
-.send-btn,
 .message-input-placeholder,
 .message-input-bg {
-    padding: 10px;
-    border-radius: 8px;
-    border: 0;
-    outline: 0;
-    background: var(--primary-700);
-    box-shadow: 0 0 10px var(--primary-900);
-    color: var(--primary-100);
+    @apply py-2 px-3 rounded-lg outline-none text-gray-100 bg-gray-800;
     font-size: 1rem;
     transition: all 160ms;
 }
 .message-input-container {
-    position: relative;
-    width: 100%;
-    isolation: isolate;
-    flex-shrink: 1;
+    @apply relative w-full isolate shrink;
 
     .message-input-placeholder,
     .message-input-bg {
-        height: 100%;
+        @apply h-full w-full absolute top-0 left-0 text-gray-500;
+
         z-index: -1;
-        width: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        color: var(--primary-400);
         box-shadow: none;
         transition: none;
         pointer-events: none;
@@ -213,30 +193,6 @@
         background: transparent;
     }
     .message-input {
-        max-width: 100%;
-        border: 1px solid transparent;
-        background: transparent;
-
-        &::placeholder {
-            color: hsl(var(--primary-hue), 100%, 30%);
-        }
-        &:focus {
-            border: 1px solid var(--primary-100);
-        }
-    }
-}
-.send-btn,
-.change-username-btn {
-    padding-inline: 20px;
-    margin-left: 10px;
-    cursor: pointer;
-
-    &:hover:not([disabled]) {
-        background: var(--primary-100);
-        color: var(--primary-900);
-    }
-
-    &[disabled] {
-        cursor: not-allowed;
+        @apply border border-subtle bg-transparent max-w-full focus:border-secondary-400;
     }
 }

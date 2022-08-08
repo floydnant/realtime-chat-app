@@ -5,9 +5,14 @@ import { LoginComponent } from './pages/auth/login/login.component';
 import { SignupComponent } from './pages/auth/signup/signup.component';
 import { ChatComponent } from './pages/chat/chat.component';
 import { HomeComponent } from './pages/home/home.component';
+import { InvitesComponent } from './pages/invites/invites.component';
 import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.component';
 
 const routes: Routes = [
+    {
+        path: 'invites',
+        component: InvitesComponent,
+    },
     {
         path: 'chat',
         component: ChatComponent,

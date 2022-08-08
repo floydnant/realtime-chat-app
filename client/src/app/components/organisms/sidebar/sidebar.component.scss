@@ -1,6 +1,5 @@
 :host {
-    display: block;
-    height: 100%;
+    @apply h-full flex flex-col pt-3 pl-3 w-[19rem];
 }
 
 .spacer {
@@ -9,27 +8,21 @@
 
 .chats {
     padding: 0;
-    width: 15rem;
 }
 .chat {
     position: relative;
     padding: 0.4rem;
-    border-bottom: 1px solid var(--primary-700);
     list-style-type: none;
     cursor: pointer;
-    background: var(--primary-800);
+    @apply bg-gray-800 text-gray-300 border border-subtle p-2 mb-1 rounded-xl hover:bg-gray-700 transition-colors w-full;
 
     display: flex;
     justify-content: flex-start;
     gap: 0.4rem;
     align-items: center;
 
-    &:hover {
-        background: var(--secondary-700);
-    }
     &.active {
-        color: var(--secondary-100);
-        background: var(--secondary-700);
+        @apply bg-grad-secondary text-gray-100;
 
         // .image {
         //     background: var(--secondary-100);
@@ -61,7 +54,7 @@
             opacity: 0.7;
         }
         .username {
-            color: var(--secondary-100);
+            @apply font-bold;
         }
     }
     .time {
@@ -70,12 +63,5 @@
         right: 0.55rem;
         opacity: 0.6;
         font-size: 0.65em;
-    }
-}
-
-.status-filter {
-    button.isActiveFilter {
-        color: var(--secondary-100);
-        background: #000;
     }
 }

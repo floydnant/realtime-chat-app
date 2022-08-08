@@ -1,5 +1,5 @@
 <sidebar></sidebar>
-<div class="container">
+<div class="_container">
     <div class="chat-title-bar">
         <h1 class="chat-title">{{ activeChat?.title }}</h1>
         <div
@@ -40,31 +40,39 @@
         </div>
     </div>
 
-    <div class="bottom-bar" [style.display]="activeChat ? 'block' : 'none'">
-        <div class="info-bar" [class.visible]="usersTypingText$ | async">
-            <div [innerHTML]="usersTypingText$ | async"></div>
-            <div class="dots">
-                <span class="dot dot-1" style="--index: 0"></span>
-                <span class="dot dot-2" style="--index: 1"></span>
-                <span class="dot dot-3" style="--index: 2"></span>
+    <div class="position-bottom-bar | relative w-full">
+        <div class="bottom-bar" [style.display]="activeChat ? 'block' : 'none'">
+            <div class="info-bar" [class.visible]="usersTypingText$ | async">
+                <div [innerHTML]="usersTypingText$ | async"></div>
+                <div class="dots">
+                    <span class="dot dot-1" style="--index: 0"></span>
+                    <span class="dot dot-2" style="--index: 1"></span>
+                    <span class="dot dot-3" style="--index: 2"></span>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="message-input-container">
-                <div class="message-input-bg"></div>
-                <div *ngIf="!newMessage" class="message-input-placeholder">message (m)</div>
-                <div
-                    #messageInput
-                    class="message-input"
-                    [class.transparent]="!newMessage"
-                    contenteditable
-                    (keydown.Enter)="messageSubmitHandler($event)"
-                    (keydown.Escape)="messageInput.blur()"
-                ></div>
+            <div class="form-group | flex gap-2">
+                <div class="message-input-container">
+                    <div class="message-input-bg"></div>
+                    <div *ngIf="!newMessage" class="message-input-placeholder">Message (M)</div>
+                    <div
+                        #messageInput
+                        class="message-input"
+                        [class.transparent]="!newMessage"
+                        contenteditable
+                        (keydown.Enter)="messageSubmitHandler($event)"
+                        (keydown.Escape)="messageInput.blur()"
+                    ></div>
+                </div>
+                <button
+                    class="send-btn | group h-[42px] w-[42px] rounded-full border-0 hover:bg-fancy-400"
+                    [disabled]="!newMessage"
+                    (click)="sendMessage()"
+                >
+                    <i
+                        class="fas fa-paper-plane | group-hover:!text-gray-800 bg-fancy-400 !text-transparent bg-clip-text"
+                    ></i>
+                </button>
             </div>
-            <button class="send-btn" [disabled]="!newMessage" (click)="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
         </div>
     </div>
 </div>

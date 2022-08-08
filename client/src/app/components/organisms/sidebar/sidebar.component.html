@@ -1,135 +1,53 @@
-<div class="spacer"></div>
-
 <div style="display: flex; gap: 10px">
     <span class="secondary-100">{{ (loggedInUser$ | async)?.username }}</span>
     <button (click)="logout()">logout</button>
 </div>
 
+<span>
+    <a routerLink="/invites">Invites</a>
+    <span *ngIf="(newInvitations$ | async)?.length" class="bg-secondary-400 py-0.5 px-[.4rem] ml-2 rounded-xl">{{
+        (newInvitations$ | async)?.length
+    }}</span>
+</span>
+
 <div class="spacer"></div>
 
-<h2>Chats</h2>
-<p *ngIf="loadingChatPreviews$ | async">
-    {{ (loadingChatPreviews$ | async) && 'loading' }}
-    <loading-spinner></loading-spinner>
-</p>
-<ul class="chats">
-    <li
-        *ngFor="let chat of chatPreviews$ | async"
-        class="chat"
-        [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
-        (click)="setChatActive(chat.friendshipOrChatGroupId)"
-    >
-        <!-- <div class="image"></div> -->
-        <div class="wrapper">
-            <div class="title cut-text">{{ chat.title }}</div>
-            <div class="last-message cut-text">
-                <span
-                    class="username"
-                    *ngIf="
-                        chat.lastMessage &&
-                        (chat.chatType == ChatType.GROUP || (loggedInUser$ | async)?.id == chat.lastMessage.user.id)
-                    "
-                    >{{
-                        (loggedInUser$ | async)?.id == chat.lastMessage.user.id
-                            ? 'You'
-                            : chat.lastMessage.user.username
-                    }}:
-                </span>
-                <span class="text">{{ chat.lastMessage?.text || '&nbsp;' }}</span>
+<h2 class="text-2xl font-bold mb-3">Chats <loading-spinner *ngIf="loadingChatPreviews$ | async"></loading-spinner></h2>
+
+<div class="overflow-auto max-h-full pr-2">
+    <div class="flex mb-2 gap-2">
+        <input type="text" placeholder="Search" class="w-full" />
+        <button (click)="createChat()" title="Create a group chat">+</button>
+    </div>
+    <button class="w-full mb-2" (click)="joinGlobalChat()">join global Chat</button>
+
+    <ul class="chats | w-full">
+        <li
+            *ngFor="let chat of chatPreviews$ | async"
+            class="chat | w-full"
+            [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
+            (click)="setChatActive(chat.friendshipOrChatGroupId)"
+        >
+            <!-- <div class="image"></div> -->
+            <div class="wrapper">
+                <div class="title | cut-text font-semibold">{{ chat.title }}</div>
+                <div class="last-message cut-text">
+                    <span
+                        class="username"
+                        *ngIf="
+                            chat.lastMessage &&
+                            (chat.chatType == ChatType.GROUP || (loggedInUser$ | async)?.id == chat.lastMessage.user.id)
+                        "
+                        >{{
+                            (loggedInUser$ | async)?.id == chat.lastMessage.user.id
+                                ? 'You'
+                                : chat.lastMessage.user.username
+                        }}:
+                    </span>
+                    <span class="text">{{ chat.lastMessage?.text || '&nbsp;' }}</span>
+                </div>
             </div>
-        </div>
-        <span class="time">{{ chat.lastMessage?.timestamp | date: 'shortTime' }}</span>
-    </li>
-</ul>
-
-<button (click)="createChat()">create Chat</button>
-<button (click)="joinGlobalChat()">join global Chat</button>
-
-<div class="spacer"></div>
-
-<h2>Invitations</h2>
-<div class="status-filter">
-    <button
-        [class.isActiveFilter]="receivedInvitationsFilter == 'pending'"
-        (click)="loadReceivedInvitations(InvitationStatus.PENDING)"
-    >
-        pending {{ (receivedInvitations$ | async)?.pending?.length }}
-    </button>
-    <button
-        [class.isActiveFilter]="receivedInvitationsFilter == 'accepted'"
-        (click)="loadReceivedInvitations(InvitationStatus.ACCEPTED)"
-    >
-        accepted {{ (receivedInvitations$ | async)?.accepted?.length }}
-    </button>
-    <button
-        [class.isActiveFilter]="receivedInvitationsFilter == 'declined'"
-        (click)="loadReceivedInvitations(InvitationStatus.DECLINED)"
-    >
-        declined {{ (receivedInvitations$ | async)?.declined?.length }}
-    </button>
+            <span class="time">{{ chat.lastMessage?.timestamp | date: 'shortTime' }}</span>
+        </li>
+    </ul>
 </div>
-<loading-spinner *ngIf="(receivedInvitations$ | async)?.loading"></loading-spinner>
-
-<ul class="invitations">
-    <li *ngFor="let invitation of (receivedInvitations$ | async)?.[receivedInvitationsFilter]">
-        {{ invitation.inviter.username }}, {{ invitation.invitedAt | date: 'MMM d, h:mm a' }}
-        <div class="response-actions">
-            <button
-                (click)="respondToInvitation(invitation.id, InvitationResponse.ACCEPT)"
-                [disabled]="invitation.status == InvitationStatus.ACCEPTED"
-            >
-                accept
-            </button>
-            <button
-                (click)="respondToInvitation(invitation.id, InvitationResponse.DECLINE)"
-                [disabled]="invitation.status != InvitationStatus.PENDING"
-            >
-                decline
-            </button>
-        </div>
-    </li>
-</ul>
-
-<div class="spacer"></div>
-
-<h3>Invite a friend</h3>
-<input
-    type="text"
-    placeholder="Search for users"
-    #userSearchInput
-    (keydown.enter)="searchUsers(userSearchInput.value)"
-/>
-<button (click)="searchUsers(userSearchInput.value)">search</button>
-
-<br />
-<loading-spinner *ngIf="loadingSearchResults"></loading-spinner>
-<ul>
-    <li *ngFor="let user of userSearchResult">
-        {{ user.username }}
-        {{ user.bio }}
-        <button [disabled]="user.friendshipId" (click)="sendInvitation(user.id)">Invite</button>
-    </li>
-    {{
-        userSearchResult?.length == 0 ? 'No user found' : ''
-    }}
-</ul>
-
-<div class="spacer"></div>
-
-<h3>Invitations sent</h3>
-<button (click)="loadSentInvitations()">{{ (sentInvitations$ | async)?.all ? 're' : '' }}load</button>
-<loading-spinner *ngIf="(sentInvitations$ | async)?.loading"></loading-spinner>
-<ul class="sent-invitations">
-    <li *ngFor="let invitation of (sentInvitations$ | async)?.all">
-        {{ invitation.invitee.username }}, {{ invitation.invitedAt | date: 'MMM d, h:mm a' }}
-        {{ invitation.status == 'accepted' ? '(accepted)' : '' }}
-        <span class="response-actions">
-            <button (click)="deleteInvitation(invitation.id)">
-                {{ invitation.status == InvitationStatus.ACCEPTED ? 'delete' : 'revoke' }}
-            </button>
-        </span>
-    </li>
-    {{
-        (sentInvitations$ | async)?.all?.length == 0 ? 'No invitations' : ''
-    }}
-</ul>

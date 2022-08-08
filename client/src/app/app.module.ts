@@ -27,6 +27,7 @@ import { SidebarComponent } from './components/organisms/sidebar/sidebar.compone
 import { HotToastModule } from '@ngneat/hot-toast';
 import { LoadingSpinnerComponent } from './components/atoms/loading-spinner/loading-spinner.component';
 import { DatePipe } from '@angular/common';
+import { InvitesComponent } from './pages/invites/invites.component';
 
 @NgModule({
     declarations: [
@@ -44,6 +45,7 @@ import { DatePipe } from '@angular/common';
         AuthFormComponent,
         SidebarComponent,
         LoadingSpinnerComponent,
+        InvitesComponent,
     ],
     imports: [
         BrowserModule,
@@ -59,12 +61,21 @@ import { DatePipe } from '@angular/common';
         HotToastModule.forRoot({
             position: 'bottom-left',
             success: {
-                iconTheme: { primary: 'var(--primary-100)', secondary: 'black' },
+                iconTheme: { primary: 'var(--primary-400)', secondary: 'black' },
             },
             loading: {
-                iconTheme: { primary: 'var(--secondary-100)', secondary: 'transparent' },
+                iconTheme: { primary: 'var(--gray-200)', secondary: 'transparent' },
             },
-            style: { background: 'var(--primary-800)', color: 'white', 'border-radius': '14px' },
+            error: {
+                iconTheme: { primary: 'var(--red-400)', secondary: 'black' },
+            },
+            // className: 'bg-gray-800 border border-subtle text-gray-100 rounded-xl',
+            style: {
+                background: 'var(--gray-800)',
+                color: 'var(--gray-100)',
+                borderRadius: '13px',
+                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), 0px 4px 10px rgba(0, 0, 0, 0.25)',
+            },
         }),
     ],
     providers: [DatePipe],
