@@ -37,11 +37,12 @@ export class SidebarComponent implements OnInit {
         this.store.dispatch(chatActions.setActiveChat({ chatId }));
     }
 
-    createChat() {
+    // needs to be an arrow function to retain `this`
+    createChat = () => {
         const title = prompt('Type in the new chat title.')?.trim();
         if (!title) return;
         this.store.dispatch(chatActions.createChat({ title }));
-    }
+    };
 
     joinGlobalChat() {
         this.chatGroupService.joinGlobalChat();
