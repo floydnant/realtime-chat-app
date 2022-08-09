@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input } from '@angular/core';
+import { MenusService } from 'src/app/services/menus.service';
 import { MenuItem } from '../../atoms/menu-item/types';
 
 @Component({
@@ -7,23 +8,26 @@ import { MenuItem } from '../../atoms/menu-item/types';
     styleUrls: ['./drop-down.component.scss'],
 })
 export class DropDownComponent {
-    constructor(private elemRef: ElementRef) {}
+    constructor(private elemRef: ElementRef, private menusService: MenusService) {
+        this.menusService.addMenu(this);
+    }
 
     @Input() items: MenuItem[];
 
     isOpen = false;
     toggle() {
-        this.isOpen = !this.isOpen;
+        if (this.isOpen) this.close();
+        else this.open();
     }
     close() {
         this.isOpen = false;
     }
     open() {
+        this.menusService.onBeforeOpen();
         this.isOpen = true;
     }
 
-    onDocumentClick(_e: Event) {
-        const e = _e as PointerEvent;
-        if (!this.elemRef.nativeElement.contains(e.target)) this.close();
+    onDocumentClick(e: Event) {
+        if (this.isOpen && !this.elemRef.nativeElement.contains(e.target)) this.close();
     }
 }
