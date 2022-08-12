@@ -19,7 +19,7 @@
     align-items: center;
 }
 .chat-title-bar {
-    @apply w-full p-3 z-10 bg-fade-to-bottom;
+    @apply w-full p-3 z-10 /* bg-fade-to-bottom */;
 
     display: flex;
     flex-direction: column;
