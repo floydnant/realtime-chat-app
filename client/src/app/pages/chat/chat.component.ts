@@ -159,10 +159,15 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     private _chatMessages_ = this.handleSubscription(
         this.chatService.getChatInitializationUpdates().subscribe(messages => {
             this.messages = getCopyOf(messages);
+            this.sendingMessages = [];
             this.scrollToBottom();
         }),
-        this.chatService.getChatMessageUpdates().subscribe(({ message }) => {
+        this.chatService.getChatMessageUpdates().subscribe(({ message, sendingId }) => {
             this.addMessageToChat(message);
+
+            const messageIndex = this.sendingMessages.findIndex(message => message.sendingId == sendingId);
+            this.sendingMessages.splice(messageIndex, 1);
+
             this.scrollToBottom();
         }),
     );
@@ -176,7 +181,14 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     async sendMessage() {
         if (!this.newMessage || !this.user) return;
 
-        this.chatService.sendMessage({ messageText: this.newMessage, chatId: this.chatsState.activeChatId! });
+        const sendingId = new Date().toString() + Math.random();
+        this.chatService.sendMessage({
+            messageText: this.newMessage,
+            chatId: this.chatsState.activeChatId!,
+            sendingId,
+        });
+        this.sendingMessages.push({ messageText: this.newMessage, sendingId });
+        this.scrollToBottom();
 
         this.newMessage = '';
     }
@@ -186,6 +198,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.sendMessage();
         }
     }
+    sendingMessages: { messageText: string; sendingId: string }[] = [];
 
     messages: (StoredMessage | UserOnlineStatusEventMessage)[] = [];
     addMessageToChat({ ...message }: StoredMessage | UserOnlineStatusEvent) {

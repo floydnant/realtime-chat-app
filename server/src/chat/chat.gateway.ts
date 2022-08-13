@@ -22,7 +22,7 @@ export class ChatGateway {
     @WebSocketServer() server: Server<SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap, SocketEventPayloadAsFnMap>;
 
     @SubscribeMessage(SocketEvents.CLIENT__CHAT_MESSAGE)
-    async handleChatMessage(client: TypedSocket, { chatId, messageText }: Client_ChatMessagePayload) {
+    async handleChatMessage(client: TypedSocket, { chatId, messageText, sendingId }: Client_ChatMessagePayload) {
         const user = this.socketManager.getUserOnline(client.id);
         if (!user) return;
         const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.userId);
@@ -34,6 +34,7 @@ export class ChatGateway {
         this.server.to(chatId).emit(SocketEvents.SERVER__CHAT_MESSAGE, {
             chatId,
             message: persistedMessage as unknown as Server_ChatMessagePayload['message'],
+            sendingId,
         });
     }
 

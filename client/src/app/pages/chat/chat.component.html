@@ -24,6 +24,12 @@
                     [hideUsername]="activeChat?.chatType == ChatType.PRIVATE"
                 ></chat-message>
             </div>
+            <chat-message
+                *ngFor="let sendingMessage of sendingMessages"
+                [messageText]="sendingMessage.messageText"
+                [isMe]="true"
+                [isLoading]="true"
+            ></chat-message>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: center; height: 100%">
