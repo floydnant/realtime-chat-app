@@ -44,12 +44,14 @@ export interface Server_TypingEventPayload {
 export interface Client_ChatMessagePayload {
     chatId: string;
     messageText: string;
+    sendingId: string;
 }
 export interface Server_ChatMessagePayload {
     chatId: string;
     message: ServerChatMessage & {
         user: UserPreview;
     };
+    sendingId: string;
 }
 
 export interface Server_UserOnlineStatusEventPayload {

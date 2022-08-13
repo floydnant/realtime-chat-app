@@ -1,13 +1,12 @@
-<span *ngIf="!hideUsername && !sameUserAsPrevMsg && variant == MessageTypes.CHAT_MESSAGE && message?.user && !isMe" class="username">{{
-    message?.user?.username
-}}</span>
-<div
-    class="_container {{ variant.replace(' ', '-') }}"
-    [class.is-me]="isMe"
-    [class.same-user]="sameUserAsPrevMsg"
+<span
+    *ngIf="!hideUsername && !sameUserAsPrevMsg && variant == MessageTypes.CHAT_MESSAGE && message?.user && !isMe"
+    class="username"
+    >{{ message?.user?.username }}</span
 >
+<div class="_container {{ variant.replace(' ', '-') }}" [class.is-me]="isMe" [class.same-user]="sameUserAsPrevMsg">
     <span class="message" [innerHTML]="message?.text || messageText"></span>
-    <div *ngIf="variant == MessageTypes.CHAT_MESSAGE" class="time">
+    <loading-spinner *ngIf="isLoading" class="ml-2"></loading-spinner>
+    <div *ngIf="variant == MessageTypes.CHAT_MESSAGE && !isLoading" class="time">
         <!-- @TODO: implement time localisation -->
         <span>{{ message?.timestamp | date: 'shortTime' }}</span>
     </div>
