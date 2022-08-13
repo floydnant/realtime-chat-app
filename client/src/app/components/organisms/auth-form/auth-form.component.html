@@ -9,7 +9,10 @@
 
     <input-field *ngIf="variant == 'signup'" label="Email" (newValue)="signupCreds.email = $event"></input-field>
 
-    <input-field label="Password" (newValue)="signupCreds.password = $event; loginCreds.password = $event"></input-field>
+    <input-field
+        label="Password"
+        (newValue)="signupCreds.password = $event; loginCreds.password = $event"
+    ></input-field>
 
     <input-field
         *ngIf="variant == 'signup'"
@@ -18,5 +21,7 @@
         (newValue)="signupCreds.password = $event"
     ></input-field>
 
-    <button (click)="onSubmit()">{{ variant }}</button>
+    <button class="btn-primary w-full" (click)="onSubmit()">
+        {{ variant == 'signup' ? 'Sign Up' : 'Login' }}
+    </button>
 </div>

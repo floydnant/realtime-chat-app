@@ -1,0 +1,7 @@
+<div
+    class="menu | bg-gray-800 bg-opacity-45 backdrop-blur-xl border border-subtle rounded-xl p-2 w-max shadow-card min-w-[13rem] select-none"
+    [class.hidden]="!isOpen"
+    (document:click)="onDocumentClick($event)"
+>
+    <app-menu-item *ngFor="let item of items" [props]="item" (click)="close()"></app-menu-item>
+</div>

@@ -45,7 +45,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.user = user.loggedInUser;
             this.chatsState = chats;
         });
-        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => (this.activeChat = chat))
+        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => (this.activeChat = chat));
     }
 
     ngOnDestroy() {
@@ -127,7 +127,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             if (usersTyping.length == 0) return '';
 
             const usersTypingText = `${usersTyping
-                .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
+                .map(u => `<span class="text-secondary-200">${escapeHTML(u)}</span>`)
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
@@ -136,13 +136,13 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
     usersOnlineText$ = this.chatService.getUsersOnline().pipe(
         map(usersOnline => {
-            const users = (usersOnline || [])
-                .filter(u => u != this.user?.username);
-            if (this.activeChat?.chatType == ChatType.PRIVATE) return users.length > 1 ? 'online' : 'offline';
+            const users = (usersOnline || []).filter(u => u != this.user?.username);
+            if (this.activeChat?.chatType == ChatType.PRIVATE)
+                return users.length > 1
+                    ? '<span class="text-primary-400">online</span>'
+                    : '<span class="text-gray-300">offline</span>';
 
-            return users
-                .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
-                .join(', ');
+            return users.map(u => `<span class="text-primary-400">${escapeHTML(u)}</span>`).join(', ');
         }),
     );
 
