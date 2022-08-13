@@ -37,35 +37,43 @@ export class UserMenuComponent implements OnInit {
             label: 'Invitations',
             route: '/invites',
             badge: 0,
+            iconClass: 'fas fa-envelope',
         },
         {
             label: 'Chats',
             route: '/chat',
+            iconClass: 'fas fa-comments-alt',
         },
         {
             label: 'Account',
             disabled: true,
+            iconClass: 'fas fa-user',
         },
         {
             label: 'Settings',
             disabled: true,
+            iconClass: 'fas fa-cog',
         },
         {
             label: 'Request a Feature',
             disabled: true,
+            iconClass: 'fas fa-rocket-launch',
         },
         {
             label: 'Report a Bug',
             disabled: true,
+            iconClass: 'fas fa-bug',
         },
         {
             label: '',
             type: MenuItemType.SEPERATOR,
+            iconClass: '',
         },
         {
             label: 'Logout',
             action: () => this.logout(),
             type: MenuItemType.DANGER,
+            iconClass: 'fas fa-sign-out-alt',
         },
     ];
 }

@@ -1,4 +1,4 @@
-<hr *ngIf="props.type == MenuItemType.SEPERATOR; else menuItem" class="border-gray-700"/>
+<hr *ngIf="props.type == MenuItemType.SEPERATOR; else menuItem" class="border-gray-700" />
 
 <ng-template #menuItem>
     <div
@@ -19,11 +19,11 @@
             class="text-inherit w-full !no-underline mr-3"
             [class.disabled]="props.disabled"
             (click)="onClick($event)"
-            >{{ props.label }}</a
+            ><i class="mr-2" [class]="props.iconClass"></i> {{ props.label }}</a
         >
         <ng-template #elseBlock
             ><button class="w-full text-left mr-3" [disabled]="props.disabled" (click)="onClick($event)">
-                {{ props.label }}
+                <i class="mr-2" [class]="props.iconClass"></i> {{ props.label }}
             </button></ng-template
         >
 

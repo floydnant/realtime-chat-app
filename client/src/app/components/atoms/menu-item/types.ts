@@ -12,4 +12,5 @@ export type MenuItem = {
     route?: string;
     badge?: number;
     disabled?: boolean;
+    iconClass: string;
 };
