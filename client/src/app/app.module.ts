@@ -34,6 +34,7 @@ import { InvitationComponent } from './components/molecules/invitation/invitatio
 import { UserMenuComponent } from './components/organisms/user-menu/user-menu.component';
 import { DropDownComponent } from './components/molecules/drop-down/drop-down.component';
 import { MenuItemComponent } from './components/atoms/menu-item/menu-item.component';
+import { DropDownTriggerDirective } from './components/molecules/drop-down/drop-down-trigger.directive';
 
 @NgModule({
     declarations: [
@@ -58,6 +59,7 @@ import { MenuItemComponent } from './components/atoms/menu-item/menu-item.compon
         UserMenuComponent,
         DropDownComponent,
         MenuItemComponent,
+        DropDownTriggerDirective,
     ],
     imports: [
         BrowserModule,
