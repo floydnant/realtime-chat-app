@@ -10,4 +10,4 @@
     NG_APP_SERVER_PROVIDER = 'heroku'
 
 [context.branch-deploy.environment]
-    NG_APP_SERVER_BASE_URL = 'https://realtime-chat-app-staging.up.railway.app'
+    NG_APP_SERVER_BASE_URL = 'https://floyds-messenger-staging.herokuapp.com'

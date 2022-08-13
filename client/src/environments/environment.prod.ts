@@ -6,18 +6,21 @@ const provider = process.env.NG_APP_SERVER_PROVIDER;
 
 const urls = {
     heroku: {
-        prod: 'https://floyds-messenger-server.herokuapp.com',
+        prod: 'https://floyds-messenger-prod.herokuapp.com',
+        staging: 'https://floyds-messenger-staging.herokuapp.com',
         review: `https://floyds-messenger-pr-${reviewId}.herokuapp.com`,
     },
     railway: {
         prod: 'https://realtime-chat-app.up.railway.app',
+        staging: 'https://realtime-chat-app-staging.up.railway.app',
         review: `https://realtime-chat-app-realtime-chat-app-pr-${reviewId}.up.railway.app`,
     },
 };
 
 const url = {
     prod: urls[provider || 'heroku'].prod,
-    review: urls[provider || 'railway'].review,
+    staging: urls[provider || 'heroku'].staging,
+    review: urls[provider || 'heroku'].review,
 };
 
 export const environment = {
