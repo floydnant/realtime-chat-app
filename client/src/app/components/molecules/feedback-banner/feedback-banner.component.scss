@@ -1,18 +1,16 @@
 .container {
     &.error {
-        --hue: 0;
-        @apply text-red-400 border-red-400 bg-red-900
+        @apply text-red-400 border-red-400 bg-red-900;
     }
     &.success {
-        --hue: 130;
-        @apply text-primary-400 border-primary-400 bg-primary-700
+        @apply text-primary-400 border-primary-400 bg-primary-700;
     }
     &.warning {
-        --hue: 50;
+        @apply text-orange-400 border-orange-400 bg-orange-900;
     }
 
     @apply border my-4 rounded-xl p-4;
-    
+
     p {
         margin: 0;
 
@@ -25,7 +23,7 @@
             transition: filter 180ms;
 
             &:hover {
-                filter: brightness(2)
+                filter: brightness(2);
             }
         }
     }
