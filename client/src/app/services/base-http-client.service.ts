@@ -122,7 +122,7 @@ export class BaseHttpClient {
                 return of({
                     ...err,
                     error: {
-                        statusCode: 0,
+                        statusCode: '0 - OFFLINE',
                         message: 'You are offline. Please connect to the internet and try again.',
                         error: 'network error',
                     },
@@ -145,7 +145,7 @@ export class BaseHttpClient {
                     of({
                         ...err,
                         error: {
-                            statusCode: 0,
+                            statusCode: '0 - SERVER DOWN',
                             message: 'We may be experiencing some issues with the server. Please report it.',
                             error: 'server error',
                         },

@@ -1,6 +1,6 @@
 const isReviewEnv = process.env.NG_APP_PULL_REQUEST == 'true';
 const reviewId = process.env.NG_APP_REVIEW_ID;
-const provider = process.env.NG_APP_SERVER_PROVIDER;
+const provider = process.env.NG_APP_SERVER_PROVIDER || 'heroku';
 
 // @TODO: add staging env
 
@@ -18,9 +18,9 @@ const urls = {
 };
 
 const url = {
-    prod: urls[provider || 'heroku'].prod,
-    staging: urls[provider || 'heroku'].staging,
-    review: urls[provider || 'heroku'].review,
+    prod: urls[provider].prod,
+    staging: urls[provider].staging,
+    review: urls[provider].review,
 };
 
 export const environment = {

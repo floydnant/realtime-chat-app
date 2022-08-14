@@ -70,6 +70,13 @@ export const chatsReducer = createReducer(
             chatPreviews: chatPreviews,
         };
     }),
+    // loaded chatPreview successfully
+    on(chatActions.loadChatPreviewSuccess, (state, { chatPreview }) => {
+        return {
+            ...state,
+            chatPreviews: [...state.chatPreviews, chatPreview],
+        };
+    }),
 
     // successfully created a chat
     on(chatActions.createChatSuccess, (state, { createdChat: { id, ...createdChat } }) => {
@@ -145,13 +152,6 @@ export const chatsReducer = createReducer(
                 pending: state.receivedInvitations.pending?.filter(invitation => invitation.id != invitationId),
                 [invitationsKey]: [...(state.receivedInvitations[invitationsKey] || []), invitation],
             },
-        };
-    }),
-    // friend accepted invitation
-    on(chatActions.friendAcceptedInvitation, (state, { chatPreview }) => {
-        return {
-            ...state,
-            chatPreviews: [...state.chatPreviews, chatPreview],
         };
     }),
 

@@ -6,7 +6,7 @@ import { FriendshipService } from 'src/app/services/friendship.service';
 import { SocketService } from 'src/app/services/socket.service';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { appActions } from '../app.actions';
-import { catchAndHandleError, handleError, throwIfErrorExists } from '../app.effects';
+import { catchAndHandleError, handleResponse, throwIfErrorExists } from '../app.effects';
 import { chatActions } from './chat.actions';
 
 @Injectable()
@@ -18,33 +18,34 @@ export class FriendshipEffects {
         private socket: SocketService,
     ) {}
 
+    forwardLoadInvitation = createEffect(() => {
+        return this.socket
+            .fromEvent(SocketEvents.SERVER__NEW_FRIEND_INVITE)
+            .pipe(map(({ invitationId }) => chatActions.loadReceivedInvitation({ invitationId })));
+    });
     loadNewInvitation = createEffect(() => {
-        return this.socket.fromEvent(SocketEvents.SERVER__NEW_FRIEND_INVITE).pipe(
-            mergeMap(({ invitationId }) =>
+        return this.actions$.pipe(
+            ofType(chatActions.loadReceivedInvitation),
+            mergeMap(({ invitationId, ...action }) =>
                 this.friendshipService.getInvitation(invitationId).pipe(
-                    map(invitationOrError => {
-                        return handleError(invitationOrError, invitation => {
+                    handleResponse({
+                        onSuccess: invitation => {
                             this.toastService.info(`${invitation.inviter.username} invited you to a friendship.`);
                             return chatActions.newInvitationReceived({ invitation });
-                        });
+                        },
+                        actionToRetry: { invitationId, ...action },
                     }),
                 ),
             ),
         );
     });
 
-    loadNewChatPreview = createEffect(() => {
+    forwardLoadNewChatPreview = createEffect(() => {
         return this.socket.fromEvent(SocketEvents.SERVER__ACCEPT_FRIEND_INVITE).pipe(
-            mergeMap(({ friendshipId }) =>
-                this.friendshipService.getFriendshipChatPreview(friendshipId).pipe(
-                    map(chatPreviewOrError => {
-                        return handleError(chatPreviewOrError, chatPreview => {
-                            this.toastService.info(`${chatPreview.title} accepted your invitation`);
-                            return chatActions.friendAcceptedInvitation({ chatPreview });
-                        });
-                    }),
-                ),
-            ),
+            map(({ friendshipId, friendName }) => {
+                this.toastService.info(`${friendName} accepted your invitation`);
+                return chatActions.loadChatPreview({ chatId: friendshipId });
+            }),
         );
     });
 
@@ -57,15 +58,15 @@ export class FriendshipEffects {
     loadInvitationsReceived = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.loadReceivedInvitations),
-            mergeMap(({ statusFilter }) => {
+            mergeMap(({ statusFilter, ...action }) => {
                 return this.friendshipService.getInvitationsReceived(statusFilter).pipe(
-                    map(invitationsOrError => {
-                        return handleError(invitationsOrError, invitations =>
+                    handleResponse({
+                        onSuccess: invitations =>
                             chatActions.loadReceivedInvitationsSuccess({
                                 invitations,
                                 statusFilter,
                             }),
-                        );
+                        actionToRetry: { statusFilter, ...action },
                     }),
                 );
             }),
@@ -75,17 +76,19 @@ export class FriendshipEffects {
     respondtoInvitation = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.respondToInvitation),
-            mergeMap(({ invitationId, response }) => {
+            mergeMap(action => {
+                const { invitationId, response } = action;
                 return this.friendshipService.respondToInvitation(invitationId, response).pipe(
-                    map(resOrError => {
-                        return handleError(resOrError, res => {
+                    handleResponse({
+                        onSuccess: res => {
                             this.toastService.success(res.successMessage);
                             return chatActions.respondToInvitationSuccess({
                                 chatPreview: res.chatPreview,
                                 invitationId,
                                 invitationResponse: response,
                             });
-                        });
+                        },
+                        actionToRetry: action,
                     }),
                 );
             }),
@@ -95,12 +98,11 @@ export class FriendshipEffects {
     loadInvitationsSent = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.loadSentInvitations),
-            mergeMap(() => {
+            mergeMap(action => {
                 return this.friendshipService.getInvitationsSent().pipe(
-                    map(invitationsOrError => {
-                        return handleError(invitationsOrError, invitations =>
-                            chatActions.loadSentInvitationsSuccess({ invitations }),
-                        );
+                    handleResponse({
+                        onSuccess: invitations => chatActions.loadSentInvitationsSuccess({ invitations }),
+                        actionToRetry: action,
                     }),
                 );
             }),
@@ -110,7 +112,7 @@ export class FriendshipEffects {
     sendInvitation = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.sendInvitation),
-            mergeMap(({ userId }) => {
+            mergeMap(({ userId, ...action }) => {
                 return this.friendshipService.sendInvitation(userId).pipe(
                     throwIfErrorExists(),
                     this.toastService.observe({
@@ -119,7 +121,7 @@ export class FriendshipEffects {
                         error: res => res.error.message,
                     }),
                     map(res => chatActions.sendInvitationSuccess(res)),
-                    catchAndHandleError(),
+                    catchAndHandleError({ userId, ...action }),
                 );
             }),
         );
@@ -128,7 +130,7 @@ export class FriendshipEffects {
     deleteInvitation = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.deleteInvitation),
-            mergeMap(({ invitationId }) => {
+            mergeMap(({ invitationId, ...action }) => {
                 return this.friendshipService.deleteInvitation(invitationId).pipe(
                     throwIfErrorExists(),
                     this.toastService.observe({
@@ -137,7 +139,7 @@ export class FriendshipEffects {
                         error: res => res.error.message,
                     }),
                     map(() => chatActions.deleteInvitationSuccess({ invitationId })),
-                    catchAndHandleError(),
+                    catchAndHandleError({ invitationId, ...action }),
                 );
             }),
         );

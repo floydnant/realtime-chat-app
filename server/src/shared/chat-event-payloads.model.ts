@@ -26,6 +26,7 @@ export interface Server_NewFriendInvite {
 }
 export interface Server_AcceptFriendInvite {
     friendshipId: string;
+    friendName: string;
 }
 export interface Server_DeleteFriendInvite {
     invitationId: string;
