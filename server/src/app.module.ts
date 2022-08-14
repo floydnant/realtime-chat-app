@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma-abstractions/prisma.module';
 import { UsersModule } from './users/users.module';
 import { ChatPreviewsModule } from './chat-previews/chat-previews.module';
 import { SocketModule } from './socket/socket.module';
+import { AppController } from './app.controller';
 
 @Module({
     imports: [
@@ -21,7 +22,7 @@ import { SocketModule } from './socket/socket.module';
         ChatPreviewsModule,
         SocketModule,
     ],
-    controllers: [],
+    controllers: [AppController],
     providers: [],
     exports: [ConfigModule],
 })

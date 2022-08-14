@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { appActions } from '../app.actions';
-import { handleError } from '../app.effects';
+import { handleResponse } from '../app.effects';
 import { AppState } from '../app.reducer';
 import { chatActions } from './chat.actions';
 import { ChatsState } from './chat.model';
@@ -50,7 +50,8 @@ export class ChatsEffects {
     loadActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.loadActiveChatMessages),
-            mergeMap(({ chatId, chatType }) => {
+            mergeMap(action => {
+                const { chatId, chatType } = action;
                 const alreadyLoadedMessages = this.chatMessages[chatId];
                 if (alreadyLoadedMessages)
                     return of(
@@ -62,10 +63,9 @@ export class ChatsEffects {
                     );
 
                 return this.chatService.getChatMessages(chatId, chatType).pipe(
-                    map(chatMessagesOrError => {
-                        return handleError(chatMessagesOrError, messages =>
-                            chatActions.loadActiveChatMessagesSuccess({ messages, chatId }),
-                        );
+                    handleResponse({
+                        onSuccess: messages => chatActions.loadActiveChatMessagesSuccess({ messages, chatId }),
+                        actionToRetry: action,
                     }),
                 );
             }),

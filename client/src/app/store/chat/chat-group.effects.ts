@@ -3,7 +3,8 @@ import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { mergeMap, map } from 'rxjs';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
-import { throwIfErrorExists, catchAndHandleError, handleError } from '../app.effects';
+import { FriendshipService } from 'src/app/services/friendship.service';
+import { throwIfErrorExists, catchAndHandleError, handleResponse } from '../app.effects';
 import { chatActions } from './chat.actions';
 
 @Injectable()
@@ -11,13 +12,14 @@ export class ChatGroupEffects {
     constructor(
         private actions$: Actions,
         private chatGroupService: ChatGroupService,
+        private friendshipService: FriendshipService,
         private toastService: HotToastService,
     ) {}
 
     createChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.createChat),
-            mergeMap(({ title }) => {
+            mergeMap(({ title, ...action }) => {
                 return this.chatGroupService.createChat(title).pipe(
                     // error is needed for toastService to register it and show the respective toast
                     throwIfErrorExists(),
@@ -27,7 +29,7 @@ export class ChatGroupEffects {
                         error: `Could not create chat.`,
                     }),
                     map(createdChat => chatActions.createChatSuccess({ createdChat })),
-                    catchAndHandleError(),
+                    catchAndHandleError({ title, ...action }),
                 );
             }),
         );
@@ -43,15 +45,29 @@ export class ChatGroupEffects {
     loadJoinedChatPreviews = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.loadChatPreviews),
-            mergeMap(() => {
+            mergeMap(action => {
                 return this.chatGroupService.getJoinedChats().pipe(
-                    map(chatPreviewsOrError => {
-                        return handleError(chatPreviewsOrError, chatPreviews =>
-                            chatActions.loadChatPreviewsSuccess({ chatPreviews }),
-                        );
+                    handleResponse({
+                        onSuccess: chatPreviews => chatActions.loadChatPreviewsSuccess({ chatPreviews }),
+                        actionToRetry: action,
                     }),
                 );
             }),
+        );
+    });
+
+    loadNewChatPreview = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatActions.loadChatPreview),
+            mergeMap(({ chatId, ...action }) =>
+                // @TODO: this should call the chat.service instead
+                this.friendshipService.getFriendshipChatPreview(chatId).pipe(
+                    handleResponse({
+                        onSuccess: chatPreview => chatActions.loadChatPreviewSuccess({ chatPreview }),
+                        actionToRetry: { chatId, ...action },
+                    }),
+                ),
+            ),
         );
     });
 }

@@ -18,6 +18,11 @@ export const chatActions = {
         '[ CHAT ] get joined chat previews success',
         props<{ chatPreviews: ChatPreview[] }>(),
     ),
+    loadChatPreview: createAction('[ CHAT ] load chat preview by id', props<{ chatId: string }>()),
+    loadChatPreviewSuccess: createAction(
+        '[ CHAT ] load chat preview by id succes',
+        props<{ chatPreview: ChatPreview }>(),
+    ),
 
     setActiveChat: createAction('[ CHAT ] set active', props<{ chatId: string }>()),
     setActiveChatSuccess: createAction('[ CHAT ] set active success', props<{ chatId: string }>()),
@@ -54,6 +59,10 @@ export const chatActions = {
         '[ FRIENDSHIP ] load received invitations',
         props<{ statusFilter: InvitationStatus }>(),
     ),
+    loadReceivedInvitation: createAction(
+        '[ FRIENDSHIP ] load received invitation from id',
+        props<{ invitationId: string }>(),
+    ),
     loadReceivedInvitationsSuccess: createAction(
         '[ FRIENDSHIP ] load received invitations success',
         props<{ invitations: ReceivedFriendshipInvitation[]; statusFilter: InvitationStatus }>(),
@@ -70,11 +79,6 @@ export const chatActions = {
             invitationId: string;
             invitationResponse: InvitationResponse;
         }>(),
-    ),
-
-    friendAcceptedInvitation: createAction(
-        '[ FRIENDSHIP ] friend accepted invitation',
-        props<{ chatPreview: ChatPreview }>(),
     ),
 
     loadSentInvitations: createAction('[ FRIENDSHIP ] load sent invitations'),

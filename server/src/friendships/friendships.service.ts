@@ -282,7 +282,7 @@ export class FriendshipsService {
 
         this.socketManager.addToSocketQueue({
             eventName: SocketEvents.SERVER__ACCEPT_FRIEND_INVITE,
-            payload: { friendshipId: friendship.id },
+            payload: { friendshipId: friendship.id, friendName: friend.username },
             userId: friend.id,
         });
 

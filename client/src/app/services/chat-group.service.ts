@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HotToastService } from '@ngneat/hot-toast';
 import { Store } from '@ngrx/store';
 import { ChatGroupPreview } from 'src/shared/index.model';
-import { handleError } from '../store/app.effects';
+import { appActions } from '../store/app.actions';
+import { handleError, handleResponse } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
 import { chatActions } from '../store/chat/chat.actions';
 import { ChatPreview } from '../store/chat/chat.model';
@@ -34,12 +35,16 @@ export class ChatGroupService {
     joinGlobalChat() {
         return this.http
             .post<{ successMessage: string; chatRoom: ChatGroupPreview }>('/chats/globalChat/join')
-            .subscribe(chatRoomResOrError => {
-                const action = handleError(chatRoomResOrError, chatRoomRes => {
-                    this.toastService.success(`You joined '${chatRoomRes.chatRoom.title}'`);
-                    return chatActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
-                });
-                this.store.dispatch(action);
-            });
+            .pipe(
+                handleResponse({
+                    onSuccess: chatRoomRes => {
+                        this.toastService.success(`You joined '${chatRoomRes.chatRoom.title}'`);
+                        return chatActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
+                    },
+                    // @TODO: this should actually retry when handled through effects
+                    actionToRetry: appActions.nothing(),
+                }),
+            )
+            .subscribe(action => this.store.dispatch(action));
     }
 }
