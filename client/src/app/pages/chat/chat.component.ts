@@ -98,10 +98,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             subtree: true,
         });
     }
-    @HostListener('document:keydown', ['$event'])
-    focusMessageInput(e: KeyboardEvent) {
-        if (e.key == 'm') moveToMacroQueue(() => this.messageInput.nativeElement.focus());
-    }
 
     _newMessage: string;
     pullMessageInputChanges() {
@@ -177,8 +173,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         const prevSubs = this.subscriptions || [];
         this.subscriptions = [...prevSubs, ...subs];
     }
-
-    async sendMessage() {
+    sendMessage = async () => {
         if (!this.newMessage || !this.user) return;
 
         const sendingId = new Date().toString() + Math.random();
@@ -191,7 +186,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         this.scrollToBottom();
 
         this.newMessage = '';
-    }
+    };
     messageSubmitHandler(e: Event) {
         if (!(e as KeyboardEvent).shiftKey) {
             e.stopPropagation();

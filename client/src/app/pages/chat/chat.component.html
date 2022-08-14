@@ -65,8 +65,11 @@
                         class="message-input"
                         [class.transparent]="!newMessage"
                         contenteditable
-                        (keydown.Enter)="messageSubmitHandler($event)"
-                        (keydown.Escape)="messageInput.blur()"
+                        [keybinding]="{
+                            'not.focus:M': 'focus',
+                            'focus:Escape': 'blur',
+                            'focus:Enter': sendMessage
+                        }"
                     ></div>
                 </div>
                 <button

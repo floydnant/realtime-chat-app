@@ -35,6 +35,7 @@ import { UserMenuComponent } from './components/organisms/user-menu/user-menu.co
 import { DropDownComponent } from './components/molecules/drop-down/drop-down.component';
 import { MenuItemComponent } from './components/atoms/menu-item/menu-item.component';
 import { DropDownTriggerDirective } from './components/molecules/drop-down/drop-down-trigger.directive';
+import { KeybindingDirective } from './directives/keybinding.directive';
 
 @NgModule({
     declarations: [
@@ -60,6 +61,7 @@ import { DropDownTriggerDirective } from './components/molecules/drop-down/drop-
         DropDownComponent,
         MenuItemComponent,
         DropDownTriggerDirective,
+        KeybindingDirective,
     ],
     imports: [
         BrowserModule,

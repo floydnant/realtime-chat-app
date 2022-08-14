@@ -6,7 +6,12 @@
 
 <div class="overflow-auto h-full max-h-full pr-3">
     <div class="flex mb-2 gap-2">
-        <input type="text" placeholder="Search" class="w-full" />
+        <input
+            type="text"
+            placeholder="Search"
+            class="w-full"
+            [keybinding]="{ 'cmd+f': 'focus', 'focus:Escape': 'blur' }"
+        />
         <div class="relative">
             <button class="button" [dropDownTriggerFor]="menu" title="Create a group chat">
                 <i class="far fa-edit"></i>
@@ -21,16 +26,21 @@
             ></app-drop-down>
         </div>
     </div>
-    <button class="button btn-primary w-full mb-2" *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)" (click)="joinGlobalChat()">
+    <button
+        class="button btn-primary w-full mb-2"
+        *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)"
+        (click)="joinGlobalChat()"
+    >
         Join global Chat
     </button>
 
     <ul class="chats | w-full">
         <li
-            *ngFor="let chat of chatPreviews$ | async"
+            *ngFor="let chat of chatPreviews$ | async; let i = index"
             class="chat"
             [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
             (click)="setChatActive(chat.friendshipOrChatGroupId)"
+            [keybinding]="i < 9 && 'cmd+' + (i + 1)"
         >
             <!-- <div class="image"></div> -->
             <div class="wrapper">
