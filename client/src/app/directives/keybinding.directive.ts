@@ -18,8 +18,13 @@ interface KeybindingEntry {
 }
 
 
-export type KeybindingInput = false | string | Record<string, KeybindingOptions> | Command;
-
+export type KeybindingInput = false | string | Record<string, KeybindingOptions>;
+export type KeybindingOptions =
+    | HandlerAction
+    | {
+          enabled?: boolean;
+          action: HandlerAction;
+      };
 
 const getKeybindingEntry = (identifier: string, options?: KeybindingOptions): KeybindingEntry => {
     const [combo, stateModifier] = identifier.split(/:\s*/).reverse();
@@ -29,8 +34,7 @@ const getKeybindingEntry = (identifier: string, options?: KeybindingOptions): Ke
     return {
         combo,
         when: (stateModifier as StateModifier) || 'always',
-        action: isCommand(action as any) ? 'click' : (action as HandlerAction),
-        command: isCommand(options) ? options : isCommand(options.command),
+        action,
         enabled: isEnabled,
         id: new Date().toString() + Math.random(),
     };
