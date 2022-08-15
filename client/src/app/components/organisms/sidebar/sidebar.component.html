@@ -40,7 +40,7 @@
             class="chat"
             [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
             (click)="setChatActive(chat.friendshipOrChatGroupId)"
-            [keybinding]="i < 9 && 'cmd+' + (i + 1)"
+            [keybinding]="getChatKeybinding(i)"
         >
             <!-- <div class="image"></div> -->
             <div class="wrapper">

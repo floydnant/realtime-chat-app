@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { KeybindingInput } from 'src/app/directives/keybinding.directive';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
-import { UserService } from 'src/app/services/user.service';
 import { AppState } from 'src/app/store/app.reducer';
 import { chatActions } from 'src/app/store/chat/chat.actions';
 import { ChatPreview } from 'src/app/store/chat/chat.model';
 import { chatsSelectors } from 'src/app/store/chat/chat.selector';
-import { userActions } from 'src/app/store/user/user.actions';
-import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
+import { ChatType } from 'src/shared/index.model';
 
 @Component({
     selector: 'sidebar',
@@ -19,6 +18,15 @@ export class SidebarComponent implements OnInit {
 
     async ngOnInit() {
         this.store.dispatch(chatActions.loadChatPreviews());
+    }
+
+    getChatKeybinding(index: number): KeybindingInput {
+        return (
+            index < 9 && {
+                ['alt+' + (index + 1)]: 'click',
+                ['not.peer-focus:' + (index + 1)]: 'click',
+            }
+        );
     }
 
     ChatType = ChatType;

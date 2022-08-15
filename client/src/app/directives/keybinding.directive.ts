@@ -1,39 +1,61 @@
-import { Directive, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { KeybindingService } from '../services/keybinding.service';
 
-type HandlerAction = 'click' | 'focus' | 'blur' | ((e: KeyboardEvent) => Promise<void | boolean> | void | boolean);
+export type HandlerAction =
+    | 'click'
+    | 'focus'
+    | 'blur'
+    | ((e: KeyboardEvent) => Promise<void | boolean> | void | boolean);
 
-export type StateModifier = 'always' | 'focus' | 'not.focus';
+export type StateModifier = 'always' | 'focus' | 'not.focus' | 'not.peer-focus';
 
 interface KeybindingEntry {
     combo: string;
     when: StateModifier;
     action: HandlerAction;
     id: string;
+    enabled: boolean;
 }
 
-const getKeybindingEntry = (identifier: string, action?: HandlerAction): KeybindingEntry => {
-    const [combo, stateModifier] = identifier.split(':').reverse();
+
+export type KeybindingInput = false | string | Record<string, KeybindingOptions> | Command;
+
+
+const getKeybindingEntry = (identifier: string, options?: KeybindingOptions): KeybindingEntry => {
+    const [combo, stateModifier] = identifier.split(/:\s*/).reverse();
+    const action = typeof options == 'function' || typeof options == 'string' ? options : 'click';
+    const isEnabled = typeof options == 'object' && typeof options.enabled == 'boolean' ? options.enabled : true;
+
     return {
         combo,
-        when: (stateModifier as any) || 'always', // @TODO: add boolean modifiers
-        action: action || 'click',
+        when: (stateModifier as StateModifier) || 'always',
+        action: isCommand(action as any) ? 'click' : (action as HandlerAction),
+        command: isCommand(options) ? options : isCommand(options.command),
+        enabled: isEnabled,
         id: new Date().toString() + Math.random(),
     };
 };
 
 @Directive({
-    selector: '[keybinding]',
+    selector: '[keybinding], [reportFocus]',
 })
-export class KeybindingDirective implements OnInit, OnDestroy {
+export class KeybindingDirective implements OnDestroy, OnChanges {
     constructor(private elemRef: ElementRef, private keybindingService: KeybindingService) {}
-    // @TODO: make keybindings dynamicly updatable
-    ngOnInit() {
+    ngOnChanges(changes: SimpleChanges): void {
+        if (!('keybinding' in changes)) return;
+
+        // @TODO: surgically unregister & register only keybindings that changed
+        this.unregisterKeybindings();
+        this.keybindings = [];
+
         if (!this.keybinding) return;
         if (typeof this.keybinding == 'string') this.keybindings.push(getKeybindingEntry(this.keybinding));
         else
-            Object.entries(this.keybinding).forEach(([identifier, action]) => {
-                this.keybindings.push(getKeybindingEntry(identifier, action));
+            Object.entries(this.keybinding).forEach(([identifier, options]) => {
+                const entry = getKeybindingEntry(identifier, options);
+                if (!entry.enabled) return;
+                this.keybindings.push(entry);
+                if (/focus/.test(entry.when)) this.reportFocus = true;
             });
 
         this.registerKeybindings();
@@ -42,21 +64,25 @@ export class KeybindingDirective implements OnInit, OnDestroy {
         this.unregisterKeybindings();
     }
 
-    @Input() keybinding: false | string | Record<string, HandlerAction>;
+    @Input() keybinding: KeybindingInput;
     private keybindings: KeybindingEntry[] = [];
 
+    @Input() reportFocus: false | '' | true = false;
     isFocused = false;
     @HostListener('focus')
     onFocus() {
         this.isFocused = true;
+        if (this.reportFocus || this.reportFocus === '') this.keybindingService.reportFocus(true);
     }
     @HostListener('blur')
     onBlur() {
         this.isFocused = false;
+        if (this.reportFocus || this.reportFocus === '') this.keybindingService.reportFocus(false);
     }
 
     registerKeybindings() {
-        this.keybindings.forEach(({ action, when, id, combo }) => {
+        this.keybindings.forEach(({ action, when, id, combo, enabled }) => {
+            if (enabled)
             this.keybindingService.registerKeybinding({
                 id,
                 when,
@@ -73,8 +99,8 @@ export class KeybindingDirective implements OnInit, OnDestroy {
     }
 
     unregisterKeybindings() {
-        this.keybindings.forEach(({ id, combo }) => {
-            this.keybindingService.unregisterKeybinding(id, combo);
+        this.keybindings.forEach(({ id, combo, enabled }) => {
+            if (enabled) this.keybindingService.unregisterKeybinding(id, combo);
         });
     }
 }

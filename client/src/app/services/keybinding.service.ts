@@ -7,7 +7,11 @@ export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs = false)
     const keys = combo.split('+');
 
     const letterKey = keys.filter(key => key != 'cmd' && key != 'shift' && key != 'alt' && key != 'ctrl')[0];
-    const letterKeyMatches = 'Key' + letterKey.toUpperCase() == e.code || letterKey == e.key;
+    const letterKeyMatches =
+        e.code == 'Key' + letterKey.toUpperCase() ||
+        e.code == 'Digit' + letterKey.toUpperCase() ||
+        e.code == letterKey ||
+        e.key == letterKey;
 
     if (!letterKeyMatches) return false;
 
@@ -37,11 +41,12 @@ export class KeybindingService {
     constructor() {
         // @TODO: implement sequences
         document.addEventListener('keydown', e => {
-            this.keybindings.forEach(async ({ combo, handler }) => {
-                if (doesComboMatch(e, combo, isMacOs)) {
-                    if (debug) console.log('Combo matched:', combo);
-                    const preventDefault = !(await handler(e));
-                    if (preventDefault) e.preventDefault();
+            this.keybindings.forEach(async ({ combo, handler, when }) => {
+                const focusPreventsMatch = when == 'not.peer-focus' && this.peerHasFocus;
+                if (!focusPreventsMatch && doesComboMatch(e, combo, isMacOs)) {
+                    if (debug) console.log('%cCombo matched: ' + combo, 'color: hsl(295, 100%, 55%)');
+                    const preserveDefault = await handler(e);
+                    if (!preserveDefault) e.preventDefault();
                 }
             });
         });
@@ -50,7 +55,12 @@ export class KeybindingService {
     private keybindings = new Map<string, Keybinding>();
 
     registerKeybinding({ id, ...keybinding }: Keybinding & { id: string }) {
-        if (debug) console.info(`registering: %c${keybinding.combo}`, 'color: hsl(185, 100%, 50%);');
+        if (debug)
+            console.info(
+                `registering: %c${keybinding.combo}%c, when: ${keybinding.when}`,
+                'color: hsl(185, 100%, 50%);',
+                'color: darkgray',
+            );
 
         const isKeybindingColliding = [...this.keybindings.values()].some(
             binding => binding.combo == keybinding.combo && binding.when != 'focus',
@@ -62,5 +72,11 @@ export class KeybindingService {
     unregisterKeybinding(id: string, combo: string) {
         if (debug) console.info(`unregistering: %c${combo}`, 'color: orange;');
         this.keybindings.delete(id);
+    }
+
+    peerHasFocus = false;
+    reportFocus(isFocused: boolean) {
+        this.peerHasFocus = isFocused;
+        if (debug) console.info(`%cpeer-focus: ${isFocused}`, isFocused && 'color: hsl(335, 100%, 55%);');
     }
 }

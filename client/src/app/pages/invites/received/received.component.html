@@ -5,6 +5,7 @@
             class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'pending'"
             (click)="loadReceivedInvitations(InvitationStatus.PENDING)"
+            keybinding="not.peer-focus:P"
         >
             pending
             <span class="badge bg-secondary-400 !shadow-lg ml-1">{{ (receivedInvitations$ | async)?.pending?.length }}</span>
@@ -13,6 +14,7 @@
             class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'accepted'"
             (click)="loadReceivedInvitations(InvitationStatus.ACCEPTED)"
+            keybinding="not.peer-focus:A"
         >
             accepted
         </button>
@@ -20,6 +22,7 @@
             class="button border-0"
             [class.!bg-gray-600]="receivedInvitationsFilter == 'declined'"
             (click)="loadReceivedInvitations(InvitationStatus.DECLINED)"
+            keybinding="not.peer-focus:D"
         >
             declined
         </button>
@@ -27,6 +30,7 @@
     <a
         routerLink="../sent"
         class="button !no-underline ml-2 hover:bg-primary-400 hover:text-gray-900 hover:border-transparent"
+        keybinding="not.peer-focus:F"
         >invite a friend</a
     >
 </div>
