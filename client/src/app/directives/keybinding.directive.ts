@@ -10,13 +10,12 @@ export type HandlerAction =
 export type StateModifier = 'always' | 'focus' | 'not.focus' | 'not.peer-focus';
 
 interface KeybindingEntry {
-    combo: string;
+    sequence: string[];
     when: StateModifier;
     action: HandlerAction;
     id: string;
     enabled: boolean;
 }
-
 
 export type KeybindingInput = false | string | Record<string, KeybindingOptions>;
 export type KeybindingOptions =
@@ -27,12 +26,12 @@ export type KeybindingOptions =
       };
 
 const getKeybindingEntry = (identifier: string, options?: KeybindingOptions): KeybindingEntry => {
-    const [combo, stateModifier] = identifier.split(/:\s*/).reverse();
+    const [sequenceStr, stateModifier] = identifier.split(/:\s*/).reverse();
     const action = typeof options == 'function' || typeof options == 'string' ? options : 'click';
     const isEnabled = typeof options == 'object' && typeof options.enabled == 'boolean' ? options.enabled : true;
 
     return {
-        combo,
+        sequence: sequenceStr.split(/\s*->\s*/),
         when: (stateModifier as StateModifier) || 'always',
         action,
         enabled: isEnabled,
@@ -85,26 +84,26 @@ export class KeybindingDirective implements OnDestroy, OnChanges {
     }
 
     registerKeybindings() {
-        this.keybindings.forEach(({ action, when, id, combo, enabled }) => {
+        this.keybindings.forEach(({ action, when, id, sequence, enabled }) => {
             if (enabled)
-            this.keybindingService.registerKeybinding({
-                id,
-                when,
-                combo,
-                handler: e => {
-                    if (when == 'focus' && !this.isFocused) return true;
-                    if (when == 'not.focus' && this.isFocused) return true;
+                this.keybindingService.registerKeybinding({
+                    id,
+                    when,
+                    sequence,
+                    handler: e => {
+                        if (when == 'focus' && !this.isFocused) return true;
+                        if (when == 'not.focus' && this.isFocused) return true;
 
-                    if (typeof action == 'string') this.elemRef.nativeElement[action]();
-                    else return action(e);
-                },
-            });
+                        if (typeof action == 'string') this.elemRef.nativeElement[action]();
+                        else return action(e);
+                    },
+                });
         });
     }
 
     unregisterKeybindings() {
-        this.keybindings.forEach(({ id, combo, enabled }) => {
-            if (enabled) this.keybindingService.unregisterKeybinding(id, combo);
+        this.keybindings.forEach(({ id, sequence, enabled }) => {
+            if (enabled) this.keybindingService.unregisterKeybinding(id, sequence);
         });
     }
 }

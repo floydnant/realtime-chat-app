@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { map } from 'rxjs';
 import { KeybindingInput } from 'src/app/directives/keybinding.directive';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { AppState } from 'src/app/store/app.reducer';
@@ -34,7 +35,14 @@ export class SidebarComponent implements OnInit {
     loggedInUser$ = this.store.select(state => state.user.loggedInUser);
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
 
-    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
+    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews).pipe(
+        map(chatPreviews =>
+            chatPreviews.map((chatPreview, i) => ({
+                ...chatPreview,
+                keybinding: this.getChatKeybinding(i),
+            })),
+        ),
+    );
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
 
     isMemberOfGlobalGroup(chatPreviews: ChatPreview[] | null) {

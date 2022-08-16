@@ -3,7 +3,7 @@ import { StateModifier } from '../directives/keybinding.directive';
 
 const isMacOs = true; // @TODO: implement OS check
 
-export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs = false) => {
+export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs_ = isMacOs) => {
     const keys = combo.split('+');
 
     const letterKey = keys.filter(key => key != 'cmd' && key != 'shift' && key != 'alt' && key != 'ctrl')[0];
@@ -16,10 +16,10 @@ export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs = false)
     if (!letterKeyMatches) return false;
 
     const modifierMatchMap = {
-        cmd: keys.includes('cmd') ? (isMacOs ? e.metaKey : e.ctrlKey) : !(isMacOs ? e.metaKey : e.ctrlKey),
+        cmd: keys.includes('cmd') ? (isMacOs_ ? e.metaKey : e.ctrlKey) : !(isMacOs_ ? e.metaKey : e.ctrlKey),
         shift: keys.includes('shift') ? e.shiftKey : !e.shiftKey,
         alt: keys.includes('alt') ? e.altKey : !e.altKey,
-        ctrl: !isMacOs ? true : keys.includes('ctrl') ? e.ctrlKey : !e.ctrlKey,
+        ctrl: !isMacOs_ ? true : keys.includes('ctrl') ? e.ctrlKey : !e.ctrlKey,
     };
     const modifiersMatch = Object.values(modifierMatchMap).reduce((prev, curr) => prev && curr);
 
@@ -28,7 +28,7 @@ export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs = false)
 
 interface Keybinding {
     when: StateModifier;
-    combo: string;
+    sequence: string[];
     handler: (e: KeyboardEvent) => Promise<void | boolean> | void | boolean;
 }
 
@@ -39,38 +39,84 @@ const debug = false;
 })
 export class KeybindingService {
     constructor() {
-        // @TODO: implement sequences
-        document.addEventListener('keydown', e => {
-            this.keybindings.forEach(async ({ combo, handler, when }) => {
-                const focusPreventsMatch = when == 'not.peer-focus' && this.peerHasFocus;
-                if (!focusPreventsMatch && doesComboMatch(e, combo, isMacOs)) {
-                    if (debug) console.log('%cCombo matched: ' + combo, 'color: hsl(295, 100%, 55%)');
-                    const preserveDefault = await handler(e);
-                    if (!preserveDefault) e.preventDefault();
+        document.addEventListener('keydown', async e => {
+            // check if a sequence is active
+            if (this.followUpCombos.length != 0) {
+                const keybindingEntry = this.followUpCombos.find(({ nextCombo }) => doesComboMatch(e, nextCombo));
+
+                if (!keybindingEntry) {
+                    if (debug) console.log(`No Sequence matched`);
+                    this.followUpCombos = [];
+                    return;
                 }
+
+                const { nextCombo, handler } = keybindingEntry;
+                if (debug) console.log(`%cSecond Combo matched: ${nextCombo}`, 'color: hsl(295, 100%, 55%)');
+
+                // handler decides if default should be preserved or prevented
+                if (!(await handler(e))) e.preventDefault();
+                this.followUpCombos = [];
+
+                return;
+            }
+
+            this.keybindings.forEach(async ({ sequence, when, handler }) => {
+                const focusPreventsMatch = when == 'not.peer-focus' && this.peerHasFocus;
+                if (focusPreventsMatch) return;
+
+                const combo = sequence[0];
+                if (!doesComboMatch(e, combo)) return;
+
+                if (sequence.length > 1) {
+                    const nextCombo = sequence[1];
+                    if (debug)
+                        console.log(
+                            `%cFirst Combo matched: ${combo}`,
+                            'color: hsl(295, 100%, 55%)',
+                            `Waiting for second combo: ${nextCombo}`,
+                        );
+
+                    this.followUpCombos.push({ nextCombo, handler });
+
+                    setTimeout(() => {
+                        if (this.followUpCombos.length != 0) {
+                            this.followUpCombos = [];
+                            if (debug) console.log(`Timeout - Could not match a sequence`);
+                        }
+                    }, 1800);
+
+                    return;
+                }
+
+                // handler decides if default should be preserved or prevented
+                if (!(await handler(e))) e.preventDefault();
             });
         });
     }
 
+    private followUpCombos: { nextCombo: string; handler: Function }[] = [];
     private keybindings = new Map<string, Keybinding>();
 
     registerKeybinding({ id, ...keybinding }: Keybinding & { id: string }) {
         if (debug)
             console.info(
-                `registering: %c${keybinding.combo}%c, when: ${keybinding.when}`,
+                `registering: %c${keybinding.sequence.join(' -> ')}%c, when: ${keybinding.when}`,
                 'color: hsl(185, 100%, 50%);',
                 'color: darkgray',
             );
 
-        const isKeybindingColliding = [...this.keybindings.values()].some(
-            binding => binding.combo == keybinding.combo && binding.when != 'focus',
-        );
-        if (isKeybindingColliding) console.warn(`keybinding '${keybinding.combo}' already registered`);
+        const isKeybindingColliding = [...this.keybindings.values()].some(binding =>
+            // @TODO: sequences should be normalized (clean up spaces, casing, syntax) before comparing
+            binding.sequence.join(' -> ') == keybinding.sequence.join(' -> ') &&
+            binding.when != 'focus',
+        ); // prettier-ignore
+        if (isKeybindingColliding)
+            console.warn(`Colliding keybinding: '${keybinding.sequence.join(' -> ')}' already registered`);
 
         this.keybindings.set(id, keybinding);
     }
-    unregisterKeybinding(id: string, combo: string) {
-        if (debug) console.info(`unregistering: %c${combo}`, 'color: orange;');
+    unregisterKeybinding(id: string, sequence: string[]) {
+        if (debug) console.info(`unregistering: %c${sequence.join(' -> ')}`, 'color: orange;');
         this.keybindings.delete(id);
     }
 
