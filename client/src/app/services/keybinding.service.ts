@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StateModifier } from '../directives/keybinding.directive';
 
-const isMacOs = true; // @TODO: implement OS check
+const isMacOs = /(Mac)/i.test(navigator.platform);; // @TODO: update deprecated OS check
 
 export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs_ = isMacOs) => {
     const keys = combo.split('+');
