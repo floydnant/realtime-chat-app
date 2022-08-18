@@ -36,7 +36,7 @@
 
     <ul class="chats | w-full">
         <li
-            *ngFor="let chat of chatPreviews$ | async; let i = index"
+            *ngFor="let chat of chatPreviews$ | async"
             class="chat"
             [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
             (click)="setChatActive(chat.friendshipOrChatGroupId)"
