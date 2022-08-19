@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
+import { environment } from 'src/environments/environment';
 import { StateModifier } from '../directives/keybinding.directive';
 
-const isMacOs = /(Mac)/i.test(navigator.platform);; // @TODO: update deprecated OS check
+const isMacOs = /(Mac)/i.test(navigator.platform); // @TODO: update deprecated OS check
 
 export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs_ = isMacOs) => {
     const keys = combo.split('+');
@@ -26,10 +27,12 @@ export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs_ = isMac
     return modifiersMatch;
 };
 
+type ComboMatchHandler = (e: KeyboardEvent) => Promise<void | boolean> | void | boolean;
+
 interface Keybinding {
     when: StateModifier;
     sequence: string[];
-    handler: (e: KeyboardEvent) => Promise<void | boolean> | void | boolean;
+    handler: ComboMatchHandler;
 }
 
 const debug = false;
@@ -60,6 +63,7 @@ export class KeybindingService {
                 return;
             }
 
+            // otherwise check all combos
             this.keybindings.forEach(async ({ sequence, when, handler }) => {
                 const focusPreventsMatch = when == 'not.peer-focus' && this.peerHasFocus;
                 if (focusPreventsMatch) return;
@@ -67,6 +71,7 @@ export class KeybindingService {
                 const combo = sequence[0];
                 if (!doesComboMatch(e, combo)) return;
 
+                // check if it's the start of a sequence
                 if (sequence.length > 1) {
                     const nextCombo = sequence[1];
                     if (debug)
@@ -94,7 +99,7 @@ export class KeybindingService {
         });
     }
 
-    private followUpCombos: { nextCombo: string; handler: Function }[] = [];
+    private followUpCombos: { nextCombo: string; handler: ComboMatchHandler }[] = [];
     private keybindings = new Map<string, Keybinding>();
 
     registerKeybinding({ id, ...keybinding }: Keybinding & { id: string }) {
@@ -105,13 +110,15 @@ export class KeybindingService {
                 'color: darkgray',
             );
 
-        const isKeybindingColliding = [...this.keybindings.values()].some(binding =>
-            // @TODO: sequences should be normalized (clean up spaces, casing, syntax) before comparing
-            binding.sequence.join(' -> ') == keybinding.sequence.join(' -> ') &&
-            binding.when != 'focus',
-        ); // prettier-ignore
-        if (isKeybindingColliding)
-            console.warn(`Colliding keybinding: '${keybinding.sequence.join(' -> ')}' already registered`);
+        if (environment.production) {
+            const isKeybindingColliding = [...this.keybindings.values()].some(binding =>
+                // @TODO: sequences should be normalized (clean up spaces, casing, syntax) before comparing
+                binding.sequence.join(' -> ') == keybinding.sequence.join(' -> ') &&
+                binding.when != 'focus',
+            ); // prettier-ignore
+            if (isKeybindingColliding)
+                console.warn(`Colliding keybinding: '${keybinding.sequence.join(' -> ')}' already registered`);
+        }
 
         this.keybindings.set(id, keybinding);
     }
