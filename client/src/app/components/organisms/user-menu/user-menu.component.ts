@@ -38,21 +38,25 @@ export class UserMenuComponent implements OnInit {
             route: '/invites',
             badge: 0,
             iconClass: 'fas fa-envelope',
+            keybinding: 'G -> I',
         },
         {
             label: 'Chats',
             route: '/chat',
             iconClass: 'fas fa-comments-alt',
+            keybinding: 'G -> C',
         },
         {
             label: 'Account',
             disabled: true,
             iconClass: 'fas fa-user',
+            keybinding: 'G -> A',
         },
         {
             label: 'Settings',
             disabled: true,
             iconClass: 'fas fa-cog',
+            keybinding: 'G -> S',
         },
         {
             label: 'Request a Feature',

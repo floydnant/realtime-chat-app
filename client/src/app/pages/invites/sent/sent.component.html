@@ -6,6 +6,7 @@
         placeholder="Search for users"
         #userSearchInput
         (keydown.enter)="searchUsers(userSearchInput.value)"
+        [keybinding]="{ 'not.peer-focus:cmd+F': 'focus', 'focus:Escape': 'blur' }"
     />
     <button class="button flex" (click)="searchUsers(userSearchInput.value)">
         Search <loading-spinner *ngIf="loadingSearchResults" class="ml-2"></loading-spinner>
@@ -31,7 +32,9 @@
 <!-- <button (click)="loadSentInvitations()">{{ (sentInvitations$ | async)?.all ? 're' : '' }}load</button> -->
 <p class="text-center">
     <loading-spinner *ngIf="(sentInvitations$ | async)?.loading"></loading-spinner>
-    <span class="text-gray-300">{{ (sentInvitations$ | async)?.all?.length == 0 ? 'You didn\'t sent any invites yet.' : '' }}</span>
+    <span class="text-gray-300">{{
+        (sentInvitations$ | async)?.all?.length == 0 ? "You didn't sent any invites yet." : ''
+    }}</span>
 </p>
 <ul class="sent-invitations">
     <app-invitation

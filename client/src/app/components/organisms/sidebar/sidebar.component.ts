@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { map } from 'rxjs';
+import { KeybindingInput } from 'src/app/directives/keybinding.directive';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
-import { UserService } from 'src/app/services/user.service';
 import { AppState } from 'src/app/store/app.reducer';
 import { chatActions } from 'src/app/store/chat/chat.actions';
 import { ChatPreview } from 'src/app/store/chat/chat.model';
 import { chatsSelectors } from 'src/app/store/chat/chat.selector';
-import { userActions } from 'src/app/store/user/user.actions';
-import { ChatType, InvitationResponse, InvitationStatus, UserSearchResult } from 'src/shared/index.model';
+import { ChatType } from 'src/shared/index.model';
 
 @Component({
     selector: 'sidebar',
@@ -21,12 +21,28 @@ export class SidebarComponent implements OnInit {
         this.store.dispatch(chatActions.loadChatPreviews());
     }
 
+    getChatKeybinding(index: number): KeybindingInput {
+        return (
+            index < 9 && {
+                ['alt+' + (index + 1)]: 'click',
+                ['not.peer-focus:' + (index + 1)]: 'click',
+            }
+        );
+    }
+
     ChatType = ChatType;
 
     loggedInUser$ = this.store.select(state => state.user.loggedInUser);
     activeChatId$ = this.store.select(state => state.chats.activeChatId);
 
-    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
+    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews).pipe(
+        map(chatPreviews =>
+            chatPreviews.map((chatPreview, i) => ({
+                ...chatPreview,
+                keybinding: this.getChatKeybinding(i),
+            })),
+        ),
+    );
     loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
 
     isMemberOfGlobalGroup(chatPreviews: ChatPreview[] | null) {

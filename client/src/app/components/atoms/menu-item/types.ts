@@ -1,3 +1,5 @@
+import { KeybindingInput } from 'src/app/directives/keybinding.directive';
+
 export enum MenuItemType {
     DEFAULT = 'default',
     PRIMARY = 'primary',
@@ -13,4 +15,5 @@ export type MenuItem = {
     badge?: number;
     disabled?: boolean;
     iconClass: string;
+    keybinding?: KeybindingInput;
 };

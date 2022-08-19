@@ -2,6 +2,10 @@
     <button
         class="text-gray-200 hover:text-secondary-400 transition-colors flex gap-1 items-center"
         [dropDownTriggerFor]="menu"
+        [keybinding]="{
+            'not.peer-focus:G': { action: 'click', enabled: !menu.isOpen },
+            'not.peer-focus:Escape': { action: 'click', enabled: menu.isOpen }
+        }"
     >
         <span class="font-bold">{{ (loggedInUser$ | async)?.username }}</span>
         <div>
