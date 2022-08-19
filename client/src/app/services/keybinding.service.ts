@@ -3,6 +3,8 @@ import { StateModifier } from '../directives/keybinding.directive';
 
 const isMacOs = /(Mac)/i.test(navigator.platform);; // @TODO: update deprecated OS check
 
+console.log('isMacOs:', isMacOs);
+
 export const doesComboMatch = (e: KeyboardEvent, combo: string, isMacOs_ = isMacOs) => {
     const keys = combo.split('+');
 
