@@ -25,10 +25,10 @@ export class ChatGateway {
     async handleChatMessage(client: TypedSocket, { chatId, messageText, sendingId }: Client_ChatMessagePayload) {
         const user = this.socketManager.getUserOnline(client.id);
         if (!user) return;
-        const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.userId);
+        const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.id);
         if (!isUserChatMember) return;
 
-        const persistedMessage = await this.chatService.persistMessageInChat(messageText, chatId, user.userId);
+        const persistedMessage = await this.chatService.persistMessageInChat(messageText, chatId, user.id);
         this.logger.verbose(`${user.username} wrote '${messageText}' in chat '${chatId}'`);
 
         this.server.to(chatId).emit(SocketEvents.SERVER__CHAT_MESSAGE, {
@@ -42,7 +42,7 @@ export class ChatGateway {
     async handleTypingEvents(client: TypedSocket, { chatId, isTyping }: Client_TypingEventPayload) {
         const user = this.socketManager.getUserOnline(client.id);
         if (!user) return;
-        const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.userId);
+        const isUserChatMember = await this.chatService.isUserChatMember(chatId, user.id);
         if (!isUserChatMember) return;
 
         this.logger.verbose(`${user.username} ${isTyping ? 'started' : 'stopped'} typing in chat '${chatId}'`);

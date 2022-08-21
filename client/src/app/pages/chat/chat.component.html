@@ -3,9 +3,9 @@
     <div class="chat-title-bar">
         <h1 class="chat-title | !mb-0 text-2xl">{{ activeChat?.title }}</h1>
         <div
-            class="users-online cut-text"
-            [class.show]="usersOnlineText$ | async"
-            [innerHTML]="usersOnlineText$ | async"
+            class="users-online w-full"
+            [class.show]="activeChat?.onlineStatus"
+            [innerHTML]="activeChat?.onlineStatus"
         ></div>
     </div>
     <div class="chat" #chatRef>

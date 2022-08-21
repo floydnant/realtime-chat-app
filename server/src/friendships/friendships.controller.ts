@@ -39,6 +39,10 @@ export class FriendshipsController {
     getMessages(@GetUser() user: User, @Param('id') id: string) {
         return this.friendshipsService.getFriendshipMessages(user.id, id);
     }
+    @Get('/:id/data')
+    getDetails(@GetUser() user: User, @Param('id') id: string) {
+        return this.friendshipsService.getFriendshipData(user.id, id);
+    }
 
     @Delete('/:id')
     deleteFriendship(@GetUser() user: User, @Param('id') id: string) {

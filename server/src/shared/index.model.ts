@@ -75,19 +75,18 @@ export interface ChatGroupDetails {
     createdBy: UserPreview;
     owner: UserPreview;
 }
-export interface Friendship {
+export interface FriendshipData {
     friend: UserPreview;
 }
 export interface FriendshipDetails {
     friendsSince: string;
 }
-export type FriendshipFull = Friendship & FriendshipDetails & { id: string };
+export type FriendshipFull = FriendshipData & FriendshipDetails & { id: string };
 
 export interface UserDetails {
-    friendshipId?: string; // to indicate wether the user is a friend or not
+    friendshipId: string | undefined; // to indicate wether the user is a friend or not
     bio?: string;
-    isOnline: boolean;
-    lastOnline?: string;
+    // lastOnline?: string;
     imageUrl?: string;
 }
 

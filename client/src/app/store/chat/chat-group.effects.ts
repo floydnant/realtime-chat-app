@@ -4,6 +4,8 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { mergeMap, map } from 'rxjs';
 import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { FriendshipService } from 'src/app/services/friendship.service';
+import { SocketService } from 'src/app/services/socket.service';
+import { SocketEvents } from 'src/shared/socket-events.model';
 import { throwIfErrorExists, catchAndHandleError, handleResponse } from '../app.effects';
 import { chatActions } from './chat.actions';
 
@@ -14,6 +16,7 @@ export class ChatGroupEffects {
         private chatGroupService: ChatGroupService,
         private friendshipService: FriendshipService,
         private toastService: HotToastService,
+        private socket: SocketService,
     ) {}
 
     createChat = createEffect(() => {
@@ -70,4 +73,10 @@ export class ChatGroupEffects {
             ),
         );
     });
+
+    addJoinedMemberToGroup = createEffect(() =>
+        this.socket
+            .fromEvent(SocketEvents.SERVER__USER_JOINED_CHAT)
+            .pipe(map(({ chatId, user }) => chatActions.addMemberToGroup({ chatId, newMember: user }))),
+    );
 }

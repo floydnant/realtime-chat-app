@@ -45,7 +45,24 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.user = user.loggedInUser;
             this.chatsState = chats;
         });
-        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => (this.activeChat = chat));
+        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => {
+            const membersOnlineStatus = chat?.members
+                ?.sort((a, b) => Number(b.isOnline) - Number(a.isOnline))
+                .map(
+                    m =>
+                        `<span class="${m.isOnline ? 'text-primary-400' : 'text-gray-500'}">${
+                            m.id == this.user?.id ? 'You' : m.username
+                        }</span>`,
+                )
+                .join(', ');
+            const friendOnlineStatus =
+                chat?.isOnline === false ? 'offline' : chat?.isOnline && '<span class="text-primary-400">online</span>';
+
+            this.activeChat = chat && {
+                ...chat,
+                onlineStatus: membersOnlineStatus || friendOnlineStatus,
+            };
+        });
     }
 
     ngOnDestroy() {
@@ -54,7 +71,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
     chatsState: ChatsState;
     user: LoggedInUser | null;
-    activeChat: ChatPreview | null;
+    activeChat: (ChatPreview & { onlineStatus: string | undefined }) | null;
 
     MessageTypes = MessageTypes;
     ChatType = ChatType;
@@ -127,18 +144,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
-        }),
-    );
-
-    usersOnlineText$ = this.chatService.getUsersOnline().pipe(
-        map(usersOnline => {
-            const users = (usersOnline || []).filter(u => u != this.user?.username);
-            if (this.activeChat?.chatType == ChatType.PRIVATE)
-                return users.length > 1
-                    ? '<span class="text-primary-400">online</span>'
-                    : '<span class="text-gray-300">offline</span>';
-
-            return users.map(u => `<span class="text-primary-400">${escapeHTML(u)}</span>`).join(', ');
         }),
     );
 
