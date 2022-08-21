@@ -96,6 +96,7 @@ export class SocketManagerService {
                 },
             });
         });
+        this.logUsersOnline();
     }
 
     setUserOnline({
@@ -120,6 +121,7 @@ export class SocketManagerService {
             this.usersOnline.set(userId, { username, clients: clientsMap });
         }
         chatIds.forEach(chatId => this.addUserToRoom(userId, chatId, client.id));
+        this.logUsersOnline();
     }
 
     getUsersChatIds(userId: string) {
@@ -130,6 +132,7 @@ export class SocketManagerService {
 
     joinRoom(userId: string, chatId: string) {
         this.addUserToRoom(userId, chatId);
+        this.logUsersOnline();
     }
     private addUserToRoom(userId: string, chatId: string, clientId?: string) {
         const user = this.usersOnline.get(userId);
@@ -195,6 +198,15 @@ export class SocketManagerService {
     // @TODO: replace this
     async logUsersOnline() {
         if (IS_PROD) return;
+
+        const data = [...this.chatUsersMap.entries()].map(([chatId, usersSet]) => {
+            const users = [...usersSet.values()].map(id => this.usersOnline.get(id).username);
+            return {
+                chatId,
+                users,
+            };
+        });
+        console.table(data);
         // const usersOnlinePerChat = await Promise.all(
         //     Object.entries(this.usersOnlineByChat).map(async ([chatId, users]) => ({
         //         // ...(await this.chatService.getChatName(chatId)),
