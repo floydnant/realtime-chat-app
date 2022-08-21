@@ -50,7 +50,7 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
                 ?.sort((a, b) => Number(b.isOnline) - Number(a.isOnline))
                 .map(
                     m =>
-                        `<span class="${m.isOnline ? 'text-primary-400' : 'text-gray-500'}">${
+                        `<span class="${m.isOnline ? 'text-primary-400' : ''}">${
                             m.id == this.user?.id ? 'You' : m.username
                         }</span>`,
                 )

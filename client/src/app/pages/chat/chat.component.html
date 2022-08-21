@@ -4,7 +4,7 @@
         <h1 class="chat-title | !mb-0 text-2xl">{{ activeChat?.title }}</h1>
         <!-- @FIXME: truncating (container is expanding instead of limiting) -->
         <div
-            class="users-online w-full"
+            class="users-online w-full text-gray-500"
             [class.show]="activeChat?.onlineStatus"
             [innerHTML]="activeChat?.onlineStatus"
         ></div>
@@ -13,7 +13,7 @@
         <div *ngIf="!chatsState.loadingActiveChatMessages" class="messages">
             <div *ngFor="let message of messages; let i = index">
                 <chat-message
-                    *ngIf="!isSameDay(message.timestamp, messages[i - 1]?.timestamp || '')"
+                    *ngIf="!isSameDay(message.timestamp, messages[i - 1]?.timestamp || '')" 
                     [variant]="MessageTypes.USER_EVENT"
                     [messageText]="getDay(message.timestamp) || 'Invalid date'"
                 ></chat-message>
