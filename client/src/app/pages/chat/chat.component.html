@@ -1,7 +1,8 @@
 <sidebar></sidebar>
 <div class="_container">
-    <div class="chat-title-bar">
+    <div class="chat-title-bar | w-full p-3 z-10">
         <h1 class="chat-title | !mb-0 text-2xl">{{ activeChat?.title }}</h1>
+        <!-- @FIXME: truncating (container is expanding instead of limiting) -->
         <div
             class="users-online w-full"
             [class.show]="activeChat?.onlineStatus"
