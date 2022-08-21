@@ -1,32 +1,22 @@
 :host {
-    height: 100vh;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+    @apply h-screen w-full max-w-full
+        flex
+        justify-center
+        items-center;
 }
 ._container {
     box-sizing: border-box;
     position: relative;
-    margin: 0 auto;
-    height: calc(100% - 0px);
-    // width: min(100%, 800px);
-    @apply w-full;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    @apply h-full 
+        w-full 
+        flex
+        flex-col
+        justify-between
+        items-center
+        mx-auto;
 }
 .chat-title-bar {
-    @apply w-full p-3 z-10 /* bg-fade-to-bottom */;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-
-
     .users-online {
         font-size: 0.8rem;
 
@@ -114,7 +104,6 @@
     &.visible {
         padding-top: 15px;
         margin-bottom: 10px;
-
 
         .dots {
             opacity: 1;

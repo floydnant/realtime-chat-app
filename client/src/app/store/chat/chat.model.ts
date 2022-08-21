@@ -4,10 +4,7 @@ import {
     MessagePreview_,
     ReceivedFriendshipInvitation,
     ChatGroup,
-    ChatGroupDetails,
-    Friendship,
-    FriendshipDetails,
-    UserDetails,
+    FriendshipData,
     SentFriendshipInvitation,
 } from 'src/shared/index.model';
 import { HttpSuccessResponse } from '../app.model';
@@ -23,16 +20,17 @@ export class ChatsState {
     loadingChatPreviews: boolean = false;
 
     // @TODO: implement details view
-    // chatGroups: Record<string, ChatGroup> = {};
+    chatGroups: Record<string, ChatGroup> = {};
     // chatGroupsDetails: Record<string, ChatGroupDetails> = {};
-    // friendships: Record<string, Friendship> = {};
+    friendships: Record<string, FriendshipData> = {};
     // friendshipsDetails: Record<string, FriendshipDetails> = {};
     // loadingDetails: boolean = false;
 
     messagesByChat: Record<string, StoredMessage[]> = {};
     loadingActiveChatMessages = false;
 
-    users: Record<string, UserDetails>;
+    // usersDetails: Record<string, UserDetails> = {};
+    usersStatus: Record<string, boolean> = {};
 
     receivedInvitations: {
         pending?: ReceivedFriendshipInvitation[];
@@ -40,7 +38,6 @@ export class ChatsState {
         declined?: ReceivedFriendshipInvitation[];
         loading: boolean;
     } = {
-        // @TODO: maybe let them default to null
         pending: undefined,
         accepted: undefined,
         declined: undefined,

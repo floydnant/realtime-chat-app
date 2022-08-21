@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { ChatType } from 'src/shared/index.model';
+import { ChatType, FriendshipData } from 'src/shared/index.model';
 import { userActions } from '../user/user.actions';
 import { chatActions } from './chat.actions';
 import { ChatsState, StoredMessage } from './chat.model';
@@ -108,6 +108,36 @@ export const chatsReducer = createReducer(
         };
     }),
 
+    on(chatActions.loadChatDataSuccess, (state, { chatId, data }) => {
+        const isFriendship = (data: any): data is FriendshipData => {
+            return 'friend' in data;
+        };
+
+        let key: 'chatGroups' | 'friendships' = 'chatGroups';
+        if (isFriendship(data)) key = 'friendships';
+
+        return {
+            ...state,
+            [key]: {
+                ...state[key],
+                [chatId]: data,
+            },
+        };
+    }),
+    // new member has joined
+    on(chatActions.addMemberToGroup, (state, { chatId, newMember }) => {
+        return {
+            ...state,
+            chatGroups: {
+                ...state.chatGroups,
+                [chatId]: {
+                    ...(state.chatGroups[chatId] || {}),
+                    members: [...(state.chatGroups[chatId]?.members || []), newMember],
+                },
+            },
+        };
+    }),
+
     // load friendship invitations
     on(chatActions.newInvitationReceived, (state, { invitation }) => {
         return {
@@ -204,4 +234,25 @@ export const chatsReducer = createReducer(
             },
         };
     }),
+
+    // set users on- and offline
+    on(chatActions.setUserOnlineStatus, (state, { userId, isOnline }) => {
+        return {
+            ...state,
+            usersStatus: {
+                ...state.usersStatus,
+                [userId]: isOnline,
+            },
+        };
+    }),
+
+    // on(chatActions.loadUserDetailsSuccess, (state, { userId, userDetails }) => {
+    //     return {
+    //         ...state,
+    //         usersDetails: {
+    //             ...state.usersDetails,
+    //             [userId]: userDetails,
+    //         },
+    //     };
+    // }),
 );

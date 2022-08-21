@@ -35,6 +35,22 @@ export class ChatsEffects {
         );
     });
 
+    loadActiveChatData = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(chatActions.loadActiveChatMessages),
+            mergeMap(action => {
+                const { chatId, chatType } = action;
+                return this.chatService.getChatData({ chatId, chatType }).pipe(
+                    handleResponse({
+                        onSuccess: chatGroupOrFrienship =>
+                            chatActions.loadChatDataSuccess({ data: chatGroupOrFrienship, chatId }),
+                        actionToRetry: action,
+                    }),
+                );
+            }),
+        );
+    });
+
     forwardSetActiveChat = createEffect(() => {
         return this.actions$.pipe(
             ofType(chatActions.setActiveChatSuccess),

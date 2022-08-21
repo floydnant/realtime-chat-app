@@ -6,10 +6,10 @@ import {
     SELECT_all_chat_data,
     SELECT_message,
     SELECT_user_preview,
+    SELECT_member_user_preview,
 } from 'src/prisma-abstractions/query-helpers';
 import { PrismaService } from 'src/prisma-abstractions/prisma.service';
-import { ChatRoomPreview } from 'src/shared/index.model';
-import { SocketEvents } from 'src/shared/socket-events.model';
+import { ChatGroup, ChatRoomPreview } from 'src/shared/index.model';
 import { SocketManagerService } from 'src/socket/socket-manager.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -48,9 +48,8 @@ export class ChatService {
             ...SELECT_chat_preview,
         });
 
-        const onlineUser = this.socketManager.getUserOnline(userId, 'userId');
-        if (onlineUser) this.socketManager.addUserOnlineToChat(onlineUser, chatGroup.id, true);
-        this.socketManager.logUsersOnline();
+        this.socketManager.joinRoom(userId, chatGroup.id);
+
         return chatGroup;
     }
 
@@ -102,6 +101,18 @@ export class ChatService {
         if (!chatGroup) throw new UnauthorizedException();
         return chatGroup.messages;
     }
+    async getChatData(user: User, chatId: string): Promise<ChatGroup> {
+        const chatGroup = await this.prisma.chatGroup.findFirst({
+            where: { id: chatId, ...WHERE_member(user.id) },
+            select: { members: SELECT_member_user_preview },
+        });
+
+        if (!chatGroup) throw new UnauthorizedException();
+        return {
+            members: chatGroup.members.map(m => m.user),
+            imageUrl: null,
+        };
+    }
 
     async joinChat(user: User, chatId: string) {
         try {
@@ -120,15 +131,7 @@ export class ChatService {
             });
             if (!chatGroup) throw new NotFoundException();
 
-            const onlineUser = this.socketManager.getUserOnline(user.id, 'userId');
-            if (onlineUser) {
-                this.socketManager.addUserOnlineToChat(onlineUser, chatId, true);
-                // @TODO: outsource notifying other chat members, that someone new joined -> socketManager
-                onlineUser.client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_JOINED_CHAT, {
-                    chatId,
-                    user: { id: user.id, username: user.username },
-                });
-            }
+            this.socketManager.joinRoom(user.id, chatId);
 
             return {
                 chatRoom: chatGroup,
@@ -162,7 +165,7 @@ export class ChatService {
             where: { id: chatGroup.members[0].id },
         });
 
-        this.socketManager.removeUserOnlineFromChat(user.id, chatId);
+        this.socketManager.leaveRoom(user.id, chatId);
 
         return {
             successMessage: `Successfully left chat '${chatGroup.title || chatGroup.id}'`,

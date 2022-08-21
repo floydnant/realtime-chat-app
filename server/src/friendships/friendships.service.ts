@@ -10,7 +10,7 @@ import { InvitationStatus } from '@prisma/client';
 import { ChatPreview } from 'src/models/index.model';
 import { SELECT_user_preview_WHERE_NOT, SELECT_user_preview } from 'src/prisma-abstractions/query-helpers';
 import { PrismaService } from 'src/prisma-abstractions/prisma.service';
-import { ChatType, InvitationResponse } from 'src/shared/index.model';
+import { ChatType, FriendshipData, InvitationResponse } from 'src/shared/index.model';
 import { UsersService } from '../users/users.service';
 import { SocketManagerService } from 'src/socket/socket-manager.service';
 import { SocketEvents } from 'src/shared/socket-events.model';
@@ -91,6 +91,13 @@ export class FriendshipsService {
         });
         if (!friendship) throw new NotFoundException('Friendship not found.');
         return friendship?.messages;
+    }
+    async getFriendshipData(userId: string, friendshipId: string): Promise<FriendshipData> {
+        const data = await this.prisma.friendship.findUnique({
+            where: { id: friendshipId },
+            select: { users: SELECT_user_preview_WHERE_NOT(userId) },
+        });
+        return { friend: data.users[0] };
     }
 
     async deleteFriendship(userId: string, friendshipId: string) {
@@ -274,11 +281,8 @@ export class FriendshipsService {
             chatType: ChatType.PRIVATE,
         };
 
-        // @FIXME: show participants as online
-        const inviteeOnline = this.socketManager.getUserOnline(inviteeId, 'userId');
-        if (inviteeOnline) this.socketManager.addUserOnlineToChat(inviteeOnline, friendship.id, true);
-        const inviterOnline = this.socketManager.getUserOnline(inviterId, 'userId');
-        if (inviterOnline) this.socketManager.addUserOnlineToChat(inviterOnline, friendship.id, true);
+        this.socketManager.joinRoom(inviteeId, friendship.id);
+        this.socketManager.joinRoom(inviterId, friendship.id);
 
         this.socketManager.addToSocketQueue({
             eventName: SocketEvents.SERVER__ACCEPT_FRIEND_INVITE,

@@ -7,6 +7,10 @@ import {
     SentFriendshipInvitation,
     InvitationResponse,
     FriendshipInvitation,
+    UserDetails,
+    FriendshipData,
+    ChatGroup,
+    UserPreview,
 } from 'src/shared/index.model';
 import { ChatPreview, SendFriendshipInvitationResponse, StoredMessage } from './chat.model';
 
@@ -43,6 +47,13 @@ export const chatActions = {
         '[ CHAT ] load messages success',
         props<{ chatId: string; chatType: ChatType; messages: StoredMessage[] }>(),
     ),
+
+    loadChatData: createAction('[ CHAT ] load chat data', props<{ chatId: string; chatType: ChatType }>()),
+    loadChatDataSuccess: createAction(
+        '[ CHAT ] load chat data succcess',
+        props<{ chatId: string; data: ChatGroup | FriendshipData }>(),
+    ),
+    addMemberToGroup: createAction('[ CHAT GROUP ] add member', props<{ chatId: string; newMember: UserPreview }>()),
 
     createChat: createAction('[ CHAT GROUP ] create chat', props<{ title: string }>()),
     createChatSuccess: createAction('[ CHAT GROUP ] create chat success', props<{ createdChat: ChatGroupPreview }>()),
@@ -99,4 +110,15 @@ export const chatActions = {
         '[ FRIENDSHIP ] delete invitation success',
         props<{ invitationId: string }>(),
     ),
+
+    setUserOnlineStatus: createAction(
+        '[ OTHER USERS ] set online status',
+        props<{ userId: string; isOnline: boolean }>(),
+    ),
+
+    // loadUserDetails: createAction('[ OTHER USERS ] load details', props<{ userId: string }>()),
+    // loadUserDetailsSuccess: createAction(
+    //     '[ OTHER USERS ] load details success',
+    //     props<{ userId: string; userDetails: UserDetails }>(),
+    // ),
 };

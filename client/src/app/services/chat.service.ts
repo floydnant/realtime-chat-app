@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
-import { ChatType } from 'src/shared/index.model';
+import { ChatGroup, ChatType, FriendshipData } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
 import { AppState } from '../store/app.reducer';
 import { chatActions } from '../store/chat/chat.actions';
@@ -66,25 +66,18 @@ export class ChatService {
         .subscribe(({ chatId }) => this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []));
 
     // users online
-    private usersOnlineForActiveChat = new Subject<string[]>();
-    getUsersOnline() {
-        return this.usersOnlineForActiveChat.asObservable().pipe(map(usersOnline => ['You', ...usersOnline]));
-    }
-    private usersOnlineMap: { [chatId: string]: string[] } = {};
     private usersOnlineEvents = this.socket
         .fromEvent(SocketEvents.SERVER__USERS_ONLINE)
-        .pipe(
-            tap(({ chatId, usersOnline }) => {
-                this.usersOnlineMap[chatId] = usersOnline;
-            }),
-            filter(({ chatId }) => chatId == this.chatState.activeChatId),
-        )
-        .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
+        .subscribe(({ usersOnline }) => {
+            // @TODO: handle this with one action instead of dipatching the same one multiple times
+            usersOnline.forEach(id => {
+                this.store.dispatch(chatActions.setUserOnlineStatus({ userId: id, isOnline: true }));
+            });
+        });
 
     private setActiveChatEvents = this.actions$
         .pipe(ofType(chatActions.setActiveChatSuccess))
         .subscribe(({ chatId }) => {
-            this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
             this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
         });
 
@@ -110,9 +103,12 @@ export class ChatService {
 
     // this is later also gonna contain join, leave, etc. events
     getUserEvents() {
-        return this.socket
-            .fromEvent(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT)
-            .pipe(filter(({ chatIds }) => chatIds.some(id => id == this.chatState.activeChatId)));
+        return this.socket.fromEvent(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT).pipe(
+            tap(({ user, online }) => {
+                this.store.dispatch(chatActions.setUserOnlineStatus({ userId: user.id, isOnline: online }));
+            }),
+            filter(({ chatIds }) => chatIds.some(id => id == this.chatState.activeChatId)),
+        );
     }
 
     // CRUD stuff
@@ -121,5 +117,11 @@ export class ChatService {
             chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
         );
         return messages;
+    }
+
+    getChatData({ chatId, chatType }: { chatId: string; chatType: ChatType }) {
+        return this.httpClient.get<ChatGroup | FriendshipData>(
+            chatType == 'group' ? `/chats/chat/${chatId}/data` : `/friendships/${chatId}/data`,
+        );
     }
 }
