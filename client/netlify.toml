@@ -4,10 +4,11 @@
     publish = "dist/realtime-chat-app-client/"
 
 [context.production.environment]
-    NG_APP_SERVER_PROVIDER = 'heroku'
+    NG_APP_SERVER_PROVIDER = 'railway'
 
 [context.deploy-preview.environment]
-    NG_APP_SERVER_PROVIDER = 'heroku'
+    NG_APP_SERVER_PROVIDER = 'railway'
 
 [context.branch-deploy.environment]
-    NG_APP_SERVER_BASE_URL = 'https://floyds-messenger--staging.herokuapp.com'
+    # NG_APP_SERVER_BASE_URL = 'https://floyds-messenger--staging.herokuapp.com'
+    NG_APP_SERVER_BASE_URL = 'https://floyds-messenger-staging.up.railway.app'
