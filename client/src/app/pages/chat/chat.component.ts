@@ -5,11 +5,11 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChatService } from 'src/app/services/chat.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { ChatsState, StoredChatMessage } from 'src/app/store/chats/chats.model';
-import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { ChatPreview, ChatsState, StoredMessage } from 'src/app/store/chat/chat.model';
+import { chatsSelectors } from 'src/app/store/chat/chat.selector';
 import { LoggedInUser } from 'src/app/store/user/user.model';
 import { escapeHTML, getCopyOf, moveToMacroQueue } from 'src/app/utils';
-import { MessageTypes, UserPreview } from 'src/shared/index.model';
+import { ChatType, MessageTypes, UserPreview } from 'src/shared/index.model';
 import { DatePipe } from '@angular/common';
 
 export interface UserOnlineStatusEventMessage {
@@ -45,11 +45,36 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             this.user = user.loggedInUser;
             this.chatsState = chats;
         });
+        this.store.select(chatsSelectors.selectActiveChat).subscribe(chat => {
+            const membersOnlineStatus = chat?.members
+                ?.sort((a, b) => Number(b.isOnline) - Number(a.isOnline))
+                .map(
+                    m =>
+                        `<span class="${m.isOnline ? 'text-primary-400' : ''}">${
+                            m.id == this.user?.id ? 'You' : m.username
+                        }</span>`,
+                )
+                .join(', ');
+            const friendOnlineStatus =
+                chat?.isOnline === false ? 'offline' : chat?.isOnline && '<span class="text-primary-400">online</span>';
+
+            this.activeChat = chat && {
+                ...chat,
+                onlineStatus: membersOnlineStatus || friendOnlineStatus,
+            };
+        });
     }
 
     ngOnDestroy() {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
+
+    chatsState: ChatsState;
+    user: LoggedInUser | null;
+    activeChat: (ChatPreview & { onlineStatus: string | undefined }) | null;
+
+    MessageTypes = MessageTypes;
+    ChatType = ChatType;
 
     isSameDay(ts1: string, ts2: string) {
         return this.getDay(ts1, ts2) == 'Today';
@@ -60,10 +85,10 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
 
         const isSameYear = date.getFullYear() == today.getFullYear();
         const isSameMonth = date.getMonth() == today.getMonth();
-        
+
         if (!isSameYear) return this.datePipe.transform(date, 'fullDate');
         if (!isSameMonth) return this.datePipe.transform(date, 'EEEE, MMMM d');
-        
+
         const dateDifference = today.getDate() - date.getDate();
         return dateDifference == 0
             ? 'Today'
@@ -71,12 +96,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             ? 'Yesterday'
             : this.datePipe.transform(date, 'EEEE, MMMM d');
     }
-
-    chatsState: ChatsState;
-    user: LoggedInUser | null;
-    activeChat$ = this.store.select(chatsSelectors.selectActiveChat);
-
-    MessageTypes = MessageTypes;
 
     // TODO: use the generic content editable component from todo app
     @ViewChild('chatRef') chatRef: ElementRef<HTMLDivElement>;
@@ -95,10 +114,6 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             childList: true,
             subtree: true,
         });
-    }
-    @HostListener('document:keydown', ['$event'])
-    focusMessageInput(e: KeyboardEvent) {
-        if (e.key == 'm') moveToMacroQueue(() => this.messageInput.nativeElement.focus());
     }
 
     _newMessage: string;
@@ -125,20 +140,11 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
             if (usersTyping.length == 0) return '';
 
             const usersTypingText = `${usersTyping
-                .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
+                .map(u => `<span class="text-secondary-200">${escapeHTML(u)}</span>`)
                 .join(', ')} ${usersTyping.length > 1 ? 'are' : 'is'} typing`;
 
             return usersTypingText;
         }),
-    );
-
-    usersOnlineText$ = this.chatService.getUsersOnline().pipe(
-        map(usersOnline =>
-            (usersOnline || [])
-                .filter(u => u != this.user?.username)
-                .map(u => `<span class="secondary-100">${escapeHTML(u)}</span>`)
-                .join(', '),
-        ),
     );
 
     private _userMessages_ = this.handleSubscription(
@@ -154,10 +160,15 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
     private _chatMessages_ = this.handleSubscription(
         this.chatService.getChatInitializationUpdates().subscribe(messages => {
             this.messages = getCopyOf(messages);
+            this.sendingMessages = [];
             this.scrollToBottom();
         }),
-        this.chatService.getChatMessageUpdates().subscribe(({ message }) => {
+        this.chatService.getChatMessageUpdates().subscribe(({ message, sendingId }) => {
             this.addMessageToChat(message);
+
+            const messageIndex = this.sendingMessages.findIndex(message => message.sendingId == sendingId);
+            this.sendingMessages.splice(messageIndex, 1);
+
             this.scrollToBottom();
         }),
     );
@@ -167,23 +178,30 @@ export class ChatComponent implements OnDestroy, AfterViewInit {
         const prevSubs = this.subscriptions || [];
         this.subscriptions = [...prevSubs, ...subs];
     }
-
-    async sendMessage() {
+    sendMessage = async () => {
         if (!this.newMessage || !this.user) return;
 
-        this.chatService.sendMessage({ messageText: this.newMessage, chatId: this.chatsState.activeChatId! });
+        const sendingId = new Date().toString() + Math.random();
+        this.chatService.sendMessage({
+            messageText: this.newMessage,
+            chatId: this.chatsState.activeChatId!,
+            sendingId,
+        });
+        this.sendingMessages.push({ messageText: this.newMessage, sendingId });
+        this.scrollToBottom();
 
         this.newMessage = '';
-    }
+    };
     messageSubmitHandler(e: Event) {
         if (!(e as KeyboardEvent).shiftKey) {
             e.stopPropagation();
             this.sendMessage();
         }
     }
+    sendingMessages: { messageText: string; sendingId: string }[] = [];
 
-    messages: (StoredChatMessage | UserOnlineStatusEventMessage)[] = [];
-    addMessageToChat({ ...message }: StoredChatMessage | UserOnlineStatusEvent) {
+    messages: (StoredMessage | UserOnlineStatusEventMessage)[] = [];
+    addMessageToChat({ ...message }: StoredMessage | UserOnlineStatusEvent) {
         // text = escapeHTML(text);
 
         let text: string;

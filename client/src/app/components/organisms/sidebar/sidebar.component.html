@@ -1,18 +1,67 @@
-<div style="display:flex; gap:10px; margin-bottom:20px;">
-    <span class="secondary-100">{{ username$ | async }}</span>
-    <button (click)="logout()">logout</button>
-</div>
+<user-menu></user-menu>
 
-<h2>Chats</h2>
-<ul>
-    <li
-        *ngFor="let chat of chatPreviews$ | async"
-        [class.active]="chat.id == (activeChatId$ | async)"
-        (click)="setChatActive(chat.id)"
+<div class="spacer"></div>
+
+<h2 class="text-2xl font-bold mb-3">Chats <loading-spinner *ngIf="loadingChatPreviews$ | async"></loading-spinner></h2>
+
+<div class="overflow-auto h-full max-h-full pr-3">
+    <div class="flex mb-2 gap-2">
+        <input
+            type="text"
+            placeholder="Search"
+            class="w-full"
+            [keybinding]="{ 'cmd+f': 'focus', 'focus:Escape': 'blur' }"
+        />
+        <div class="relative">
+            <button class="button" [dropDownTriggerFor]="menu" title="Create a group chat">
+                <i class="far fa-edit"></i>
+            </button>
+            <app-drop-down
+                class="absolute top-full right-full z-50"
+                #menu
+                [items]="[
+                    { label: 'Create group chat', action: createChat, iconClass: 'fas fa-plus' },
+                    { label: 'Invite a friend', route: '/invites/sent', iconClass: 'fas fa-envelope' }
+                ]"
+            ></app-drop-down>
+        </div>
+    </div>
+    <button
+        class="button btn-primary w-full mb-2"
+        *ngIf="!isMemberOfGlobalGroup(chatPreviews$ | async)"
+        (click)="joinGlobalChat()"
     >
-        {{ chat.title }}
-    </li>
-</ul>
+        Join global Chat
+    </button>
 
-<button (click)="createChat()">create Chat</button>
-<button (click)="joinGlobalChat()">join global Chat</button>
+    <ul class="chats | w-full">
+        <li
+            *ngFor="let chat of chatPreviews$ | async"
+            class="chat"
+            [class.active]="chat.friendshipOrChatGroupId == (activeChatId$ | async)"
+            (click)="setChatActive(chat.friendshipOrChatGroupId)"
+            [keybinding]="chat.keybinding"
+        >
+            <!-- <div class="image"></div> -->
+            <div class="wrapper">
+                <div class="title | cut-text font-semibold">{{ chat.title }}</div>
+                <div class="last-message cut-text">
+                    <span
+                        class="username"
+                        *ngIf="
+                            chat.lastMessage &&
+                            (chat.chatType == ChatType.GROUP || (loggedInUser$ | async)?.id == chat.lastMessage.user.id)
+                        "
+                        >{{
+                            (loggedInUser$ | async)?.id == chat.lastMessage.user.id
+                                ? 'You'
+                                : chat.lastMessage.user.username
+                        }}:
+                    </span>
+                    <span class="text">{{ chat.lastMessage?.text || '&nbsp;' }}</span>
+                </div>
+            </div>
+            <span class="time">{{ chat.lastMessage?.timestamp | date: 'shortTime' }}</span>
+        </li>
+    </ul>
+</div>

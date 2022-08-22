@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ChatService } from 'src/app/services/chat.service';
-import { chatsActions } from 'src/app/store/chats/chats.actions';
-import { chatsSelectors } from 'src/app/store/chats/chats.selector';
+import { map } from 'rxjs';
+import { KeybindingInput } from 'src/app/directives/keybinding.directive';
+import { ChatGroupService } from 'src/app/services/chat-group.service';
 import { AppState } from 'src/app/store/app.reducer';
-import { userActions } from 'src/app/store/user/user.actions';
+import { chatActions } from 'src/app/store/chat/chat.actions';
+import { ChatPreview } from 'src/app/store/chat/chat.model';
+import { chatsSelectors } from 'src/app/store/chat/chat.selector';
+import { ChatType } from 'src/shared/index.model';
 
 @Component({
     selector: 'sidebar',
@@ -12,31 +15,52 @@ import { userActions } from 'src/app/store/user/user.actions';
     styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent implements OnInit {
-    constructor(private store: Store<AppState>, private chatService: ChatService) {}
-
-    username$ = this.store.select(state => state.user.loggedInUser?.username)
-    activeChatId$ = this.store.select(state => state.chats.activeChatId);
-    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews);
-
-    setChatActive(chatId: string) {
-        this.store.dispatch(chatsActions.setActiveChat({ chatId }));
-    }
-
-    createChat() {
-        const title = prompt('Type in the new chat title.')?.trim();
-        if (!title) return;
-        this.store.dispatch(chatsActions.createChat({ title }));
-    }
-
-    joinGlobalChat() {
-        this.chatService.joinGlobalChat();
-    }
-
-    logout() {
-        this.store.dispatch(userActions.logout())
-    }
+    constructor(private store: Store<AppState>, private chatGroupService: ChatGroupService) {}
 
     async ngOnInit() {
-        this.store.dispatch(chatsActions.loadChatPreviews());
+        this.store.dispatch(chatActions.loadChatPreviews());
+    }
+
+    getChatKeybinding(index: number): KeybindingInput {
+        return (
+            index < 9 && {
+                ['alt+' + (index + 1)]: 'click',
+                ['not.peer-focus:' + (index + 1)]: 'click',
+            }
+        );
+    }
+
+    ChatType = ChatType;
+
+    loggedInUser$ = this.store.select(state => state.user.loggedInUser);
+    activeChatId$ = this.store.select(state => state.chats.activeChatId);
+
+    chatPreviews$ = this.store.select(chatsSelectors.selectChatPreviews).pipe(
+        map(chatPreviews =>
+            chatPreviews.map((chatPreview, i) => ({
+                ...chatPreview,
+                keybinding: this.getChatKeybinding(i),
+            })),
+        ),
+    );
+    loadingChatPreviews$ = this.store.select(state => state.chats.loadingChatPreviews);
+
+    isMemberOfGlobalGroup(chatPreviews: ChatPreview[] | null) {
+        return chatPreviews?.some(c => c.title == 'Global Group Chat');
+    }
+
+    setChatActive(chatId: string) {
+        this.store.dispatch(chatActions.setActiveChat({ chatId }));
+    }
+
+    // needs to be an arrow function to retain `this`
+    createChat = () => {
+        const title = prompt('Type in the new chat title.')?.trim();
+        if (!title) return;
+        this.store.dispatch(chatActions.createChat({ title }));
+    };
+
+    joinGlobalChat() {
+        this.chatGroupService.joinGlobalChat();
     }
 }

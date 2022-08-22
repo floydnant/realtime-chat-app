@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';
 import { SignupCredentialsDTO } from 'src/app/store/user/user.model';
 
 @Component({
@@ -8,7 +8,7 @@ import { SignupCredentialsDTO } from 'src/app/store/user/user.model';
     styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent implements OnInit {
-    constructor(private authService: AuthService) {}
+    constructor(private authService: UserService) {}
 
     errorMessages: string | string[];
     successMessage: string;

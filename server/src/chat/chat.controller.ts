@@ -34,6 +34,12 @@ export class ChatController {
         this.logger.verbose(`${user.username} loads messages for chat '${chatId}'`);
         return this.chatService.getChatMessages(user, chatId);
     }
+    @Get('/chat/:chatId/data')
+    getChatData(@Param('chatId') chatId: string, @GetUser() user: User) {
+        this.logger.verbose(`${user.username} loads chat data'${chatId}'`);
+        return this.chatService.getChatData(user, chatId);
+    }
+
     @Post('chat')
     createChat(@Body() { title }: { title: string }, @GetUser() user: User) {
         this.logger.verbose(`${user.username} creates chat '${title}'`);

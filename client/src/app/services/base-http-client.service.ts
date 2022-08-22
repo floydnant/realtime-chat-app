@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
+import { Observable, of, OperatorFunction } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { promisifyObservable } from '../utils';
@@ -16,6 +16,7 @@ type OriginalHttpClientOptions<K extends keyof HttpClient & HttpMethods> = Param
 
 type HttpClientOptionsMap = {
     [method in HttpMethods]: OriginalHttpClientOptions<method> & {
+        disableErrorInterception?: boolean;
         // more options...
     };
 };
@@ -50,7 +51,10 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request. */
     get<T>(endpoint: string, options?: HttpClientOptions<'get'>) {
         const url = this._baseUrl + endpoint;
-        return this.http.get<T>(url, this.addBearerToken(options)).pipe(this.getErrorInterceptor());
+        const response$ = this.http.get<T>(url, this.addBearerToken(options));
+
+        if (options?.disableErrorInterception) return response$;
+        return response$.pipe(this.getErrorInterceptor());
     }
 
     /**
@@ -67,8 +71,10 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request. */
     post<T>(endpoint: string, body?: Record<string, any>, options?: HttpClientOptions<'post'>) {
         const url = this._baseUrl + endpoint;
+        const response$ = this.http.post<T>(url, body || {}, this.addBearerToken(options));
 
-        return this.http.post<T>(url, body || {}, this.addBearerToken(options)).pipe(this.getErrorInterceptor());
+        if (options?.disableErrorInterception) return response$;
+        return response$.pipe(this.getErrorInterceptor());
     }
 
     /**
@@ -77,14 +83,18 @@ export class BaseHttpClient {
      * @param options The HTTP options to send with the request */
     patch<T>(endpoint: string, body: Record<string, any>, options?: HttpClientOptions<'patch'>) {
         const url = this._baseUrl + endpoint;
+        const response$ = this.http.patch<T>(url, body, this.addBearerToken(options));
 
-        return this.http.patch<T>(url, body, this.addBearerToken(options)).pipe(this.getErrorInterceptor());
+        if (options?.disableErrorInterception) return response$;
+        return response$.pipe(this.getErrorInterceptor());
     }
 
     delete<T>(endpoint: string, options?: HttpClientOptions<'delete'>) {
         const url = this._baseUrl + endpoint;
+        const response$ = this.http.delete<T>(url, this.addBearerToken(options));
 
-        return this.http.delete<T>(url, this.addBearerToken(options)).pipe(this.getErrorInterceptor());
+        if (options?.disableErrorInterception) return response$;
+        return response$.pipe(this.getErrorInterceptor());
     }
 
     /** adds bearer token inside the 'headers'*/
@@ -101,20 +111,47 @@ export class BaseHttpClient {
     }
 
     /** catches errors and returns an `HttpServerErrorResponse` */
-    private getErrorInterceptor<T>() {
+    private getErrorInterceptor<T>(): OperatorFunction<T, T | HttpServerErrorResponse> {
         return catchError<T, Observable<HttpServerErrorResponse>>(({ type, ...err }: HttpErrorResponse) => {
-            console.warn('http error handler: An error occurred:', err.error, 'whole error res:', err);
+            console.warn("http error handler catched:'", err);
 
-            if (err.status === 0)
+            if (err.status !== 0) return of(err);
+
+            // check if client is connected to internet
+            if (!navigator.onLine)
                 return of({
                     ...err,
                     error: {
-                        statusCode: 0,
-                        message: 'A network error occurred. Please check your internet connection and try again.',
-                        error: 'client-side or network error',
+                        statusCode: '0 - OFFLINE',
+                        message: 'You are offline. Please connect to the internet and try again.',
+                        error: 'network error',
                     },
                 });
-            else return of(err);
+
+            // check if the server is even up
+            return this.get<HttpServerErrorResponse>('/health', { disableErrorInterception: true }).pipe(
+                // server is up
+                map(() => ({
+                    ...err,
+                    error: {
+                        statusCode: 0,
+                        message:
+                            'An unkown error occurred. Please refresh and try again. If the problem presists, please report it.',
+                        error: 'unknown',
+                    },
+                })),
+                // server is down
+                catchError<HttpServerErrorResponse, Observable<HttpServerErrorResponse>>(err =>
+                    of({
+                        ...err,
+                        error: {
+                            statusCode: '0 - SERVER DOWN',
+                            message: 'We may be experiencing some issues with the server. Please report it.',
+                            error: 'server error',
+                        },
+                    }),
+                ),
+            );
         });
     }
 }

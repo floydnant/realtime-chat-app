@@ -3,13 +3,15 @@ import {
     Injectable,
     InternalServerErrorException,
     Logger,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ADMIN_PWD } from 'src/constants';
-import { PrismaService } from 'src/services/prisma.service';
+import { SELECT_user_preview } from 'src/prisma-abstractions/query-helpers';
+import { PrismaService } from 'src/prisma-abstractions/prisma.service';
 import { LoginCredentialsDTO, SignupCredentialsDTO } from './dto/auth-credetials.dto';
 import { UpdatePasswordDTO, UpdateUserDTO } from './dto/update-user.dto';
 import { JwtPayload } from './jwt-payload.interface';
@@ -55,14 +57,22 @@ export class UsersService {
             const { id } = this.jwtService.verify<JwtPayload>(accessToken);
             const user = await this.prisma.user.findFirst({
                 where: { id },
-                include: { chatGroupsJoined: { select: { chatGroupId: true } } },
+                select: {
+                    username: true,
+                    // @TODO: this should be in its own function
+                    chatGroupsJoined: { select: { chatGroupId: true } },
+                    friends: { select: { id: true } },
+                },
             });
 
             return {
                 id,
                 username: user?.username,
                 authenticated: !!user,
-                chatIds: user?.chatGroupsJoined.map(({ chatGroupId }) => chatGroupId),
+                chatIds: [
+                    ...user?.chatGroupsJoined.map(({ chatGroupId }) => chatGroupId),
+                    ...user?.friends.map(({ id }) => id),
+                ],
             };
         } catch (err) {
             return {
@@ -127,7 +137,7 @@ export class UsersService {
             return {
                 successMessage: `Successfully deleted user '${username}'.`,
             };
-        else return new InternalServerErrorException('Something went wriong');
+        else throw new InternalServerErrorException('Failed to delete your account.');
     }
 
     private getValidatedUser({ username, id }: User) {
@@ -187,5 +197,55 @@ export class UsersService {
     private async hashPassword(password: string) {
         const salt = await bcrypt.genSalt();
         return await bcrypt.hash(password, salt);
+    }
+
+    /////////// public user actions ////////////
+    async getUser(requestingUserId: string, requestedUserId: string) {
+        try {
+            const { friends, ...requestedUser } = await this.prisma.user.findFirst({
+                // @TODO: maybe this should only be accesible to users who are friends with the requested user
+                where: { id: requestedUserId },
+                select: {
+                    username: true,
+                    bio: true,
+                    lastOnline: true,
+                    friends: {
+                        where: {
+                            users: { some: { id: requestingUserId } },
+                        },
+                        select: { id: true },
+                    },
+                },
+            });
+            return {
+                imageUrl: null,
+                ...requestedUser,
+                friendshipId: friends[0]?.id || null,
+            };
+        } catch (err) {
+            throw new NotFoundException('Could not find user.');
+        }
+    }
+
+    async searchUsers(userId: string, query: string) {
+        // this is where a full text search engine would come in handy
+        const users = await this.prisma.user.findMany({
+            where: {
+                username: {
+                    contains: query,
+                },
+            },
+            select: {
+                ...SELECT_user_preview.select,
+                bio: true,
+                friends: {
+                    where: {
+                        users: { some: { id: userId } },
+                    },
+                    select: { id: true },
+                },
+            },
+        });
+        return users.map(({ friends, ...u }) => ({ ...u, friendshipId: friends[0]?.id || null }));
     }
 }

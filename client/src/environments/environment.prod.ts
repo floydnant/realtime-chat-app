@@ -1,23 +1,26 @@
 const isReviewEnv = process.env.NG_APP_PULL_REQUEST == 'true';
 const reviewId = process.env.NG_APP_REVIEW_ID;
-const provider = process.env.NG_APP_SERVER_PROVIDER;
+const provider = process.env.NG_APP_SERVER_PROVIDER || 'heroku';
 
 // @TODO: add staging env
 
 const urls = {
     heroku: {
-        prod: 'https://floyds-messenger-server.herokuapp.com',
+        prod: 'https://floyds-messenger--prod.herokuapp.com',
+        staging: 'https://floyds-messenger--staging.herokuapp.com',
         review: `https://floyds-messenger-pr-${reviewId}.herokuapp.com`,
     },
     railway: {
-        prod: 'https://realtime-chat-app.up.railway.app',
+        prod: 'https://floyds-messenger.up.railway.app',
+        staging: 'https://floyds-messenger-staging.up.railway.app',
         review: `https://realtime-chat-app-realtime-chat-app-pr-${reviewId}.up.railway.app`,
     },
 };
 
 const url = {
-    prod: urls[provider || 'heroku'].prod,
-    review: urls[provider || 'railway'].review,
+    prod: urls[provider].prod,
+    staging: urls[provider].staging,
+    review: urls[provider].review,
 };
 
 export const environment = {

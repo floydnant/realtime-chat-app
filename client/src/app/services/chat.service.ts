@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HotToastService } from '@ngneat/hot-toast';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { Client_ChatMessagePayload } from 'src/shared/chat-event-payloads.model';
+import { ChatGroup, ChatType, FriendshipData } from 'src/shared/index.model';
 import { SocketEvents } from 'src/shared/socket-events.model';
-import { handleError } from '../store/app.effects';
 import { AppState } from '../store/app.reducer';
-import { chatsActions } from '../store/chats/chats.actions';
-import { ChatRoomApiResponse, ChatRoomPreview, ChatsState, StoredChatMessage } from '../store/chats/chats.model';
+import { chatActions } from '../store/chat/chat.actions';
+import { ChatsState, StoredMessage } from '../store/chat/chat.model';
 import { LoggedInUser } from '../store/user/user.model';
 import { debounce, moveToMacroQueue } from '../utils';
 import { BaseHttpClient } from './base-http-client.service';
@@ -24,7 +23,6 @@ export class ChatService {
         private store: Store<AppState>,
         private httpClient: BaseHttpClient,
         private actions$: Actions,
-        private toastService: HotToastService,
     ) {
         store.subscribe(state => {
             this.user = state.user.loggedInUser;
@@ -68,25 +66,20 @@ export class ChatService {
         .subscribe(({ chatId }) => this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []));
 
     // users online
-    private usersOnlineForActiveChat = new Subject<string[]>();
-    getUsersOnline() {
-        return this.usersOnlineForActiveChat.asObservable().pipe(map(usersOnline => ['You', ...usersOnline]));
-    }
-    private usersOnlineMap: { [chatId: string]: string[] } = {};
     private usersOnlineEvents = this.socket
         .fromEvent(SocketEvents.SERVER__USERS_ONLINE)
-        .pipe(
-            tap(({ chatId, usersOnline }) => {
-                this.usersOnlineMap[chatId] = usersOnline;
-            }),
-            filter(({ chatId }) => chatId == this.chatState.activeChatId),
-        )
-        .subscribe(({ usersOnline }) => this.usersOnlineForActiveChat.next(usersOnline));
+        .subscribe(({ usersOnline }) => {
+            // @TODO: handle this with one action instead of dipatching the same one multiple times
+            usersOnline.forEach(id => {
+                this.store.dispatch(chatActions.setUserOnlineStatus({ userId: id, isOnline: true }));
+            });
+        });
 
-    private setActiveChatEvents = this.actions$.pipe(ofType(chatsActions.setActiveChatSuccess)).subscribe(({ chatId }) => {
-        this.usersOnlineForActiveChat.next(this.usersOnlineMap[chatId] || []);
-        this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
-    });
+    private setActiveChatEvents = this.actions$
+        .pipe(ofType(chatActions.setActiveChatSuccess))
+        .subscribe(({ chatId }) => {
+            this.usersTypingForActiveChat.next(this.usersTypingMap[chatId] || []);
+        });
 
     sendMessage(payload: Client_ChatMessagePayload) {
         if (!this.user) return;
@@ -96,57 +89,39 @@ export class ChatService {
     }
     getChatMessageUpdates() {
         return this.socket.fromEvent(SocketEvents.SERVER__CHAT_MESSAGE).pipe(
-            tap(payload => this.store.dispatch(chatsActions.newMessage(payload))),
+            tap(payload => this.store.dispatch(chatActions.newMessage(payload))),
             filter(({ chatId }) => chatId == this.chatState.activeChatId),
         );
     }
 
     getChatInitializationUpdates() {
         return this.actions$.pipe(
-            ofType(chatsActions.loadActiveChatMessagesSuccess),
+            ofType(chatActions.loadActiveChatMessagesSuccess),
             map(({ messages }) => messages),
         );
     }
 
     // this is later also gonna contain join, leave, etc. events
     getUserEvents() {
-        return this.socket
-            .fromEvent(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT)
-            .pipe(filter(({ chatIds }) => chatIds.some(id => id == this.chatState.activeChatId)));
+        return this.socket.fromEvent(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT).pipe(
+            tap(({ user, online }) => {
+                this.store.dispatch(chatActions.setUserOnlineStatus({ userId: user.id, isOnline: online }));
+            }),
+            filter(({ chatIds }) => chatIds.some(id => id == this.chatState.activeChatId)),
+        );
     }
 
     // CRUD stuff
-    getChat(chatId: string) {
-        return this.httpClient.get<ChatRoomApiResponse>('/chats/chat/' + chatId);
-    }
-    getChatMessages(chatId: string) {
-        return this.httpClient
-            .get<StoredChatMessage[]>(`/chats/chat/${chatId}/messages`)
-    }
-
-    createChat(title: string) {
-        return this.httpClient.post<ChatRoomPreview>('/chats/chat', { title });
+    getChatMessages(chatId: string, chatType: ChatType) {
+        const messages = this.httpClient.get<StoredMessage[]>(
+            chatType == 'group' ? `/chats/chat/${chatId}/messages` : `/friendships/${chatId}/messages`,
+        );
+        return messages;
     }
 
-    getJoinedChats() {
-        return this.httpClient.get<ChatRoomPreview[]>('/chats/joined');
-    }
-
-    getGlobalChatPreview() {
-        return this.httpClient.get<ChatRoomPreview>('/chats/globalChat');
-    }
-
-    // TODO: this should be more generic and also inside the effects
-    joinGlobalChat() {
-        return this.httpClient
-            .post<{ successMessage: string; chatRoom: ChatRoomPreview }>('/chats/globalChat/join')
-            .subscribe(chatRoomResOrError => {
-                console.log(chatRoomResOrError);
-                const action = handleError(chatRoomResOrError, chatRoomRes => {
-                    this.toastService.success(`Successfully joined chat '${chatRoomRes.chatRoom.title}'`);
-                    return chatsActions.joinChatSuccess({ chat: chatRoomRes.chatRoom });
-                });
-                this.store.dispatch(action);
-            });
+    getChatData({ chatId, chatType }: { chatId: string; chatType: ChatType }) {
+        return this.httpClient.get<ChatGroup | FriendshipData>(
+            chatType == 'group' ? `/chats/chat/${chatId}/data` : `/friendships/${chatId}/data`,
+        );
     }
 }

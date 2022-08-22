@@ -21,6 +21,17 @@ export interface Server_UserJoinedChatPayload {
     chatId: string;
 }
 
+export interface Server_NewFriendInvite {
+    invitationId: string;
+}
+export interface Server_AcceptFriendInvite {
+    friendshipId: string;
+    friendName: string;
+}
+export interface Server_DeleteFriendInvite {
+    invitationId: string;
+}
+
 export interface Client_TypingEventPayload {
     chatId: string;
     isTyping: boolean;
@@ -34,12 +45,14 @@ export interface Server_TypingEventPayload {
 export interface Client_ChatMessagePayload {
     chatId: string;
     messageText: string;
+    sendingId: string;
 }
 export interface Server_ChatMessagePayload {
     chatId: string;
     message: ServerChatMessage & {
         user: UserPreview;
     };
+    sendingId: string;
 }
 
 export interface Server_UserOnlineStatusEventPayload {
