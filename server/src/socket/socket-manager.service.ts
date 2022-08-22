@@ -38,9 +38,11 @@ export class SocketManagerService {
             return;
         }
 
-        const { clients } = this.usersOnline.get(userId);
-        if (event.roomId) clients.values()[0].broadcast.to(event.roomId).emit(event.eventName, event.payload);
-        else clients.forEach(client => (client as Socket).emit(event.eventName, event.payload));
+        const user = this.usersOnline.get(userId);
+        if (!user) return; // if user is not online
+
+        if (event.roomId) user.clients.values()[0].broadcast.to(event.roomId).emit(event.eventName, event.payload);
+        else user.clients.forEach(client => (client as Socket).emit(event.eventName, event.payload));
     }
 
     private chatUsersMap = new Map</* chat id  */ string, /* user ids */ Set<string>>();
