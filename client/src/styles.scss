@@ -52,7 +52,7 @@ $colors: (
 :root {
     @each $color-name, $shades in $colors {
         @each $shade, $value in $shades {
-            --#{$color-name}-#{$shade}: #{$value};
+            --#{'' + $color-name}-#{$shade}: #{$value};
         }
     }
 }
