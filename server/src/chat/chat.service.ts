@@ -1,4 +1,12 @@
-import { ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+    ConflictException,
+    ForbiddenException,
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { MembershipRole, User } from '@prisma/client';
 import {
     SELECT_chat_preview,
@@ -170,6 +178,71 @@ export class ChatService {
         return {
             successMessage: `Successfully left chat '${chatGroup.title || chatGroup.id}'`,
         };
+    }
+
+    async addNewMemberToGroup(userId: string, newMemberId: string, chatGroupId: string) {
+        const chatGroup = await this.getGroupWithAdminAndMember(chatGroupId, userId, newMemberId);
+        if (chatGroup.members.length != 0)
+            throw new ConflictException(`${chatGroup.members[0].user.username} is already a member of this group.`);
+
+        const membership = await this.prisma.membership.create({
+            data: {
+                chatGroup: { connect: { id: chatGroupId } },
+                role: MembershipRole.member,
+                user: { connect: { id: newMemberId } },
+            },
+            select: { user: { select: { username: true } } },
+        });
+        if (membership) return { successMessage: `You added ${membership.user.username} to '${chatGroup.title}'.` };
+
+        throw new InternalServerErrorException(`Could not add your friend to '${chatGroup.title}'.`);
+    }
+    async removeMemberFromGroup(userId: string, memberId: string, chatGroupId: string) {
+        if (userId == memberId) throw new ConflictException('You cannot kick yourself from a group.');
+
+        const chatGroup = await this.getGroupWithAdminAndMember(chatGroupId, userId, memberId);
+        if (chatGroup.members.length == 0) throw new ForbiddenException(`This user is not a member of this group.`);
+
+        const membership = await this.prisma.membership.findFirst({
+            where: { userId: memberId },
+            select: {
+                id: true,
+                role: true,
+                user: { select: { username: true } },
+            },
+        });
+        console.log(membership);
+        if (membership.role == MembershipRole.admin && chatGroup.ownerId != userId)
+            throw new UnauthorizedException(`You don't have owner permissions for this group.`);
+
+        const deletedMembership = await this.prisma.membership.delete({
+            where: { id: membership.id },
+        });
+        console.log(deletedMembership);
+        if (deletedMembership)
+            return { successMessage: `You kicked ${membership.user.username} from '${chatGroup.title}'.` };
+
+        throw new InternalServerErrorException(`Could not kick ${membership.user.username} from '${chatGroup.title}'.`);
+    }
+
+    /** @returns the members contain a maximum of one user (the user with the memberId) */
+    private async getGroupWithAdminAndMember(chatGroupId: string, adminId: string, memberId: string) {
+        const chatGroup = await this.prisma.chatGroup.findFirst({
+            where: {
+                id: chatGroupId,
+                members: { some: { userId: adminId, role: MembershipRole.admin } },
+            },
+            select: {
+                title: true,
+                ownerId: true,
+                members: {
+                    where: { userId: memberId },
+                    select: { user: { select: { username: true } } },
+                },
+            },
+        });
+        if (!chatGroup) throw new UnauthorizedException("You don't have admin permissions for this group.");
+        return chatGroup;
     }
 
     async isUserChatMember(chatId: string, userId: string) {

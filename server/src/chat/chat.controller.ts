@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 // import { BypassAuth } from 'src/decorators/bypass-auth.decorator';
 import { GetUser } from 'src/decorators/get-user.decorator';
@@ -44,6 +44,16 @@ export class ChatController {
     createChat(@Body() { title }: { title: string }, @GetUser() user: User) {
         this.logger.verbose(`${user.username} creates chat '${title}'`);
         return this.chatService.createChat(user.id, title);
+    }
+    @Post('chat/:chatId/add/:newMemberId')
+    addNewMember(@GetUser() user: User, @Param('chatId') chatId: string, @Param('newMemberId') newMemberId: string) {
+        this.logger.verbose(`${user.username} adds a new user`);
+        return this.chatService.addNewMemberToGroup(user.id, newMemberId, chatId);
+    }
+    @Delete('chat/:chatId/kick/:memberId')
+    removeMember(@GetUser() user: User, @Param('chatId') chatId: string, @Param('memberId') memberId: string) {
+        this.logger.verbose(`${user.username} kicks a member`);
+        return this.chatService.removeMemberFromGroup(user.id, memberId, chatId);
     }
 
     @Get('/joined')
