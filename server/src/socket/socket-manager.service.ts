@@ -185,8 +185,8 @@ export class SocketManagerService {
     getUserOnline(id: string, propertyName: 'userId' | 'clientId' = 'clientId') {
         let userPreview: UserPreview;
         if (propertyName == 'clientId') {
-            const [id, { username }] = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
-            userPreview = { id, username };
+            const [userId, { username }] = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
+            userPreview = { id: userId, username };
         } else {
             const { username } = this.usersOnline.get(id);
             userPreview = { id, username };
