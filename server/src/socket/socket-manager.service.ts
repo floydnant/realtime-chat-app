@@ -38,9 +38,11 @@ export class SocketManagerService {
             return;
         }
 
-        const { clients } = this.usersOnline.get(userId);
-        if (event.roomId) clients.values()[0].broadcast.to(event.roomId).emit(event.eventName, event.payload);
-        else clients.forEach(client => (client as Socket).emit(event.eventName, event.payload));
+        const user = this.usersOnline.get(userId);
+        if (!user) return; // if user is not online
+
+        if (event.roomId) user.clients.values()[0].broadcast.to(event.roomId).emit(event.eventName, event.payload);
+        else user.clients.forEach(client => (client as Socket).emit(event.eventName, event.payload));
     }
 
     private chatUsersMap = new Map</* chat id  */ string, /* user ids */ Set<string>>();
@@ -183,8 +185,8 @@ export class SocketManagerService {
     getUserOnline(id: string, propertyName: 'userId' | 'clientId' = 'clientId') {
         let userPreview: UserPreview;
         if (propertyName == 'clientId') {
-            const [id, { username }] = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
-            userPreview = { id, username };
+            const [userId, { username }] = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
+            userPreview = { id: userId, username };
         } else {
             const { username } = this.usersOnline.get(id);
             userPreview = { id, username };
