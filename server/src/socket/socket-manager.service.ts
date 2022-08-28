@@ -45,6 +45,16 @@ export class SocketManagerService {
         else user.clients.forEach(client => (client as Socket).emit(event.eventName, event.payload));
     }
 
+    async authenticateSocket(accessToken: string) {
+        const { authenticated, id, username, chatIds } = await this.usersService.authenticateFromToken(accessToken);
+
+        return {
+            authenticated,
+            user: { username, id } as UserPreview,
+            chatIds,
+        };
+    }
+
     private chatUsersMap = new Map</* chat id  */ string, /* user ids */ Set<string>>();
     private usersOnline = new Map<string, { clients: Map<string, TypedSocket>; username: string }>();
 
@@ -59,6 +69,7 @@ export class SocketManagerService {
                 if (!usersSet.has(userId)) return;
 
                 client.leave(chatId);
+                // if the user is connected with more than one device
                 if (clients.size > 1) return;
 
                 // if only one user is online in the chat
@@ -80,7 +91,7 @@ export class SocketManagerService {
                 });
             });
 
-            // if multiple clients are logged in with the same user
+            // if the user is connected with more than one device
             if (clients.size > 1) {
                 clients.delete(clientId); // just remove the one
                 return;
@@ -122,7 +133,9 @@ export class SocketManagerService {
             clientsMap.set(client.id, client);
             this.usersOnline.set(userId, { username, clients: clientsMap });
         }
-        chatIds.forEach(chatId => this.addUserToRoom(userId, chatId, client.id));
+        chatIds.forEach(chatId => this.addUserToRoom(userId, chatId, client));
+        this.emitUserOnlineEvent(userId, client, chatIds);
+        this.emitMembersOnline(...chatIds);
         this.logUsersOnline();
     }
 
@@ -134,62 +147,32 @@ export class SocketManagerService {
 
     joinRoom(userId: string, chatId: string) {
         this.addUserToRoom(userId, chatId);
+        this.emitJoinedEvent(userId, chatId);
+        this.emitMembersOnline(chatId);
         this.logUsersOnline();
     }
-    private addUserToRoom(userId: string, chatId: string, clientId?: string) {
-        const user = this.usersOnline.get(userId);
-        this.logger.verbose(`'${user.username}' was added to ${chatId}`);
-
-        const usersSet = this.chatUsersMap.get(chatId);
-        if (usersSet) usersSet.add(userId);
-        else this.chatUsersMap.set(chatId, new Set([userId]));
-
-        if (clientId) {
-            const client = user.clients.get(clientId);
-            client.join(chatId);
-            if (user.clients.size == 1)
-                // if a clientId is given, we can assume that it's an online event
-                client.broadcast.to(chatId).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
-                    chatIds: [chatId],
-                    online: true,
-                    user: { id: userId, username: user.username },
-                });
-        } else {
-            user.clients.forEach(client => client.join(chatId));
-            this.addToSocketQueue({
-                roomId: chatId,
-                eventName: SocketEvents.SERVER__USER_JOINED_CHAT,
-                payload: { chatId, user: { id: userId, username: user.username } },
-            });
-        }
-        this.addToSocketQueue({
-            // userId, // keep this outcommented until SERVER__USER_JOINED_CHAT sets users online on the client
-            eventName: SocketEvents.SERVER__USERS_ONLINE,
-            payload: { chatId, usersOnline: usersSet ? [...usersSet.values()] : [userId] },
-        });
-    }
     leaveRoom(userId: string, chatId: string) {
-        const user = this.usersOnline.get(userId);
-        user.clients.forEach(client => client.leave(chatId));
-
-        const usersSet = this.chatUsersMap.get(chatId);
-        usersSet.delete(userId);
-        if (usersSet.size == 0) this.chatUsersMap.delete(chatId);
-        // @TODO: inform users here (idealy from the server to the show message only on all other users' devices)
+        this.removeUserFromRoom(userId, chatId);
+        // @TODO: emit leave event here
         // this.addToSocketQueue({
-        //     eventName: SocketEvents.
+        //     eventName: SocketEvents.{LEAVE_EVENT_HERE}
         //     roomId: chatId
         // })
+        this.emitMembersOnline(chatId);
+        this.logUsersOnline();
     }
 
     getUserOnline(id: string, propertyName: 'userId' | 'clientId' = 'clientId') {
-        let userPreview: UserPreview;
+        let userPreview: UserPreview | null = null;
         if (propertyName == 'clientId') {
-            const [userId, { username }] = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
-            userPreview = { id: userId, username };
+            const user = [...this.usersOnline.entries()].find(([, { clients }]) => clients.has(id));
+            if (user) {
+                const [userId, { username }] = user;
+                userPreview = { id: userId, username };
+            }
         } else {
-            const { username } = this.usersOnline.get(id);
-            userPreview = { id, username };
+            const user = this.usersOnline.get(id);
+            if (user) userPreview = { id, username: user.username };
         }
 
         if (!userPreview) this.logger.warn(`Could not find user with ${propertyName} '${id}'`);
@@ -197,42 +180,78 @@ export class SocketManagerService {
         return userPreview;
     }
 
-    // @TODO: replace this
-    async logUsersOnline() {
+    private addUserToRoom(userId: string, chatId: string, client?: TypedSocket) {
+        const user = this.usersOnline.get(userId);
+        if (!user) return;
+        this.logger.verbose(`'${user.username}' was added to ${chatId}`);
+
+        if (client) client.join(chatId);
+        else user.clients.forEach(client => client.join(chatId));
+
+        const usersSet = this.chatUsersMap.get(chatId);
+        if (usersSet) usersSet.add(userId);
+        else this.chatUsersMap.set(chatId, new Set([userId]));
+    }
+
+    private async emitJoinedEvent(userId: string, chatId: string) {
+        const username = await this.getUsername(userId);
+
+        this.addToSocketQueue({
+            roomId: chatId,
+            eventName: SocketEvents.SERVER__USER_JOINED_CHAT,
+            payload: { chatId, user: { id: userId, username } },
+        });
+    }
+    private async getUsername(userId: string) {
+        return (
+            this.usersOnline.get(userId)?.username || (await this.usersService.getUsername(userId)) || '[unknown user]'
+        );
+    }
+    private async emitUserOnlineEvent(userId: string, client: TypedSocket, chatIds: string[]) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const user = this.usersOnline.get(userId)!;
+        if (user.clients.size == 1)
+            client.broadcast.to(chatIds).emit(SocketEvents.SERVER__USER_ONLINE_STATUS_EVENT, {
+                chatIds,
+                online: true,
+                user: { id: userId, username: user.username },
+            });
+    }
+
+    private emitMembersOnline(...chatIds: string[]) {
+        chatIds.forEach(chatId => {
+            const usersSet = this.chatUsersMap.get(chatId);
+            if (!usersSet) return;
+
+            this.addToSocketQueue({
+                // userId, // keep this outcommented until SERVER__USER_JOINED_CHAT sets users online on the client
+                eventName: SocketEvents.SERVER__USERS_ONLINE,
+                payload: { chatId, usersOnline: [...usersSet.values()] },
+            });
+        });
+    }
+
+    private removeUserFromRoom(userId: string, chatId: string, client?: TypedSocket) {
+        if (client) client.leave(chatId);
+        else this.usersOnline.get(userId)?.clients.forEach(client => client.leave(chatId));
+
+        const usersSet = this.chatUsersMap.get(chatId);
+        if (!usersSet) return;
+        usersSet.delete(userId);
+        // if no members of the chat are online anymore
+        if (usersSet.size == 0) this.chatUsersMap.delete(chatId); // remove the whole chat
+    }
+
+    private async logUsersOnline() {
         if (IS_PROD) return;
 
         const data = [...this.chatUsersMap.entries()].map(([chatId, usersSet]) => {
-            const users = [...usersSet.values()].map(id => this.usersOnline.get(id).username);
+            const users = [...usersSet.values()].map(id => this.usersOnline.get(id)?.username);
             return {
                 chatId,
                 users,
             };
         });
         console.table(data);
-        // const usersOnlinePerChat = await Promise.all(
-        //     Object.entries(this.usersOnlineByChat).map(async ([chatId, users]) => ({
-        //         // ...(await this.chatService.getChatName(chatId)),
-        //         title: 'no title',
-        //         chatId,
-        //         users: users.map(u => u.username),
-        //     })),
-        // );
-        // const usersOnlineMap = {};
-        // usersOnlinePerChat.forEach(({ chatId, title, users }) => {
-        //     // usersOnlineMap[`${title} -- ${chatId}`] = users;
-        //     usersOnlineMap[chatId] = { title, users };
-        // });
-        // // console.log('users online per chat:', usersOnlineMap, '\n');
-        // console.table(usersOnlineMap);
-    }
-
-    async authenticateSocket(accessToken: string) {
-        const { authenticated, id, username, chatIds } = await this.usersService.authenticateFromToken(accessToken);
-
-        return {
-            authenticated,
-            user: { username, id } as UserPreview,
-            chatIds,
-        };
     }
 }
