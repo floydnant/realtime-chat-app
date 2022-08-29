@@ -199,6 +199,11 @@ export class UsersService {
         return await bcrypt.hash(password, salt);
     }
 
+    async getUsername(userId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+        return user?.username;
+    }
+
     /////////// public user actions ////////////
     async getUser(requestingUserId: string, requestedUserId: string) {
         try {
